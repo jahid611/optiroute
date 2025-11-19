@@ -16,9 +16,13 @@ app.use(express.json());
 // Route 1 : Réinitialisation des données (Bouton Reset)
 app.get('/init-data', async (req, res) => {
     try {
-        // Création des tables si elles n'existent pas
+        // 1. SUPPRESSION TOTALE (On casse tout pour reconstruire propre)
+        await db.query('DROP TABLE IF EXISTS missions');
+        await db.query('DROP TABLE IF EXISTS technicians');
+
+        // 2. CRÉATION DE LA TABLE TECHNICIENS
         await db.query(`
-            CREATE TABLE IF NOT EXISTS technicians (
+            CREATE TABLE technicians (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 name VARCHAR(100) NOT NULL,
                 start_lat DECIMAL(10, 8) NOT NULL,
@@ -28,8 +32,9 @@ app.get('/init-data', async (req, res) => {
             )
         `);
 
+        // 3. CRÉATION DE LA TABLE MISSIONS (Avec la fameuse colonne time_slot !)
         await db.query(`
-            CREATE TABLE IF NOT EXISTS missions (
+            CREATE TABLE missions (
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 client_name VARCHAR(100),
                 address VARCHAR(255) NOT NULL,
@@ -37,20 +42,14 @@ app.get('/init-data', async (req, res) => {
                 lng DECIMAL(11, 8),
                 duration_minutes INT DEFAULT 30,
                 status ENUM('pending', 'assigned', 'done') DEFAULT 'pending',
-                time_slot VARCHAR(20) DEFAULT 'any',
+                time_slot VARCHAR(20) DEFAULT 'any', 
                 technician_id INT,
                 route_order INT,
                 FOREIGN KEY (technician_id) REFERENCES technicians(id)
             )
         `);
 
-        // Nettoyage
-        await db.query('DELETE FROM missions');
-        await db.query('DELETE FROM technicians');
-        await db.query('ALTER TABLE missions AUTO_INCREMENT = 1');
-        await db.query('ALTER TABLE technicians AUTO_INCREMENT = 1');
-
-        // Création du technicien par défaut
+        // 4. CRÉATION DU TECHNICIEN PAR DÉFAUT
         const depotAdresse = "Place de la République, Paris";
         const depotGPS = await getCoordinates(depotAdresse);
         
@@ -61,11 +60,11 @@ app.get('/init-data', async (req, res) => {
             );
         }
 
-        res.send("✅ Données remises à zéro et Tables vérifiées.");
+        res.send("✅ Base de données Cloud reconstruite à neuf !");
 
     } catch (error) {
         console.error(error);
-        res.status(500).send("Erreur init : " + error.message);
+        res.status(500).send("Erreur lors de la reconstruction : " + error.message);
     }
 });
 
