@@ -16,11 +16,14 @@ app.use(express.json());
 // Route 1 : Réinitialisation des données (Bouton Reset)
 app.get('/init-data', async (req, res) => {
     try {
-        // 1. SUPPRESSION TOTALE (On casse tout pour reconstruire propre)
+        console.log("🚀 Démarrage de la réinitialisation complète...");
+
+        // 1. SUPPRESSION (Ordre très important : Enfant 'missions' d'abord, Parent 'technicians' ensuite)
         await db.query('DROP TABLE IF EXISTS missions');
         await db.query('DROP TABLE IF EXISTS technicians');
+        console.log("✅ Tables supprimées.");
 
-        // 2. CRÉATION DE LA TABLE TECHNICIENS
+        // 2. CRÉATION TABLE TECHNICIENS
         await db.query(`
             CREATE TABLE technicians (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -31,8 +34,9 @@ app.get('/init-data', async (req, res) => {
                 capacity INT DEFAULT 10
             )
         `);
+        console.log("✅ Table TECHNICIANS créée.");
 
-        // 3. CRÉATION DE LA TABLE MISSIONS (Avec la fameuse colonne time_slot !)
+        // 3. CRÉATION TABLE MISSIONS (On force la structure)
         await db.query(`
             CREATE TABLE missions (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -45,26 +49,35 @@ app.get('/init-data', async (req, res) => {
                 time_slot VARCHAR(20) DEFAULT 'any', 
                 technician_id INT,
                 route_order INT,
-                FOREIGN KEY (technician_id) REFERENCES technicians(id)
+                FOREIGN KEY (technician_id) REFERENCES technicians(id) ON DELETE SET NULL
             )
         `);
+        console.log("✅ Table MISSIONS créée.");
 
-        // 4. CRÉATION DU TECHNICIEN PAR DÉFAUT
-        const depotAdresse = "Place de la République, Paris";
-        const depotGPS = await getCoordinates(depotAdresse);
+        // 4. INSERTION DU TECHNICIEN (Données en dur pour tester)
+        // On récupère le résultat pour avoir l'ID
+        const [techResult] = await db.query(
+            'INSERT INTO technicians (name, start_lat, start_lng, address) VALUES (?, ?, ?, ?)',
+            ['Thomas le Boss', 48.867196, 2.363607, 'Place de la République, Paris']
+        );
         
-        if (depotGPS.found) {
-            await db.query(
-                'INSERT INTO technicians (name, start_lat, start_lng, address) VALUES (?, ?, ?, ?)',
-                ['Thomas le Boss', depotGPS.lat, depotGPS.lng, depotAdresse]
-            );
-        }
+        // Si ta config DB ne renvoie pas le format [result], utilise techResult.insertId directement
+        const newTechId = techResult.insertId || 1; 
+        console.log(`✅ Technicien inséré avec l'ID : ${newTechId}`);
 
-        res.send("✅ Base de données Cloud reconstruite à neuf !");
+        // 5. INSERTION D'UNE MISSION DE TEST (Liée au technicien créé juste avant)
+        await db.query(
+            `INSERT INTO missions (client_name, address, lat, lng, duration_minutes, status, time_slot, technician_id) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            ['Client Test', '10 Rue de Rivoli, Paris', 48.8556, 2.3522, 45, 'assigned', 'morning', newTechId]
+        );
+        console.log("✅ Mission de test insérée et liée au technicien.");
+
+        res.send(`✅ SUCCÈS TOTAL : Tables créées, Technicien ID ${newTechId} créé, et Mission de test ajoutée !`);
 
     } catch (error) {
-        console.error(error);
-        res.status(500).send("Erreur lors de la reconstruction : " + error.message);
+        console.error("❌ ERREUR FATALE :", error);
+        res.status(500).send("Erreur : " + error.message);
     }
 });
 
