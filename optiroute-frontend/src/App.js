@@ -61,8 +61,7 @@ function App() {
     // ==========================================
     // 👇 TON IP ICI
     // ==========================================
-    const MY_IP = "192.168.1.17"; 
-    const API_URL = `http://${MY_IP}:3001`; 
+const API_URL = "https://optiroute-wxaz.onrender.com";
     // ==========================================
 
     const [route, setRoute] = useState([]);
