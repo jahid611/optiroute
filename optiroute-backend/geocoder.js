@@ -1,38 +1,35 @@
 const axios = require('axios');
 
-// Fonction qui transforme une adresse en { lat, lng }
+// 👇 COLLE TA CLÉ API ICI (La même que dans optimizer.js)
+const API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImExZWY5YzUwNzY3NzQwZTU5NDFhMzA2MGY3YWEyNGU0IiwiaCI6Im11cm11cjY0In0="; 
+
 async function getCoordinates(address) {
     try {
-        // On prépare l'URL pour OpenStreetMap
-        const url = 'https://nominatim.openstreetmap.org/search';
+        // On utilise le géocodeur PRO d'OpenRouteService (plus intelligent)
+        // On ajoute &boundary.country=FR pour qu'il cherche en France en priorité
+        const url = `https://api.openrouteservice.org/geocode/search?api_key=${API_KEY}&text=${encodeURIComponent(address)}&boundary.country=FR`;
         
-        const response = await axios.get(url, {
-            params: {
-                q: address,
-                format: 'json',
-                limit: 1
-            },
-            // IMPORTANT : Nominatim exige un "User-Agent" pour savoir qui l'utilise.
-            // On met un nom bidon pour le dev, mais c'est obligatoire.
-            headers: {
-                'User-Agent': 'OptiRoute-App-Dev/1.0' 
-            }
-        });
+        const response = await axios.get(url);
 
-        // Si on a trouvé une réponse
-        if (response.data && response.data.length > 0) {
-            const location = response.data[0];
+        // Vérification si on a trouvé quelque chose
+        if (response.data && response.data.features && response.data.features.length > 0) {
+            // ORS renvoie [Longitude, Latitude]
+            const coords = response.data.features[0].geometry.coordinates;
+            
+            console.log(`📍 Adresse trouvée : ${address} -> [${coords[1]}, ${coords[0]}]`);
+
             return {
-                lat: parseFloat(location.lat),
-                lng: parseFloat(location.lon),
+                lat: coords[1], // Latitude
+                lng: coords[0], // Longitude
                 found: true
             };
         } else {
+            console.log("❌ Adresse introuvable via ORS :", address);
             return { found: false, error: "Adresse introuvable" };
         }
 
     } catch (error) {
-        console.error('Erreur de géocodage:', error.message);
+        console.error('Erreur Geocoding ORS:', error.message);
         return { found: false, error: error.message };
     }
 }

@@ -28,7 +28,7 @@ const COLORS = {
 const PILL_RADIUS = '38px'; 
 const STANDARD_RADIUS = '4px';
 
-// CRÉATION DES MARQUEURS COLORÉS
+// CRÉATION DES MARQUEURS COLORES
 const createCustomIcon = (index, total) => {
     let color = COLORS.BLUE;
     if (index === 0) color = COLORS.GREEN;
@@ -73,16 +73,22 @@ function App() {
     const [timeSlot, setTimeSlot] = useState("morning");
 
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
-    const [navModal, setNavModal] = useState(null); 
     
+    // MODALS
+    const [navModal, setNavModal] = useState(null); 
     const [showResetModal, setShowResetModal] = useState(false);
     const [resetLoading, setResetLoading] = useState(false);
     const [resetSuccess, setResetSuccess] = useState(false);
     const [showEmptyModal, setShowEmptyModal] = useState(false);
-    
     const [unassignedList, setUnassignedList] = useState([]); 
-    const [showUnassignedModal, setShowUnassignedModal] = useState(false); 
+    const [showUnassignedModal, setShowUnassignedModal] = useState(false);
 
+    // TEAM MANAGEMENT (Le retour !)
+    const [showTeamModal, setShowTeamModal] = useState(false);
+    const [technicians, setTechnicians] = useState([]);
+    const [newTechName, setNewTechName] = useState("");
+    const [newTechAddress, setNewTechAddress] = useState("");
+    
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const isMobileView = screenWidth < 768;
     const center = [48.8675, 2.3639]; 
@@ -93,26 +99,35 @@ function App() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // --- PERSISTANCE DES DONNÉES (Sauvegarde Auto) ---
+    // Chargement initial des techniciens
     useEffect(() => {
-        const savedData = localStorage.getItem('optiroute_data');
-        if (savedData) {
-            try {
-                const { savedRoute, savedPath } = JSON.parse(savedData);
-                if (savedRoute && savedPath) {
-                    setRoute(savedRoute);
-                    setRoutePath(savedPath);
-                }
-            } catch (e) { console.error("Erreur lecture sauvegarde", e); }
-        }
+        fetchTechnicians();
     }, []);
 
-    const saveData = (newRoute, newPath) => {
-        localStorage.setItem('optiroute_data', JSON.stringify({ savedRoute: newRoute, savedPath: newPath }));
+    const fetchTechnicians = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/technicians`);
+            setTechnicians(res.data);
+        } catch (e) { console.error("Erreur chargement techniciens"); }
     };
 
-    const clearData = () => {
-        localStorage.removeItem('optiroute_data');
+    const handleAddTech = async (e) => {
+        e.preventDefault();
+        if (!newTechName || !newTechAddress) return;
+        try {
+            await axios.post(`${API_URL}/technicians`, { name: newTechName, address: newTechAddress });
+            setNewTechName(""); setNewTechAddress("");
+            fetchTechnicians();
+            alert("Technicien ajouté !");
+        } catch (error) { alert("Erreur adresse ou serveur"); }
+    };
+
+    const handleDeleteTech = async (id) => {
+        if(!window.confirm("Supprimer ce technicien ?")) return;
+        try {
+            await axios.delete(`${API_URL}/technicians/${id}`);
+            fetchTechnicians();
+        } catch (e) { alert("Erreur"); }
     };
 
     const handleAddMission = async (e) => {
@@ -134,7 +149,6 @@ function App() {
             if (response.data.path && Array.isArray(response.data.route)) {
                 setRoute(response.data.route);
                 setRoutePath(response.data.path);
-                saveData(response.data.route, response.data.path);
             } else {
                 setRoute([]); 
             }
@@ -145,7 +159,6 @@ function App() {
             } else if (!response.data.route || response.data.route.length === 0) {
                  setShowEmptyModal(true);
             }
-
         } catch (error) { 
             console.error(error);
             setShowEmptyModal(true); 
@@ -160,7 +173,8 @@ function App() {
         try {
             await axios.get(`${API_URL}/init-data`); 
             setRoute([]); setRoutePath([]); setUnassignedList([]);
-            clearData();
+            // On recharge aussi les techniciens par défaut si le reset les touche
+            setTimeout(() => fetchTechnicians(), 500); 
             setResetLoading(false); setResetSuccess(true);
             setTimeout(() => { setShowResetModal(false); setResetSuccess(false); }, 1500);
         } catch (error) { setResetLoading(false); alert("Erreur lors de la réinitialisation"); }
@@ -191,6 +205,36 @@ function App() {
                 {` .leaflet-div-icon { background: transparent; border: none; } `}
             </style>
             
+            {/* MODAL GESTION EQUIPE (Le retour) */}
+            {showTeamModal && (
+                <div style={modalOverlayStyle} onClick={() => setShowTeamModal(false)}>
+                    <div style={{...modalContentStyle, maxWidth:'400px'}} onClick={(e) => e.stopPropagation()}>
+                        <h3 style={modalTitleStyle}>MON ÉQUIPE</h3>
+                        
+                        <div style={{maxHeight: '150px', overflowY: 'auto', marginBottom: '20px', textAlign:'left', border: `1px solid ${COLORS.BORDER}`, borderRadius: STANDARD_RADIUS}}>
+                            {technicians.map(t => (
+                                <div key={t.id} style={{display:'flex', justifyContent:'space-between', padding:'10px', borderBottom:`1px solid ${COLORS.BORDER}`, backgroundColor: '#fafafa'}}>
+                                    <div>
+                                        <div style={{fontWeight:'bold', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif"}}>{t.name}</div>
+                                        <div style={{fontSize:'12px', color: COLORS.GRAY_TEXT}}>{t.address}</div>
+                                    </div>
+                                    <button onClick={() => handleDeleteTech(t.id)} style={{background:'transparent', border:'none', color: COLORS.RED, cursor:'pointer', fontWeight:'bold'}}>✕</button>
+                                </div>
+                            ))}
+                        </div>
+
+                        <form onSubmit={handleAddTech}>
+                            <input type="text" placeholder="Nom (ex: Paul)" value={newTechName} onChange={(e) => setNewTechName(e.target.value)} style={inputStyle} />
+                            <input type="text" placeholder="Départ (Adresse)..." value={newTechAddress} onChange={(e) => setNewTechAddress(e.target.value)} style={inputStyle} />
+                            <button type="submit" style={{...submitButtonStyle, marginTop: '5px'}}>AJOUTER</button>
+                        </form>
+
+                        <button onClick={() => setShowTeamModal(false)} style={cancelButtonStyle}>FERMER</button>
+                    </div>
+                </div>
+            )}
+
+            {/* MODALS EXISTANTS */}
             {navModal && (
                 <div style={modalOverlayStyle} onClick={() => setNavModal(null)}>
                     <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
@@ -205,24 +249,19 @@ function App() {
                 </div>
             )}
 
-            {/* MODAL MISSIONS IMPOSSIBLES (TEXTE MODIFIÉ) */}
             {showUnassignedModal && (
                 <div style={modalOverlayStyle} onClick={() => setShowUnassignedModal(false)}>
                     <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
                         <div style={{fontSize: '40px', marginBottom: '10px'}}>⚠️</div>
-                        <h3 style={{...modalTitleStyle, marginBottom: '15px', color: COLORS.WARNING}}>MISSIONS NON INTÉGRÉES</h3>
+                        <h3 style={{...modalTitleStyle, marginBottom: '15px', color: COLORS.WARNING}}>MISSIONS REJETÉES</h3>
                         <p style={{fontFamily: "'Inter', sans-serif", color: COLORS.GRAY_TEXT, marginBottom: '15px', fontSize:'14px'}}>
                             OptiRoute n'a pas pu planifier les missions suivantes (Trop loin ou hors horaires) :
                         </p>
-                        
                         <div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '10px', borderRadius: '8px', marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`}}>
                             {unassignedList.map((item, i) => (
-                                <div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px'}}>
-                                    • {item.client}
-                                </div>
+                                <div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px'}}>• {item.client}</div>
                             ))}
                         </div>
-
                         <button onClick={() => setShowUnassignedModal(false)} style={{...submitButtonStyle, marginTop: '0', backgroundColor: COLORS.DARK}}>COMPRIS</button>
                     </div>
                 </div>
@@ -250,15 +289,12 @@ function App() {
                 </div>
             )}
 
-            {/* MODAL LISTE VIDE (TEXTE MODIFIÉ) */}
             {showEmptyModal && (
                 <div style={modalOverlayStyle} onClick={() => setShowEmptyModal(false)}>
                     <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
                         <div style={{fontSize: '40px', marginBottom: '15px'}}>👋</div>
                         <h3 style={{...modalTitleStyle, marginBottom: '15px', color: COLORS.DARK}}>OPTIROUTE</h3>
-                        <p style={{fontFamily: "'Inter', sans-serif", color: COLORS.GRAY_TEXT, marginBottom: '25px', lineHeight: '1.5'}}>
-                            Veuillez entrer des trajets ci-dessus pour commencer à rouler !
-                        </p>
+                        <p style={{fontFamily: "'Inter', sans-serif", color: COLORS.GRAY_TEXT, marginBottom: '25px', lineHeight: '1.5'}}>Veuillez entrer des trajets ci-dessus pour commencer à rouler !</p>
                         <button onClick={() => setShowEmptyModal(false)} style={{...submitButtonStyle, marginTop: '0', backgroundColor: COLORS.BLUE}}>C'EST COMPRIS</button>
                     </div>
                 </div>
@@ -267,14 +303,16 @@ function App() {
             <div style={mapContainerStyle(isMobileView)}>
                 <MapContainer center={center} zoom={12} style={{ height: '100%', width: '100%' }} attributionControl={false}>
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
-                    <Marker position={center}><Popup>🏁 Dépôt</Popup></Marker>
                     
+                    {/* Marqueurs Techniciens */}
+                    {technicians.map(t => (
+                        <Marker key={`tech-${t.id}`} position={[parseFloat(t.start_lat), parseFloat(t.start_lng)]}>
+                            <Popup>🏠 {t.name}</Popup>
+                        </Marker>
+                    ))}
+
                     {route.map((step, index) => (
-                        <Marker 
-                            key={index} 
-                            position={[step.lat, step.lng]}
-                            icon={createCustomIcon(index, route.length)} 
-                        >
+                        <Marker key={index} position={[step.lat, step.lng]} icon={createCustomIcon(index, route.length)}>
                             <Popup><strong>#{step.step}</strong> {step.client}</Popup>
                         </Marker>
                     ))}
@@ -296,9 +334,16 @@ function App() {
                 </div>
 
                 <div style={cardStyle}>
-                    <div style={cardHeaderStyle}>
-                        <img src="/icon-plus.svg" alt="+" style={{width:'18px', marginRight:'10px'}} />
-                        <h4 style={{margin:0, color: COLORS.DARK, fontSize: '1.1em', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px'}}>TRAJETS</h4>
+                    {/* HEADER : TRAJETS + BOUTON EQUIPE */}
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'}}>
+                        <div style={{display: 'flex', alignItems: 'center'}}>
+                            <img src="/icon-plus.svg" alt="+" style={{width:'18px', marginRight:'10px'}} />
+                            <h4 style={{margin:0, color: COLORS.DARK, fontSize: '1.1em', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px'}}>TRAJETS</h4>
+                        </div>
+                        {/* 👇 LE BOUTON QUI TE MANQUAIT */}
+                        <button onClick={() => setShowTeamModal(true)} style={{background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '12px', color: COLORS.BLUE, fontFamily: "'Inter', sans-serif", fontWeight: '600', textDecoration: 'underline'}}>
+                            👥 Gérer l'équipe
+                        </button>
                     </div>
                     
                     <p style={helpTextStyle}>Renseignez les informations ci-dessous pour ajouter un point de passage.</p>
@@ -335,12 +380,10 @@ function App() {
                                  <img src="/logo-truck.svg" alt="Optimize" style={{ width:'100px', height:'auto' }} />
                              )}
                         </button>
-                        
                         <button onClick={openResetModal} style={resetButtonStyle}>
                             <img src="/icon-trash.svg" alt="Reset" style={{width:'28px'}} />
                         </button>
                     </div>
-
                     <p style={{...helpTextStyle, textAlign: 'center', marginTop: '15px', marginBottom: '0', width: '100%', maxWidth:'250px'}}>
                         Une fois vos trajets prêts, cliquez sur le camion pour lancer la mission !
                     </p>
@@ -348,7 +391,6 @@ function App() {
 
                 <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
                     <h4 style={{...cardTitleStyle, marginBottom: '5px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '1em', letterSpacing: '1px'}}>FEUILLE DE ROUTE</h4>
-                    {/* TEXTE MODIFIÉ : PLUS DE MENTION D'IA */}
                     <p style={{...helpTextStyle, marginBottom: '15px'}}>L'ordre optimal calculé par OptiRoute s'affichera ici.</p>
 
                     <div style={missionsListStyle}>
@@ -378,6 +420,8 @@ function App() {
                                             </div>
                                             <div style={missionAddressStyle}>{step.address.substring(0, 40)}...</div>
                                             <div style={{fontSize: '11px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif"}}>
+                                                 {/* ON AFFICHE LE CAMION QUI GERE CETTE ETAPE SI DISPO */}
+                                                 {step.technician_name ? `🚛 ${step.technician_name} • ` : ''}
                                                  📍 {step.distance_km} km 
                                             </div>
                                         </div>
