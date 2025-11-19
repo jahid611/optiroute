@@ -1,21 +1,22 @@
 const express = require('express');
 const cors = require('cors');
-const db = require('./db'); 
-const getCoordinates = require('./geocoder'); 
-const optimizeRoute = require('./optimizer'); 
+const db = require('./db'); // Connexion MySQL
+const getCoordinates = require('./geocoder'); // Outil de géocodage
+const optimizeRoute = require('./optimizer'); // Moteur VROOM
 require('dotenv').config();
 
 const app = express();
+
+// Configuration CORS
 app.use(cors()); 
 app.use(express.json()); 
 
-// --- ROUTES ---
+// --- GESTION DES ROUTES API ---
 
-// 1. Init Data (Reset)
-// Route 2 : Réinitialisation des données (Bouton Reset) - VERSION INITIALISATION 1ère FOIS
+// Route 1 : Réinitialisation des données (Bouton Reset)
 app.get('/init-data', async (req, res) => {
     try {
-        // 1. On s'assure que les tables existent
+        // Création des tables si elles n'existent pas
         await db.query(`
             CREATE TABLE IF NOT EXISTS technicians (
                 id INT AUTO_INCREMENT PRIMARY KEY,
@@ -43,26 +44,24 @@ app.get('/init-data', async (req, res) => {
             )
         `);
 
-        // 2. Maintenant on peut nettoyer sans erreur
+        // Nettoyage
         await db.query('DELETE FROM missions');
         await db.query('DELETE FROM technicians');
-        
-        // Reset des compteurs d'ID
         await db.query('ALTER TABLE missions AUTO_INCREMENT = 1');
         await db.query('ALTER TABLE technicians AUTO_INCREMENT = 1');
 
-        // 3. Création du technicien par défaut
+        // Création du technicien par défaut
         const depotAdresse = "Place de la République, Paris";
         const depotGPS = await getCoordinates(depotAdresse);
         
-        if (!depotGPS.found) return res.status(500).send("Erreur géocodage dépôt");
+        if (depotGPS.found) {
+            await db.query(
+                'INSERT INTO technicians (name, start_lat, start_lng, address) VALUES (?, ?, ?, ?)',
+                ['Thomas le Boss', depotGPS.lat, depotGPS.lng, depotAdresse]
+            );
+        }
 
-        await db.query(
-            'INSERT INTO technicians (name, start_lat, start_lng, address) VALUES (?, ?, ?, ?)',
-            ['Thomas le Boss', depotGPS.lat, depotGPS.lng, depotAdresse]
-        );
-
-        res.send("✅ Base de données Cloud initialisée avec succès !");
+        res.send("✅ Données remises à zéro et Tables vérifiées.");
 
     } catch (error) {
         console.error(error);
@@ -70,61 +69,79 @@ app.get('/init-data', async (req, res) => {
     }
 });
 
-// 2. Ajouter une mission
+// Route 2 : Ajouter une mission
 app.post('/missions', async (req, res) => {
     try {
         const { client_name, address, time_slot } = req.body;
-        if (!client_name || !address) return res.status(400).json({ success: false, message: "Champs manquants" });
+        if (!client_name || !address) return res.status(400).json({ success: false, message: "Nom et adresse obligatoires" });
+        
         const gps = await getCoordinates(address);
-        if (!gps.found) return res.status(400).json({ success: false, message: "Adresse introuvable" });
-        
+        if (!gps.found) return res.status(400).json({ success: false, message: "Impossible de trouver cette adresse." });
+
         const creneau = time_slot || 'any';
-        const [result] = await db.query('INSERT INTO missions (client_name, address, lat, lng, status, time_slot) VALUES (?, ?, ?, ?, "pending", ?)', [client_name, address, gps.lat, gps.lng, creneau]);
-        
+
+        const [result] = await db.query(
+            'INSERT INTO missions (client_name, address, lat, lng, status, time_slot) VALUES (?, ?, ?, ?, "pending", ?)',
+            [client_name, address, gps.lat, gps.lng, creneau]
+        );
+
         res.json({ success: true, message: "Mission ajoutée !", id: result.insertId });
-    } catch (error) { res.status(500).json({ success: false, message: "Erreur serveur" }); }
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
 });
 
-// 3. Lancer l'optimisation
+// Route 3 : Lancer l'optimisation
 app.get('/optimize', async (req, res) => {
     try {
         const result = await optimizeRoute(); 
         res.json({ 
             success: true, 
-            message: "Optimisation terminée !", 
+            message: "Route calculée avec succès !", 
             route: result.route, 
             path: result.path,
             unassigned: result.unassigned
         });
     } catch (error) {
-        console.error("ERREUR BACKEND :", error.message);
+        console.error("ERREUR OPTIMIZE :", error.message);
         res.status(500).json({ error: error.message });
     }
 });
 
-// --- NOUVELLES ROUTES TEAM ---
+// --- ROUTES TECHNICIENS (Celles qui manquaient !) ---
 
-// 4. Récupérer la liste des techniciens
+// Route 4 : Lister les techniciens
 app.get('/technicians', async (req, res) => {
     try {
-        const [rows] = await db.query('SELECT * FROM technicians');
+        // On vérifie que la table existe avant de lire
+        const [rows] = await db.query("SELECT * FROM technicians");
         res.json(rows);
-    } catch (error) { res.status(500).json({ error: error.message }); }
+    } catch (error) {
+        // Si la table n'existe pas encore, on renvoie une liste vide au lieu de planter
+        if (error.code === 'ER_NO_SUCH_TABLE') {
+            return res.json([]);
+        }
+        res.status(500).json({ error: error.message });
+    }
 });
 
-// 5. Ajouter un technicien
+// Route 5 : Ajouter un technicien
 app.post('/technicians', async (req, res) => {
     try {
         const { name, address } = req.body;
         const gps = await getCoordinates(address);
+        
         if (!gps.found) return res.status(400).json({ success: false, message: "Adresse introuvable" });
 
-        await db.query('INSERT INTO technicians (name, address, start_lat, start_lng) VALUES (?, ?, ?, ?)', [name, address, gps.lat, gps.lng]);
+        await db.query(
+            'INSERT INTO technicians (name, address, start_lat, start_lng) VALUES (?, ?, ?, ?)', 
+            [name, address, gps.lat, gps.lng]
+        );
         res.json({ success: true });
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// 6. Supprimer un technicien
+// Route 6 : Supprimer un technicien
 app.delete('/technicians/:id', async (req, res) => {
     try {
         await db.query('DELETE FROM technicians WHERE id = ?', [req.params.id]);
@@ -132,7 +149,7 @@ app.delete('/technicians/:id', async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-
+// --- LANCEMENT DU SERVEUR ---
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Serveur démarré sur http://0.0.0.0:${PORT}`);
