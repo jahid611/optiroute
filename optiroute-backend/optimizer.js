@@ -1,41 +1,35 @@
 const db = require('./db');
 const axios = require('axios');
+const polyline = require('polyline'); 
 
-// 👇 ⚠️ COLLE TA CLÉ API OPENROUTESERVICE ICI (ne la partage pas sur GitHub !)
+// 👇 TA CLÉ API
 const API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImExZWY5YzUwNzY3NzQwZTU5NDFhMzA2MGY3YWEyNGU0IiwiaCI6Im11cm11cjY0In0="; 
 
-// --- CONFIGURATION DES HORAIRES EN SECONDES ---
 const TIME_WINDOWS = {
     morning: [28800, 43200],   // 08h00 -> 12h00
     afternoon: [50400, 64800], // 14h00 -> 18h00
-    any: [28800, 64800]        // 08h00 -> 18h00 (Toute la journée)
+    any: [28800, 64800]        // 08h00 -> 18h00
 };
 
 async function optimizeRoute() {
-    console.log("🚀 Démarrage du Moteur V12 (OpenRouteService)...");
+    console.log("🚀 Démarrage du Moteur V12...");
 
-    // Vérification de la clé avant de faire l'appel
-
+    if (API_KEY.trim() === "") throw new Error("Clé API manquante.");
     
-    // 1. Récupération des données locales
     const [techs] = await db.query('SELECT * FROM technicians LIMIT 1');
     const tech = techs[0];
-    const [missions] = await db.query('SELECT * FROM missions WHERE status = "pending"');
+    // On prend TOUTES les missions (pending et assigned) pour tout recalculer
+    const [missions] = await db.query("SELECT * FROM missions WHERE status IN ('pending', 'assigned')");
 
-    if (missions.length === 0) return { message: "Aucune mission à optimiser." };
+    if (missions.length === 0) return { message: "Aucune mission." };
 
-    // 2. Préparation du JSON de la Requête
-    const jobs = missions.map(m => {
-        const window = TIME_WINDOWS[m.time_slot] || TIME_WINDOWS.any;
-        return {
-            id: m.id,
-            location: [parseFloat(m.lng), parseFloat(m.lat)], // [Longitude, Latitude]
-            type: 'service', // Ajouté pour la robustesse
-            service: 1800, // 30 minutes de service
-            time_windows: [ window ],
-            description: m.client_name
-        };
-    });
+    const jobs = missions.map(m => ({
+        id: m.id,
+        location: [parseFloat(m.lng), parseFloat(m.lat)],
+        service: 1800, 
+        time_windows: [ TIME_WINDOWS[m.time_slot] || TIME_WINDOWS.any ],
+        description: m.client_name
+    }));
 
     const vehicle = {
         id: 1,
@@ -46,69 +40,81 @@ async function optimizeRoute() {
         time_window: TIME_WINDOWS.any
     };
 
-    // 3. L'Appel API VROOM (Bloc try/catch ultra-résistant)
     try {
-        console.log("📡 Envoi des données à OpenRouteService...");
+        console.log(`📡 Envoi de ${jobs.length} missions à ORS...`);
         
         const response = await axios.post(
             'https://api.openrouteservice.org/optimization', 
-            { jobs: jobs, vehicles: [vehicle] },
+            { 
+                jobs: jobs, 
+                vehicles: [vehicle],
+                options: { g: true } 
+            },
             { headers: { 'Authorization': API_KEY, 'Content-Type': 'application/json' } }
         );
 
         const responseData = response.data;
-        
-        // VÉRIFICATION DU SOLVEUR: Si ORS renvoie une erreur dans le corps de la réponse (statut 200)
-        if (responseData.error || responseData.code) {
-            console.error("ERREUR SOLVEUR VROOM DÉTAILLÉE:", responseData.error || responseData.code);
-            throw new Error(`Rejet de la requête: ${responseData.error || 'Problème de données'}. Vérifiez vos coordonnées/temps.`);
+
+        if (responseData.code && responseData.code !== 0) {
+            throw new Error(`Erreur VROOM : ${responseData.code}`);
         }
 
-        // 4. Traitement et Sauvegarde (Normal Flow)
-        const routes = responseData.routes;
-        if (!routes || routes.length === 0) throw new Error("Aucune solution trouvée par l'IA.");
-
-        const optimizedSteps = routes[0].steps;
-        console.log(`✅ Solution trouvée ! ${optimizedSteps.length - 2} missions planifiées.`);
-
+        // 1. GESTION DES ROUTES
+        const routeData = responseData.routes ? responseData.routes[0] : null;
+        let decodedPath = [];
         let formattedRoute = [];
-        let orderCounter = 1;
 
-        for (let step of optimizedSteps) {
-            if (step.type === 'job') {
-                const originalMission = missions.find(m => m.id === step.id);
-
-                await db.query(
-                    'UPDATE missions SET technician_id = ?, route_order = ?, status = "assigned" WHERE id = ?', 
-                    [tech.id, orderCounter, step.id]
-                );
-
-                formattedRoute.push({
-                    step: orderCounter,
-                    client: originalMission.client_name,
-                    time_slot: originalMission.time_slot,
-                    address: originalMission.address,
-                    lat: parseFloat(originalMission.lat),
-                    lng: parseFloat(originalMission.lng),
-                    distance_from_prev: (step.distance / 1000).toFixed(2) + " km"
-                });
-                orderCounter++;
+        if (routeData) {
+            if (routeData.geometry) decodedPath = polyline.decode(routeData.geometry);
+            
+            const steps = routeData.steps;
+            let order = 1;
+            
+            for (let step of steps) {
+                if (step.type === 'job') {
+                    const m = missions.find(mis => mis.id === step.id);
+                    
+                    await db.query('UPDATE missions SET technician_id=?, route_order=?, status="assigned" WHERE id=?', [tech.id, order, step.id]);
+                    
+                    formattedRoute.push({
+                        step: order,
+                        client: m.client_name,
+                        time_slot: m.time_slot,
+                        address: m.address,
+                        lat: parseFloat(m.lat),
+                        lng: parseFloat(m.lng),
+                        // 👇 CORRECTION DU NOM DE VARIABLE POUR LE FRONTEND
+                        distance_km: (step.distance / 1000).toFixed(1) 
+                    });
+                    order++;
+                }
             }
         }
 
-        return formattedRoute;
+        // 2. GESTION DES REJETS (UNASSIGNED)
+        let unassignedMissions = [];
+        if (responseData.unassigned && responseData.unassigned.length > 0) {
+            console.log(`⚠️ ${responseData.unassigned.length} missions impossibles.`);
+            
+            // On remet ces missions en 'pending' dans la BDD pour dire qu'elles ne sont pas faites
+            for (let rejected of responseData.unassigned) {
+                const m = missions.find(mis => mis.id === rejected.id);
+                if (m) {
+                    await db.query('UPDATE missions SET status="pending", technician_id=NULL, route_order=NULL WHERE id=?', [m.id]);
+                    unassignedMissions.push({
+                        client: m.client_name,
+                        reason: "Horaires ou Distance" // VROOM ne donne pas toujours la raison exacte, on suppose
+                    });
+                }
+            }
+        }
+
+        // 👇 ON RENVOIE TOUT : Le chemin, la route valide, ET les rejets
+        return { path: decodedPath, route: formattedRoute, unassigned: unassignedMissions }; 
 
     } catch (error) {
-        // Cette section attrape les erreurs réseau (timeout) ou les erreurs 401/403/404
-        console.error("❌ ERREUR VROOM/RÉSEAU: ", error.message);
-        
-        if (error.response) {
-            // Si c'est une erreur HTTP (401/403)
-            console.error("STATUT HTTP REÇU:", error.response.status, "DÉTAIL ORS:", error.response.data);
-            throw new Error(`Erreur API: Code ${error.response.status}. Vérifiez votre clé API.`);
-        }
-        
-        throw new Error("L'optimisation a échoué. Problème réseau ou serveur ORS inaccessible.");
+        console.error("❌ CRASH :", error.message);
+        throw error;
     }
 }
 
