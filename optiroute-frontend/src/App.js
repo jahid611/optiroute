@@ -34,6 +34,7 @@ function App() {
     // ==========================================
 
     const [route, setRoute] = useState([]);
+    const [routePath, setRoutePath] = useState([]);
     const [loading, setLoading] = useState(false);
     const [newName, setNewName] = useState("");
     const [newAddress, setNewAddress] = useState("");
@@ -68,16 +69,34 @@ function App() {
         } catch (error) { alert("Erreur réseau !"); }
     };
 
-    const handleOptimize = async () => {
-        setLoading(true);
-        try {
-            const response = await axios.get(`${API_URL}/optimize`);
-            if (response.data.success && Array.isArray(response.data.route)) {
-                setRoute(response.data.route);
-            } else { alert("Rien à optimiser !"); }
-        } catch (error) { alert("Erreur connexion serveur"); }
-        setLoading(false);
-    };
+    // Remplacer la fonction handleOptimize existante (vers la ligne 80)
+const handleOptimize = async () => {
+    setLoading(true);
+    try {
+        const response = await axios.get(`${API_URL}/optimize`);
+        
+        // 🚨 LIGNE DE DEBUG CRITIQUE : Vérifie la structure reçue dans la console du navigateur (F12)
+        console.log("API RESPONSE (DATA):", response.data); 
+
+        // VÉRIFICATION (response.data.path doit être un tableau non vide)
+        if (response.data.path && response.data.path.length > 0 && Array.isArray(response.data.route)) {
+            
+            // Si succès, on met à jour les deux états
+            setRoute(response.data.route);
+            setRoutePath(response.data.path); 
+            
+            console.log("ROUTE AFFICHÉE AVEC SUCCÈS !"); 
+
+        } else { 
+            // Si le Backend retourne un succès mais pas de chemin géométrique (trop loin, inaccessible, etc.)
+            alert("L'IA n'a pas pu créer de route. Vérifiez les adresses."); 
+        }
+    } catch (error) { 
+        console.error("Erreur connexion API/Serveur:", error.message);
+        alert("Erreur connexion serveur ou API."); 
+    }
+    setLoading(false);
+};
 
     const openResetModal = () => {
         setResetSuccess(false);
@@ -168,7 +187,14 @@ function App() {
                     {route.map((step, index) => (
                         <Marker key={index} position={[step.lat, step.lng]}><Popup>#{step.step} {step.client}</Popup></Marker>
                     ))}
-                    {route.length > 0 && <Polyline positions={[center, ...route.map(s => [s.lat, s.lng])]} color={COLORS.BLUE} weight={4} opacity={1} /> }
+                    {routePath.length > 0 && (
+                    <Polyline 
+                        positions={routePath} // <-- Utilise la géométrie décodée
+                        color={COLORS.BLUE} 
+                        weight={4} 
+                        opacity={1} 
+                    />
+                )}
                 </MapContainer>
             </div>
 
