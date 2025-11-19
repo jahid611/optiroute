@@ -12,20 +12,62 @@ app.use(express.json());
 // --- ROUTES ---
 
 // 1. Init Data (Reset)
+// Route 2 : Réinitialisation des données (Bouton Reset) - VERSION INITIALISATION 1ère FOIS
 app.get('/init-data', async (req, res) => {
     try {
+        // 1. On s'assure que les tables existent
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS technicians (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                start_lat DECIMAL(10, 8) NOT NULL,
+                start_lng DECIMAL(11, 8) NOT NULL,
+                address VARCHAR(255),
+                capacity INT DEFAULT 10
+            )
+        `);
+
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS missions (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                client_name VARCHAR(100),
+                address VARCHAR(255) NOT NULL,
+                lat DECIMAL(10, 8),
+                lng DECIMAL(11, 8),
+                duration_minutes INT DEFAULT 30,
+                status ENUM('pending', 'assigned', 'done') DEFAULT 'pending',
+                time_slot VARCHAR(20) DEFAULT 'any',
+                technician_id INT,
+                route_order INT,
+                FOREIGN KEY (technician_id) REFERENCES technicians(id)
+            )
+        `);
+
+        // 2. Maintenant on peut nettoyer sans erreur
         await db.query('DELETE FROM missions');
         await db.query('DELETE FROM technicians');
+        
+        // Reset des compteurs d'ID
         await db.query('ALTER TABLE missions AUTO_INCREMENT = 1');
         await db.query('ALTER TABLE technicians AUTO_INCREMENT = 1');
 
-        // On crée un technicien par défaut pour ne pas être vide
-        const depotGPS = await getCoordinates("Paris, France");
-        if (depotGPS.found) {
-            await db.query('INSERT INTO technicians (name, start_lat, start_lng, address) VALUES (?, ?, ?, ?)', ['Technicien 1', depotGPS.lat, depotGPS.lng, "Paris, France"]);
-        }
-        res.send("✅ Données remises à zéro.");
-    } catch (error) { res.status(500).send(error.message); }
+        // 3. Création du technicien par défaut
+        const depotAdresse = "Place de la République, Paris";
+        const depotGPS = await getCoordinates(depotAdresse);
+        
+        if (!depotGPS.found) return res.status(500).send("Erreur géocodage dépôt");
+
+        await db.query(
+            'INSERT INTO technicians (name, start_lat, start_lng, address) VALUES (?, ?, ?, ?)',
+            ['Thomas le Boss', depotGPS.lat, depotGPS.lng, depotAdresse]
+        );
+
+        res.send("✅ Base de données Cloud initialisée avec succès !");
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Erreur init : " + error.message);
+    }
 });
 
 // 2. Ajouter une mission
