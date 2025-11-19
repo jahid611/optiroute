@@ -12,112 +12,109 @@ const TIME_WINDOWS = {
 };
 
 async function optimizeRoute() {
-    console.log("🚀 Démarrage Optimisation Multi-Tech...");
+    console.log("🚀 Démarrage du Moteur V12 (OpenRouteService)...");
 
-    if (API_KEY.trim() === "") throw new Error("Clé API manquante.");
+    if (API_KEY.trim() === "" || API_KEY === "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImExZWY5YzUwNzY3NzQwZTU5NDFhMzA2MGY3YWEyNGU0IiwiaCI6Im11cm11cjY0In0=") throw new Error("Clé API manquante ou incorrecte.");
     
-    // 1. Récupérer TOUS les techniciens (Pas de LIMIT 1)
-    const [techs] = await db.query('SELECT * FROM technicians');
-    if (techs.length === 0) throw new Error("Aucun technicien dans l'équipe !");
+    // 1. Récupération des données
+    const [techs] = await db.query('SELECT * FROM technicians LIMIT 1');
+    if (techs.length === 0) throw new Error("Aucun technicien trouvé.");
+    const tech = techs[0];
 
-    // 2. Récupérer les missions
-    const [missions] = await db.query("SELECT * FROM missions WHERE status IN ('pending', 'assigned')");
-    if (missions.length === 0) return { message: "Aucune mission." };
+    const [missions] = await db.query('SELECT * FROM missions WHERE status = "pending"');
+    if (missions.length === 0) return { message: "Aucune mission à optimiser." };
 
-    // 3. Préparation Jobs
-    const jobs = missions.map(m => ({
-        id: m.id,
-        location: [parseFloat(m.lng), parseFloat(m.lat)],
-        service: 1800, 
-        time_windows: [ TIME_WINDOWS[m.time_slot] || TIME_WINDOWS.any ],
-        description: m.client_name
-    }));
+    // 2. Préparation JSON
+    const jobs = missions.map(m => {
+        const window = TIME_WINDOWS[m.time_slot] || TIME_WINDOWS.any;
+        return {
+            id: m.id,
+            location: [parseFloat(m.lng), parseFloat(m.lat)],
+            service: 1800, 
+            time_windows: [ window ],
+            description: m.client_name
+        };
+    });
 
-    // 4. Préparation Véhicules (On mappe tous les techniciens)
-    const vehicles = techs.map(tech => ({
-        id: tech.id, // L'ID du véhicule = ID du technicien en BDD
+    const vehicle = {
+        id: 1,
         profile: "driving-car",
         start: [parseFloat(tech.start_lng), parseFloat(tech.start_lat)],
         end: [parseFloat(tech.start_lng), parseFloat(tech.start_lat)],
         capacity: [10],
         time_window: TIME_WINDOWS.any
-    }));
+    };
 
+    // 3. Appel API
     try {
-        console.log(`📡 Envoi : ${jobs.length} missions pour ${vehicles.length} techniciens...`);
+        console.log("📡 Envoi des données à OpenRouteService...");
         
         const response = await axios.post(
             'https://api.openrouteservice.org/optimization', 
-            { jobs, vehicles, options: { g: true } },
+            { jobs: jobs, vehicles: [vehicle], options: { g: true } }, // Ajout de g: true pour la géométrie
             { headers: { 'Authorization': API_KEY, 'Content-Type': 'application/json' } }
         );
 
-        const responseData = response.data;
-        if (responseData.code && responseData.code !== 0) throw new Error(`Erreur VROOM : ${responseData.code}`);
-
-        // Traitement
-        let formattedRoutes = [];
-        let allPaths = []; // Pour stocker tous les tracés
+        // --- ZONE DE DIAGNOSTIC ---
+        console.log("📥 Réponse reçue de l'API (Statut):", response.status);
         
-        // On parcourt les routes (une route par technicien utilisé)
-        for (const route of responseData.routes) {
-            const techId = route.vehicle; // C'est l'ID du technicien qui fait cette tournée
-            const steps = route.steps;
-            let order = 1;
+        // Si l'API renvoie une erreur logique (code 200 mais avec une erreur dedans)
+        if (response.data.code && response.data.error) {
+            console.error("⚠️ L'API A REFUSÉ LE CALCUL :", response.data.error);
+            throw new Error("L'IA refuse le calcul : " + response.data.error);
+        }
 
-            // Décodage du tracé de ce véhicule
-            if (route.geometry) {
-                const points = polyline.decode(route.geometry);
-                // Astuce : pour différencier les techniciens visuellement sur la carte,
-                // le frontend devra gérer des couleurs, pour l'instant on fusionne tout.
-                allPaths = [...allPaths, ...points]; 
-            }
+        // Si la propriété 'routes' n'existe pas
+        if (!response.data.routes || !Array.isArray(response.data.routes) || response.data.routes.length === 0) {
+            console.error("⚠️ CONTENU DE LA RÉPONSE BIZARRE :", JSON.stringify(response.data, null, 2));
+            throw new Error("L'IA n'a pas renvoyé de route valide (Liste vide).");
+        }
+        // --------------------------
 
-            for (let step of steps) {
-                if (step.type === 'job') {
-                    const m = missions.find(mis => mis.id === step.id);
-                    
-                    // On assigne la mission au BON technicien
-                    await db.query(
-                        'UPDATE missions SET technician_id=?, route_order=?, status="assigned" WHERE id=?', 
-                        [techId, order, step.id]
-                    );
-                    
-                    // On trouve le nom du technicien pour l'affichage
-                    const techInfo = techs.find(t => t.id === techId);
+        const routeData = response.data.routes[0];
+        
+        // Gestion de la géométrie (si absente, tableau vide)
+        const geometryString = routeData.geometry; 
+        const decodedPath = geometryString ? polyline.decode(geometryString) : [];
+        
+        const optimizedSteps = routeData.steps;
+        
+        console.log(`✅ Solution trouvée ! ${optimizedSteps.length - 2} missions planifiées.`);
 
-                    formattedRoutes.push({
-                        step: order,
-                        client: m.client_name,
-                        time_slot: m.time_slot,
-                        address: m.address,
-                        lat: parseFloat(m.lat),
-                        lng: parseFloat(m.lng),
-                        distance_km: (step.distance / 1000).toFixed(1),
-                        technician_name: techInfo ? techInfo.name : "Inconnu" // On ajoute le nom du tech
-                    });
-                    order++;
-                }
+        let formattedRoute = [];
+        let orderCounter = 1;
+
+        for (let step of optimizedSteps) {
+            if (step.type === 'job') {
+                const m = missions.find(mis => mis.id === step.id);
+
+                await db.query(
+                    'UPDATE missions SET technician_id = ?, route_order = ?, status = "assigned" WHERE id = ?', 
+                    [tech.id, orderCounter, step.id]
+                );
+
+                formattedRoute.push({
+                    step: orderCounter,
+                    client: m.client_name,
+                    time_slot: m.time_slot,
+                    address: m.address,
+                    lat: parseFloat(m.lat),
+                    lng: parseFloat(m.lng),
+                    distance_from_prev: (step.distance / 1000).toFixed(2) + " km" // Distance approximative
+                });
+                orderCounter++;
             }
         }
 
-        // Gestion des rejets
-        let unassignedMissions = [];
-        if (responseData.unassigned) {
-            for (let rejected of responseData.unassigned) {
-                const m = missions.find(mis => mis.id === rejected.id);
-                if (m) {
-                    await db.query('UPDATE missions SET status="pending", technician_id=NULL, route_order=NULL WHERE id=?', [m.id]);
-                    unassignedMissions.push({ client: m.client_name });
-                }
-            }
-        }
-
-        return { path: allPaths, route: formattedRoutes, unassigned: unassignedMissions }; 
+        // On renvoie l'objet complet
+        return { path: decodedPath, route: formattedRoute }; 
 
     } catch (error) {
-        console.error("❌ CRASH OPTIMIZER :", error.message);
-        throw error;
+        console.error("❌ ERREUR DÉTAILLÉE :", error.message);
+        if (error.response) {
+            console.error("Données renvoyées par l'API lors de l'erreur :", JSON.stringify(error.response.data, null, 2));
+        }
+        throw error; 
     }
 }
 
