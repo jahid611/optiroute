@@ -84,24 +84,52 @@ app.get('/init-data', async (req, res) => {
 // Route 2 : Ajouter une mission
 app.post('/missions', async (req, res) => {
     try {
+        console.log("📩 Nouvelle mission reçue :", req.body);
+
         const { client_name, address, time_slot } = req.body;
-        if (!client_name || !address) return res.status(400).json({ success: false, message: "Nom et adresse obligatoires" });
-        
-        const gps = await getCoordinates(address);
-        if (!gps.found) return res.status(400).json({ success: false, message: "Impossible de trouver cette adresse." });
+
+        if (!client_name || !address)
+            return res.status(400).json({ success: false, message: "Nom et adresse obligatoires" });
+
+        // ---- DEBUG + SÉCURITÉ GEOCODER ----
+        let gps;
+        try {
+            gps = await getCoordinates(address);
+            console.log("📡 Résultat geocoder :", gps);
+        } catch (geoErr) {
+            console.error("❌ GEOCODER CRASH :", geoErr.message);
+            return res.status(500).json({ success: false, message: "Erreur géocodage" });
+        }
+
+        // Si le géocodeur ne renvoie rien → sécurité
+        if (!gps || !gps.found) {
+            console.error("❌ Adresse introuvable :", address);
+            return res.status(400).json({ success: false, message: "Impossible de trouver cette adresse." });
+        }
 
         const creneau = time_slot || 'any';
 
+        // ---- INSERT EN BASE ----
         const [result] = await db.query(
-            'INSERT INTO missions (client_name, address, lat, lng, status, time_slot) VALUES (?, ?, ?, ?, "pending", ?)',
+            `INSERT INTO missions (client_name, address, lat, lng, status, time_slot)
+             VALUES (?, ?, ?, ?, "pending", ?)`,
             [client_name, address, gps.lat, gps.lng, creneau]
         );
 
-        res.json({ success: true, message: "Mission ajoutée !", id: result.insertId });
+        console.log("✅ Mission ajoutée ID :", result.insertId);
+
+        return res.json({
+            success: true,
+            message: "Mission ajoutée !",
+            id: result.insertId
+        });
+
     } catch (error) {
-        res.status(500).json({ success: false, message: "Erreur serveur" });
+        console.error("❌ ERREUR /missions :", error);
+        return res.status(500).json({ success: false, message: "Erreur serveur interne" });
     }
 });
+
 
 // Route 3 : Lancer l'optimisation
 app.get('/optimize', async (req, res) => {

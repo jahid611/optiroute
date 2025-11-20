@@ -2,7 +2,7 @@ const db = require('./db');
 const axios = require('axios');
 const polyline = require('polyline'); 
 
-// 👇 TA CLÉ API
+// 👇 TA CLÉ EST LÀ (Ne la touche pas si elle marchait avant)
 const API_KEY = "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImExZWY5YzUwNzY3NzQwZTU5NDFhMzA2MGY3YWEyNGU0IiwiaCI6Im11cm11cjY0In0="; 
 
 const TIME_WINDOWS = {
@@ -12,29 +12,25 @@ const TIME_WINDOWS = {
 };
 
 async function optimizeRoute() {
-    console.log("🚀 Démarrage du Moteur V12 (OpenRouteService)...");
+    console.log("🚀 Démarrage du Moteur V12...");
 
-    if (API_KEY.trim() === "" || API_KEY === "eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImExZWY5YzUwNzY3NzQwZTU5NDFhMzA2MGY3YWEyNGU0IiwiaCI6Im11cm11cjY0In0=") throw new Error("Clé API manquante ou incorrecte.");
-    
-    // 1. Récupération des données
+    // 1. Vérifs de base
     const [techs] = await db.query('SELECT * FROM technicians LIMIT 1');
-    if (techs.length === 0) throw new Error("Aucun technicien trouvé.");
+    if (techs.length === 0) throw new Error("Aucun technicien en base.");
     const tech = techs[0];
 
-    const [missions] = await db.query('SELECT * FROM missions WHERE status = "pending"');
-    if (missions.length === 0) return { message: "Aucune mission à optimiser." };
+    const [missions] = await db.query("SELECT * FROM missions WHERE status IN ('pending', 'assigned')");
+    if (missions.length === 0) return { message: "Aucune mission." };
 
-    // 2. Préparation JSON
-    const jobs = missions.map(m => {
-        const window = TIME_WINDOWS[m.time_slot] || TIME_WINDOWS.any;
-        return {
-            id: m.id,
-            location: [parseFloat(m.lng), parseFloat(m.lat)],
-            service: 1800, 
-            time_windows: [ window ],
-            description: m.client_name
-        };
-    });
+    // 2. Préparation du JSON pour VROOM
+    const jobs = missions.map(m => ({
+        id: m.id,
+        location: [parseFloat(m.lng), parseFloat(m.lat)],
+        type: 'service', // AJOUTÉ : Important pour VROOM
+        service: 1800, 
+        time_windows: [ TIME_WINDOWS[m.time_slot] || TIME_WINDOWS.any ],
+        description: m.client_name
+    }));
 
     const vehicle = {
         id: 1,
@@ -45,76 +41,79 @@ async function optimizeRoute() {
         time_window: TIME_WINDOWS.any
     };
 
-    // 3. Appel API
+    // 3. Appel API Sécurisé
     try {
-        console.log("📡 Envoi des données à OpenRouteService...");
+        console.log(`📡 Envoi de ${jobs.length} missions à l'IA...`);
         
         const response = await axios.post(
             'https://api.openrouteservice.org/optimization', 
-            { jobs: jobs, vehicles: [vehicle], options: { g: true } }, // Ajout de g: true pour la géométrie
+            { jobs: jobs, vehicles: [vehicle], options: { g: true } },
             { headers: { 'Authorization': API_KEY, 'Content-Type': 'application/json' } }
         );
 
-        // --- ZONE DE DIAGNOSTIC ---
-        console.log("📥 Réponse reçue de l'API (Statut):", response.status);
-        
-        // Si l'API renvoie une erreur logique (code 200 mais avec une erreur dedans)
-        if (response.data.code && response.data.error) {
-            console.error("⚠️ L'API A REFUSÉ LE CALCUL :", response.data.error);
-            throw new Error("L'IA refuse le calcul : " + response.data.error);
+        // --- DIAGNOSTIC : ON REGARDE CE QUE L'IA RÉPOND VRAIMENT ---
+        // Si l'API renvoie une erreur logique (code != 0)
+        if (response.data.code && response.data.code !== 0) {
+            console.error("⚠️ REFUS DE L'IA (CODE " + response.data.code + ") :", response.data.error);
+            throw new Error(`L'IA a refusé : ${response.data.error}`);
         }
 
-        // Si la propriété 'routes' n'existe pas
-        if (!response.data.routes || !Array.isArray(response.data.routes) || response.data.routes.length === 0) {
-            console.error("⚠️ CONTENU DE LA RÉPONSE BIZARRE :", JSON.stringify(response.data, null, 2));
-            throw new Error("L'IA n'a pas renvoyé de route valide (Liste vide).");
+        // Si la route est vide (c'est souvent là que ça plante "undefined")
+        if (!response.data.routes || response.data.routes.length === 0) {
+            console.error("⚠️ L'IA A RÉPONDU SUCCÈS MAIS SANS ROUTE !");
+            // On vérifie s'il y a des "unassigned" (missions impossibles)
+            if (response.data.unassigned && response.data.unassigned.length > 0) {
+                console.log("👉 CAUSE : Missions impossibles (trop loin/horaires).");
+            }
+            // On renvoie un résultat vide propre pour ne pas faire planter le serveur
+            return { path: [], route: [], unassigned: response.data.unassigned || [] };
         }
-        // --------------------------
+        // -----------------------------------------------------------
 
         const routeData = response.data.routes[0];
-        
-        // Gestion de la géométrie (si absente, tableau vide)
         const geometryString = routeData.geometry; 
+        
+        // Décodage sécurisé (si pas de géométrie, on met vide)
         const decodedPath = geometryString ? polyline.decode(geometryString) : [];
         
-        const optimizedSteps = routeData.steps;
-        
-        console.log(`✅ Solution trouvée ! ${optimizedSteps.length - 2} missions planifiées.`);
+        const steps = routeData.steps;
+        console.log(`✅ Route calculée : ${steps.length} étapes.`);
 
         let formattedRoute = [];
-        let orderCounter = 1;
-
-        for (let step of optimizedSteps) {
+        let order = 1;
+        
+        for (let step of steps) {
             if (step.type === 'job') {
                 const m = missions.find(mis => mis.id === step.id);
-
-                await db.query(
-                    'UPDATE missions SET technician_id = ?, route_order = ?, status = "assigned" WHERE id = ?', 
-                    [tech.id, orderCounter, step.id]
-                );
-
+                
+                await db.query('UPDATE missions SET technician_id=?, route_order=?, status="assigned" WHERE id=?', [tech.id, order, step.id]);
+                
                 formattedRoute.push({
-                    step: orderCounter,
+                    step: order,
                     client: m.client_name,
                     time_slot: m.time_slot,
                     address: m.address,
                     lat: parseFloat(m.lat),
                     lng: parseFloat(m.lng),
-                    distance_from_prev: (step.distance / 1000).toFixed(2) + " km" // Distance approximative
+                    distance_km: (step.distance / 1000).toFixed(1)
                 });
-                orderCounter++;
+                order++;
             }
         }
 
-        // On renvoie l'objet complet
-        return { path: decodedPath, route: formattedRoute }; 
+        return { 
+            path: decodedPath, 
+            route: formattedRoute,
+            unassigned: response.data.unassigned || [] 
+        }; 
 
     } catch (error) {
-        console.error("❌ ERREUR DÉTAILLÉE :", error.message);
+        // AFFICHE L'ERREUR EXACTE DANS LE TERMINAL
+        console.error("❌ CRASH DANS OPTIMIZER :", error.message);
         if (error.response) {
-            console.error("Données renvoyées par l'API lors de l'erreur :", JSON.stringify(error.response.data, null, 2));
+            console.error("🔍 DÉTAILS API :", JSON.stringify(error.response.data, null, 2));
         }
-        throw error; 
+        throw error;
     }
 }
 

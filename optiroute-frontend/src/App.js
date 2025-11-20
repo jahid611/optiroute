@@ -18,7 +18,7 @@ const COLORS = {
     BLUE: '#2b79c2', 
     GREEN: '#28a745', 
     RED: '#dc3545',   
-    WHITE: '#ffffff',
+    WHITE: '#fff',
     BORDER: '#dcdcde',
     GRAY_TEXT: '#6c757d',
     SUCCESS: '#28a745',
