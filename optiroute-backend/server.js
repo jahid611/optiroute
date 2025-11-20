@@ -111,10 +111,11 @@ app.post('/missions', async (req, res) => {
 
         // ---- INSERT EN BASE ----
         const [result] = await db.query(
-            `INSERT INTO missions (client_name, address, lat, lng, status, time_slot)
-             VALUES (?, ?, ?, ?, "pending", ?)`,
-            [client_name, address, gps.lat, gps.lng, creneau]
-        );
+    `INSERT INTO missions (client_name, address, lat, lng, status, time_slot)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [client_name, address, gps.lat, gps.lng, "pending", creneau]
+);
+
 
         console.log("✅ Mission ajoutée ID :", result.insertId);
 
