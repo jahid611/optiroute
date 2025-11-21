@@ -3,7 +3,8 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css'; 
 import L from 'leaflet';
-import { decode } from 'jwt-decode'; // Assure-toi d'installer: npm install jwt-decode
+// --- CORRECTION ICI : On importe jwtDecode (et non decode) ---
+import { jwtDecode } from 'jwt-decode'; 
 
 // --- CONFIGURATION LEAFLET ---
 delete L.Icon.Default.prototype._getIconUrl;
@@ -34,7 +35,6 @@ function MapController({ center, bounds }) {
 }
 
 const createCustomIcon = (index, total, isMyMission) => {
-    // Si ce n'est pas ma mission (pour un tech), on peut la griser ou changer la couleur
     let color = isMyMission ? COLORS.BLUE : COLORS.GRAY_TEXT; 
     if (index === 0 && isMyMission) color = COLORS.GREEN;
     if (index === total - 1 && isMyMission) color = COLORS.RED;
@@ -51,7 +51,7 @@ function App() {
 
     // --- AUTH & ROLES ---
     const [token, setToken] = useState(localStorage.getItem('optiroute_token'));
-    const [userRole, setUserRole] = useState(null); // 'admin' ou 'tech'
+    const [userRole, setUserRole] = useState(null);
     const [userId, setUserId] = useState(null);
     const [userName, setUserName] = useState("");
 
@@ -59,13 +59,13 @@ function App() {
     const [isLoginView, setIsLoginView] = useState(true);
     const [authEmail, setAuthEmail] = useState("");
     const [authPass, setAuthPass] = useState("");
-    const [authCompany, setAuthCompany] = useState(""); // Register only
+    const [authCompany, setAuthCompany] = useState("");
     const [authError, setAuthError] = useState("");
     const [authLoading, setAuthLoading] = useState(false);
 
     // --- APP DATA ---
     const [technicians, setTechnicians] = useState([]);
-    const [selectedTechId, setSelectedTechId] = useState(null); // CRUCIAL : Qui reçoit la mission ?
+    const [selectedTechId, setSelectedTechId] = useState(null);
     const [route, setRoute] = useState([]);
     const [routePath, setRoutePath] = useState([]); 
     const [pendingMissions, setPendingMissions] = useState([]);
@@ -95,12 +95,10 @@ function App() {
     // --- MODALS ---
     const [navModal, setNavModal] = useState(null); 
     const [showTeamModal, setShowTeamModal] = useState(false);
-    const [showResetModal, setShowResetModal] = useState(false); // Pour vider missions
+    const [showResetModal, setShowResetModal] = useState(false);
     const [showEmptyModal, setShowEmptyModal] = useState(false);
     const [showUnassignedModal, setShowUnassignedModal] = useState(false);
     const [unassignedList, setUnassignedList] = useState([]); 
-    
-    // Suppression Tech
     const [techToDelete, setTechToDelete] = useState(null); 
     const [isDeletingTech, setIsDeletingTech] = useState(false);
 
@@ -112,11 +110,11 @@ function App() {
         window.addEventListener('resize', handleResize);
         if (token) {
             try {
-                const decoded = decode(token);
+                // --- CORRECTION ICI : Appel de jwtDecode ---
+                const decoded = jwtDecode(token);
                 setUserRole(decoded.role);
                 setUserId(decoded.id);
                 setUserName(decoded.name);
-                // Si c'est un Tech, il est automatiquement sélectionné pour lui-même
                 if (decoded.role === 'tech') setSelectedTechId(decoded.id);
             } catch (e) { handleLogout(); }
             fetchTechnicians();
@@ -169,7 +167,7 @@ function App() {
             const added = res.data[res.data.length - 1];
             if (added) { setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); setMapBounds(null); }
             setToast({ message: "Technicien ajouté", type: "success" });
-            setShowTeamModal(false); // FERMETURE AUTOMATIQUE DU MODAL
+            setShowTeamModal(false);
         } catch (error) { alert("Erreur ajout"); }
         finally { setIsAddingTech(false); }
     };
@@ -188,7 +186,6 @@ function App() {
 
     const handleAddMission = async (e) => {
         e.preventDefault(); 
-        // Bloquer si Admin n'a pas sélectionné de tech
         if (userRole === 'admin' && !selectedTechId) return;
 
         if(!newName || !newAddress) return;
@@ -196,7 +193,7 @@ function App() {
         try {
             const response = await axios.post(`${API_URL}/missions`, { 
                 client_name: newName, address: newAddress, time_slot: timeSlot, duration: duration,
-                technician_id: selectedTechId // On envoie l'ID choisi
+                technician_id: selectedTechId 
             }, getAuthHeaders());
             
             if(response.data.success) { 
@@ -214,7 +211,6 @@ function App() {
         try {
             const response = await axios.get(`${API_URL}/optimize`, getAuthHeaders());
             if (response.data.path && Array.isArray(response.data.route)) {
-                // FILTRAGE CÔTÉ TECH : Je ne vois que mes routes
                 let myRoute = response.data.route;
                 if (userRole === 'tech') {
                     myRoute = myRoute.filter(step => step.technician_name === userName);
@@ -262,14 +258,12 @@ function App() {
         <div style={rootContainerStyle(isMobileView)}>
             <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap'); .leaflet-control-attribution { display: none !important; } .leaflet-div-icon { background: transparent; border: none; }`}</style>
             
-            {/* TOAST */}
             {toast && (
                 <div style={{position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', backgroundColor: toast.type === 'success' ? COLORS.DARK : COLORS.BLUE, color: 'white', padding: '15px 30px', borderRadius: PILL_RADIUS, boxShadow: SHADOW, zIndex: 99999, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '14px', display: 'flex', alignItems: 'center'}}>
                     <img src="/logo-truck.svg" alt="" style={{width:'20px', height:'20px', marginRight:'15px', filter:'invert(1)'}}/>{toast.message}
                 </div>
             )}
 
-            {/* MODALS (Z-Index corrigés) */}
             {/* 1. DELETE TECH */}
             {techToDelete && (
                 <div style={{...modalOverlayStyle, zIndex: 10002}} onClick={() => !isDeletingTech && setTechToDelete(null)}>
@@ -342,12 +336,10 @@ function App() {
                 </div>
             )}
 
-            {/* 4. NAVIGATION & EMPTY */}
             {navModal && (<div style={modalOverlayStyle} onClick={() => setNavModal(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={modalTitleStyle}>NAVIGATION</h3><div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}><a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/waze.png" alt="W" style={gpsIconStyle}/>Waze</a><a href={`https://www.google.com/maps/dir/?api=1&destination=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/google.png" alt="G" style={gpsIconStyle}/>Google Maps</a></div><button onClick={() => setNavModal(null)} style={cancelButtonStyle}>FERMER</button></div></div>)}
             {showEmptyModal && (<div style={modalOverlayStyle} onClick={() => setShowEmptyModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} /><h3 style={modalTitleStyle}>OPTIROUTE</h3><p style={{fontFamily:"'Inter', sans-serif", color:COLORS.GRAY_TEXT, marginBottom:'25px'}}>Ajoutez des missions avant de lancer le calcul.</p><button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button></div></div>)}
             {showUnassignedModal && (<div style={modalOverlayStyle} onClick={() => setShowUnassignedModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3><p style={{fontFamily: "'Inter', sans-serif", color: COLORS.GRAY_TEXT, marginBottom:'15px'}}>Adresses trop lointaines :</p><div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>{unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}</div><button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button></div></div>)}
 
-            {/* --- LAYOUT --- */}
             <div style={mapContainerStyle(isMobileView)}>
                 <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
@@ -384,7 +376,6 @@ function App() {
                     
                     <form onSubmit={handleAddMission} style={{opacity: (userRole === 'admin' && !selectedTechId) ? 0.5 : 1, pointerEvents: (userRole === 'admin' && !selectedTechId) ? 'none' : 'auto', transition: '0.3s'}}>
                         
-                        {/* SÉLECTEUR DE TECHNICIEN (ADMIN SEULEMENT) */}
                         {userRole === 'admin' && (
                             <div style={{marginBottom:'15px'}}>
                                 <div style={{fontSize:'11px', fontWeight:'bold', color:COLORS.GRAY_TEXT, marginBottom:'5px'}}>AFFECTER À :</div>
@@ -465,7 +456,6 @@ function App() {
                                  </div>
                              )}
                         </button>
-                        {/* SEUL L'ADMIN PEUT RESET LES MISSIONS */}
                         {userRole === 'admin' && (
                             <button onClick={()=>setShowResetModal(true)} style={resetButtonStyle}>
                                 <img src="/icon-trash.svg" alt="Reset" style={{width:'28px', opacity:0.6}} />
