@@ -8,7 +8,17 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
-app.use(cors()); 
+app.use(cors({
+    origin: [
+        "https://optiroute-green.vercel.app", // Ton site en production
+        "http://localhost:3000"               // Ton site en local
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+}));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json()); 
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_super_securise';
