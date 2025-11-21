@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css'; 
 import L from 'leaflet';
-// --- CORRECTION ICI : On importe jwtDecode (et non decode) ---
+// --- CORRECTION IMPORTANTE : jwtDecode ---
 import { jwtDecode } from 'jwt-decode'; 
 
 // --- CONFIGURATION LEAFLET ---
@@ -104,13 +104,26 @@ function App() {
 
     const isMobileView = screenWidth < 768;
 
+    const getAuthHeaders = () => ({ headers: { Authorization: `Bearer ${token}` } });
+
+    const handleLogout = () => {
+        localStorage.removeItem('optiroute_token'); setToken(null); setUserRole(null); setRoute([]);
+    };
+
+    const fetchTechnicians = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/technicians`, getAuthHeaders());
+            setTechnicians(res.data);
+        } catch (e) { if(e.response?.status === 401) handleLogout(); }
+    };
+
     // --- INIT ---
     useEffect(() => {
         const handleResize = () => setScreenWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
         if (token) {
             try {
-                // --- CORRECTION ICI : Appel de jwtDecode ---
+                // --- UTILISATION CORRECTE : jwtDecode ---
                 const decoded = jwtDecode(token);
                 setUserRole(decoded.role);
                 setUserId(decoded.id);
@@ -120,11 +133,10 @@ function App() {
             fetchTechnicians();
         }
         return () => window.removeEventListener('resize', handleResize);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token]);
 
     useEffect(() => { if (toast) setTimeout(() => setToast(null), 3000); }, [toast]);
-
-    const getAuthHeaders = () => ({ headers: { Authorization: `Bearer ${token}` } });
 
     // --- ACTIONS ---
     const handleAuth = async (e) => {
@@ -142,17 +154,6 @@ function App() {
             }
         } catch (err) { setAuthError(err.response?.data?.message || "Erreur."); } 
         finally { setAuthLoading(false); }
-    };
-
-    const handleLogout = () => {
-        localStorage.removeItem('optiroute_token'); setToken(null); setUserRole(null); setRoute([]);
-    };
-
-    const fetchTechnicians = async () => {
-        try {
-            const res = await axios.get(`${API_URL}/technicians`, getAuthHeaders());
-            setTechnicians(res.data);
-        } catch (e) { if(e.response?.status === 401) handleLogout(); }
     };
 
     const handleAddTech = async (e) => {
@@ -264,7 +265,6 @@ function App() {
                 </div>
             )}
 
-            {/* 1. DELETE TECH */}
             {techToDelete && (
                 <div style={{...modalOverlayStyle, zIndex: 10002}} onClick={() => !isDeletingTech && setTechToDelete(null)}>
                     <div style={modalContentStyle} onClick={e => e.stopPropagation()}>
@@ -279,7 +279,6 @@ function App() {
                 </div>
             )}
 
-            {/* 2. TEAM MANAGEMENT */}
             {showTeamModal && (
                 <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowTeamModal(false)}>
                     <div style={{...modalContentStyle, maxWidth:'450px', padding:'40px'}} onClick={e => e.stopPropagation()}>
@@ -318,7 +317,6 @@ function App() {
                 </div>
             )}
 
-            {/* 3. RESET MISSIONS ONLY */}
             {showResetModal && (
                 <div style={modalOverlayStyle} onClick={() => setShowResetModal(false)}>
                     <div style={modalContentStyle} onClick={e => e.stopPropagation()}>
@@ -336,7 +334,7 @@ function App() {
                 </div>
             )}
 
-            {navModal && (<div style={modalOverlayStyle} onClick={() => setNavModal(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={modalTitleStyle}>NAVIGATION</h3><div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}><a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/waze.png" alt="W" style={gpsIconStyle}/>Waze</a><a href={`https://www.google.com/maps/dir/?api=1&destination=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/google.png" alt="G" style={gpsIconStyle}/>Google Maps</a></div><button onClick={() => setNavModal(null)} style={cancelButtonStyle}>FERMER</button></div></div>)}
+            {navModal && (<div style={modalOverlayStyle} onClick={() => setNavModal(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={modalTitleStyle}>NAVIGATION</h3><div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}><a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/waze.png" alt="W" style={gpsIconStyle}/>Waze</a><a href={`https://www.google.com/maps?q=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/google.png" alt="G" style={gpsIconStyle}/>Google Maps</a></div><button onClick={() => setNavModal(null)} style={cancelButtonStyle}>FERMER</button></div></div>)}
             {showEmptyModal && (<div style={modalOverlayStyle} onClick={() => setShowEmptyModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} /><h3 style={modalTitleStyle}>OPTIROUTE</h3><p style={{fontFamily:"'Inter', sans-serif", color:COLORS.GRAY_TEXT, marginBottom:'25px'}}>Ajoutez des missions avant de lancer le calcul.</p><button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button></div></div>)}
             {showUnassignedModal && (<div style={modalOverlayStyle} onClick={() => setShowUnassignedModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3><p style={{fontFamily: "'Inter', sans-serif", color: COLORS.GRAY_TEXT, marginBottom:'15px'}}>Adresses trop lointaines :</p><div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>{unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}</div><button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button></div></div>)}
 
@@ -375,7 +373,6 @@ function App() {
                     </div>
                     
                     <form onSubmit={handleAddMission} style={{opacity: (userRole === 'admin' && !selectedTechId) ? 0.5 : 1, pointerEvents: (userRole === 'admin' && !selectedTechId) ? 'none' : 'auto', transition: '0.3s'}}>
-                        
                         {userRole === 'admin' && (
                             <div style={{marginBottom:'15px'}}>
                                 <div style={{fontSize:'11px', fontWeight:'bold', color:COLORS.GRAY_TEXT, marginBottom:'5px'}}>AFFECTER À :</div>
