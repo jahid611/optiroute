@@ -4,16 +4,12 @@ import axios from 'axios';
 import 'leaflet/dist/leaflet.css'; 
 import L from 'leaflet';
 
-// --- FIX IMPORT IMAGES POUR VERCEL (Remplacement de require) ---
-import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
-import iconUrl from 'leaflet/dist/images/marker-icon.png';
-import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
-
+// FIX ICÔNES LEAFLET
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-    iconRetinaUrl: iconRetinaUrl,
-    iconUrl: iconUrl,
-    shadowUrl: shadowUrl,
+    iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+    iconUrl: require('leaflet/dist/images/marker-icon.png'),
+    shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
 // --- CHARTE GRAPHIQUE ---
@@ -65,7 +61,7 @@ function App() {
     // ==========================================
     // 👇 TON IP ICI
     // ==========================================
-    const API_URL = "https://optiroute-wxaz.onrender.com";
+const API_URL = "https://optiroute-wxaz.onrender.com";
     // ==========================================
 
     const [route, setRoute] = useState([]);
@@ -86,7 +82,7 @@ function App() {
     const [unassignedList, setUnassignedList] = useState([]); 
     const [showUnassignedModal, setShowUnassignedModal] = useState(false);
 
-    // TEAM MANAGEMENT
+    // TEAM MANAGEMENT (Le retour !)
     const [showTeamModal, setShowTeamModal] = useState(false);
     const [technicians, setTechnicians] = useState([]);
     const [newTechName, setNewTechName] = useState("");
@@ -208,7 +204,7 @@ function App() {
                 {` .leaflet-div-icon { background: transparent; border: none; } `}
             </style>
             
-            {/* MODAL GESTION EQUIPE */}
+            {/* MODAL GESTION EQUIPE (Le retour) */}
             {showTeamModal && (
                 <div style={modalOverlayStyle} onClick={() => setShowTeamModal(false)}>
                     <div style={{...modalContentStyle, maxWidth:'400px'}} onClick={(e) => e.stopPropagation()}>
@@ -343,6 +339,7 @@ function App() {
                             <img src="/icon-plus.svg" alt="+" style={{width:'18px', marginRight:'10px'}} />
                             <h4 style={{margin:0, color: COLORS.DARK, fontSize: '1.1em', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px'}}>TRAJETS</h4>
                         </div>
+                        {/* 👇 LE BOUTON QUI TE MANQUAIT */}
                         <button onClick={() => setShowTeamModal(true)} style={{background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '12px', color: COLORS.BLUE, fontFamily: "'Inter', sans-serif", fontWeight: '600', textDecoration: 'underline'}}>
                             👥 Gérer l'équipe
                         </button>
@@ -422,9 +419,9 @@ function App() {
                                             </div>
                                             <div style={missionAddressStyle}>{step.address.substring(0, 40)}...</div>
                                             <div style={{fontSize: '11px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif"}}>
-                                                {/* ON AFFICHE LE CAMION QUI GERE CETTE ETAPE SI DISPO */}
-                                                {step.technician_name ? `🚛 ${step.technician_name} • ` : ''}
-                                                📍 {step.distance_km} km 
+                                                 {/* ON AFFICHE LE CAMION QUI GERE CETTE ETAPE SI DISPO */}
+                                                 {step.technician_name ? `🚛 ${step.technician_name} • ` : ''}
+                                                 📍 {step.distance_km} km 
                                             </div>
                                         </div>
                                         <button onClick={() => setNavModal({lat: step.lat, lng: step.lng})} style={compassButtonStyle}>
@@ -445,34 +442,11 @@ function App() {
 const helpTextStyle = { color: COLORS.GRAY_TEXT, fontSize: '12px', fontFamily: "'Inter', sans-serif", fontStyle: 'italic', marginTop: '-5px', marginBottom: '15px', lineHeight: '1.4' };
 const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', minHeight: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: '#f0f0f1', overflow: isMobile ? 'auto' : 'hidden' });
 const mapContainerStyle = (isMobile) => ({ flex: isMobile ? 'none' : 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: isMobile ? 'none' : `1px solid ${COLORS.DARK}`, zIndex: 0 });
-
-// ==================================================================
-// 👇 UPDATE: BLUR EFFECT & DARKER WHITE (Glassmorphism)
-// ==================================================================
-const panelContainerStyle = (isMobile) => ({ 
-    width: isMobile ? '100%' : '450px', 
-    height: isMobile ? 'auto' : '100%', 
-    minHeight: isMobile ? '60vh' : '100%', 
-    
-    // Fond blanc transparent
-    backgroundColor: 'rgba(255, 255, 255, 0.75)', 
-    // Effet flou
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    
-    padding: '25px', 
-    boxSizing: 'border-box', 
-    display: 'flex', 
-    flexDirection: 'column', 
-    order: isMobile ? 2 : 1, 
-    zIndex: 1000, 
-    borderTop: isMobile ? `2px solid ${COLORS.DARK}` : 'none' 
-});
-// ==================================================================
-
+const panelContainerStyle = (isMobile) => ({ width: isMobile ? '100%' : '450px', height: isMobile ? 'auto' : '100%', minHeight: isMobile ? '60vh' : '100%', backgroundColor: COLORS.WHITE, padding: '25px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', order: isMobile ? 2 : 1, zIndex: 1000, borderTop: isMobile ? `2px solid ${COLORS.DARK}` : 'none' });
 const panelHeaderStyle = { marginBottom: '25px', paddingBottom: '20px', borderBottom: `2px solid ${COLORS.DARK}` };
 const proTagStyle = { fontSize: '0.4em', backgroundColor: COLORS.BLUE, color: COLORS.WHITE, padding: '2px 6px', verticalAlign: 'top', marginLeft: '8px', fontFamily: "'Inter', sans-serif", fontWeight: '600', borderRadius: STANDARD_RADIUS };
 const cardStyle = { marginBottom: '25px' };
+const cardHeaderStyle = { display: 'flex', alignItems: 'center', marginBottom: '10px' };
 const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK };
 const inputStyle = { width: '100%', padding: '14px 16px', marginBottom: '5px', borderRadius: PILL_RADIUS, border: `1px solid ${COLORS.DARK}`, backgroundColor: COLORS.WHITE, fontSize: '14px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500' };
 const dropdownItemStyle = { padding: '12px 15px', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '14px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, fontWeight: '500', borderRadius: '15px', transition: 'background 0.2s' };
@@ -485,6 +459,8 @@ const missionsListStyle = { display: 'flex', flexDirection: 'column', border: `1
 const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '16px', borderBottom: `1px solid ${COLORS.DARK}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
 const missionInfoStyle = { flex: 1, marginRight: '10px' };
 const missionTitleStyle = { fontWeight: '700', fontSize: '15px', color: COLORS.DARK, display: 'flex', alignItems: 'center' };
+const missionStepStyle = { marginRight: '15px', fontWeight: '900', fontSize: '18px', fontFamily: "'Oswald', sans-serif" };
+const missionAddressStyle = { color: '#555', fontSize: '13px', marginTop: '4px', fontFamily: "'Inter', sans-serif" };
 const compassButtonStyle = { backgroundColor: COLORS.WHITE, border: `1px solid ${COLORS.DARK}`, borderRadius: STANDARD_RADIUS, width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
 const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.95)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const modalContentStyle = { background: COLORS.WHITE, padding: '35px', borderRadius: STANDARD_RADIUS, width: '90%', maxWidth: '350px', textAlign: 'center', border: `4px solid ${COLORS.BLUE}`, boxSizing: 'border-box' };
