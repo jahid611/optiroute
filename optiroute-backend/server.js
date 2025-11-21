@@ -3,164 +3,170 @@ const cors = require('cors');
 const db = require('./db'); 
 const getCoordinates = require('./geocoder'); 
 const optimizeRoute = require('./optimizer'); 
-const bcrypt = require('bcryptjs'); // Hachage password
-const jwt = require('jsonwebtoken'); // Gestion des Tokens
+const bcrypt = require('bcryptjs'); 
+const jwt = require('jsonwebtoken'); 
 require('dotenv').config();
 
 const app = express();
 app.use(cors()); 
 app.use(express.json()); 
 
-const JWT_SECRET = process.env.JWT_SECRET || 'secret_par_defaut_dangereux';
+const JWT_SECRET = process.env.JWT_SECRET || 'secret_super_securise';
 
-// --- MIDDLEWARE D'AUTHENTIFICATION ---
-// C'est le gardien. Il vérifie le Token avant de laisser passer.
+// --- MIDDLEWARE AUTH (Gère Admin et Tech) ---
 function authenticateToken(req, res, next) {
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Format: "Bearer LE_TOKEN"
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) return res.status(401).json({ message: "Accès refusé." });
 
-    if (!token) return res.status(401).json({ message: "Accès refusé. Token manquant." });
-
-    jwt.verify(token, JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ message: "Token invalide ou expiré." });
-        req.user = user; // On colle l'info de l'utilisateur (son ID) dans la requête
-        next(); // On passe à la suite
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+        if (err) return res.status(403).json({ message: "Token invalide." });
+        req.user = decoded; // Contient { id, role, company_id (si tech) }
+        next();
     });
 }
 
-// --- ROUTES PUBLIQUES (Pas besoin de token) ---
+// --- ROUTES AUTH ---
 
-// 1. Inscription (Register)
-app.post('/auth/register', async (req, res) => {
-    try {
-        const { email, password, company_name } = req.body;
-        if (!email || !password) return res.status(400).json({ message: "Email et mot de passe requis." });
-
-        // Vérifier si l'email existe déjà
-        const [existing] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
-        if (existing.length > 0) return res.status(400).json({ message: "Cet email est déjà utilisé." });
-
-        // Hasher le mot de passe
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        // Insérer l'utilisateur
-        await db.query("INSERT INTO users (email, password, company_name) VALUES (?, ?, ?)", [email, hashedPassword, company_name]);
-        
-        res.status(201).json({ success: true, message: "Compte créé avec succès !" });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// 2. Connexion (Login)
+// Login Unifié (Admin ou Tech)
 app.post('/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        
-        // Trouver l'utilisateur
-        const [users] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
-        if (users.length === 0) return res.status(400).json({ message: "Email ou mot de passe incorrect." });
-        const user = users[0];
 
-        // Vérifier le mot de passe
-        const validPassword = await bcrypt.compare(password, user.password);
-        if (!validPassword) return res.status(400).json({ message: "Email ou mot de passe incorrect." });
+        // 1. Essayer en tant qu'ADMIN (Table users)
+        const [admins] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
+        if (admins.length > 0) {
+            const admin = admins[0];
+            const valid = await bcrypt.compare(password, admin.password);
+            if (valid) {
+                const token = jwt.sign({ id: admin.id, role: 'admin', name: admin.company_name }, JWT_SECRET, { expiresIn: '24h' });
+                return res.json({ success: true, token, role: 'admin', name: admin.company_name });
+            }
+        }
 
-        // Générer le Token (Contient l'ID de l'user)
-        const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '24h' });
+        // 2. Essayer en tant que TECHNICIEN (Table technicians)
+        const [techs] = await db.query("SELECT * FROM technicians WHERE email = ?", [email]);
+        if (techs.length > 0) {
+            const tech = techs[0];
+            const valid = await bcrypt.compare(password, tech.password);
+            if (valid) {
+                // Pour un tech, user_id est l'ID de son boss (company_id)
+                const token = jwt.sign({ id: tech.id, role: 'tech', company_id: tech.user_id, name: tech.name }, JWT_SECRET, { expiresIn: '24h' });
+                return res.json({ success: true, token, role: 'tech', name: tech.name });
+            }
+        }
 
-        res.json({ success: true, token: token, company: user.company_name });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
+        return res.status(400).json({ message: "Email ou mot de passe incorrect." });
+    } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// Route "Ping" (Pour vérifier que le serveur tourne)
-app.get('/', (req, res) => res.send("OptiRoute Backend V2 (Secure) is Running."));
-
-
-// --- ROUTES PROTÉGÉES (Nécessitent un Token) ---
-// Note l'ajout de 'authenticateToken' comme 2ème argument
-
-// 3. Ajouter une mission (Protégé)
-// 3. Ajouter une mission (Avec Durée personnalisée)
-app.post('/missions', authenticateToken, async (req, res) => {
+app.post('/auth/register', async (req, res) => { // Inscription Admin seulement
     try {
-        const userId = req.user.id; 
-        // On récupère 'duration' en plus
-        const { client_name, address, time_slot, duration } = req.body;
-
-        if (!client_name || !address) return res.status(400).json({ success: false, message: "Champs manquants" });
-
-        const gps = await getCoordinates(address);
-        if (!gps.found) return res.status(400).json({ success: false, message: "Adresse introuvable" });
-
-        // Si pas de durée envoyée, on met 30 par défaut
-        const finalDuration = duration || 30;
-
-        // On ajoute duration_minutes dans la requête SQL
-        const [result] = await db.query(
-            `INSERT INTO missions (user_id, client_name, address, lat, lng, status, time_slot, duration_minutes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [userId, client_name, address, gps.lat, gps.lng, "pending", time_slot || 'any', finalDuration]
-        );
-
-        res.json({ success: true, id: result.insertId });
-    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+        const { email, password, company_name } = req.body;
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        await db.query("INSERT INTO users (email, password, company_name) VALUES (?, ?, ?)", [email, hashedPassword, company_name]);
+        res.status(201).json({ success: true });
+    } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// 4. Lister les techniciens (Protégé & Filtré par User)
+// --- ROUTES MÉTIER ---
+
+// Lister Techniciens (Admin voit tout, Tech voit ses collègues)
 app.get('/technicians', authenticateToken, async (req, res) => {
     try {
-        // On ne récupère QUE les techniciens de l'utilisateur connecté
-        const [rows] = await db.query("SELECT * FROM technicians WHERE user_id = ?", [req.user.id]);
+        const companyId = req.user.role === 'admin' ? req.user.id : req.user.company_id;
+        // On ne renvoie pas les mots de passe !
+        const [rows] = await db.query("SELECT id, name, address, start_lat, start_lng, email, capacity FROM technicians WHERE user_id = ?", [companyId]);
         res.json(rows);
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// 5. Ajouter un technicien (Protégé)
+// Ajouter Technicien (ADMIN SEULEMENT)
 app.post('/technicians', authenticateToken, async (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).json({ message: "Seul l'administrateur peut ajouter un technicien." });
     try {
-        const userId = req.user.id;
-        const { name, address } = req.body;
+        const { name, address, email, password } = req.body;
         const gps = await getCoordinates(address);
-        if (!gps.found) return res.status(400).json({ success: false });
+        if (!gps.found) return res.status(400).json({ success: false, message: "Adresse introuvable" });
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
         await db.query(
-            'INSERT INTO technicians (user_id, name, address, start_lat, start_lng) VALUES (?, ?, ?, ?, ?)', 
-            [userId, name, address, gps.lat, gps.lng]
+            'INSERT INTO technicians (user_id, name, address, start_lat, start_lng, email, password) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+            [req.user.id, name, address, gps.lat, gps.lng, email, hashedPassword]
         );
         res.json({ success: true });
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// 6. Supprimer un technicien (Protégé & Vérifié)
+// Supprimer Technicien (ADMIN SEULEMENT)
 app.delete('/technicians/:id', authenticateToken, async (req, res) => {
+    if (req.user.role !== 'admin') return res.status(403).json({ message: "Action interdite." });
     try {
-        // Sécurité : On s'assure qu'on ne supprime qu'un technicien qui NOUS appartient
         await db.query('DELETE FROM technicians WHERE id = ? AND user_id = ?', [req.params.id, req.user.id]);
         res.json({ success: true });
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// 7. Optimisation (Doit être mise à jour pour gérer le multi-tenant)
+// Lister Missions (Filtré par Rôle)
 app.get('/optimize', authenticateToken, async (req, res) => {
     try {
-        // On passe l'ID utilisateur à la fonction d'optimisation pour qu'elle ne charge que les bonnes données
-        const result = await optimizeRoute(req.user.id); 
+        const companyId = req.user.role === 'admin' ? req.user.id : req.user.company_id;
+        
+        // Si c'est un tech, on filtre l'affichage (ou pas, selon ta règle. Ici je laisse l'optimisation globale mais on filtrera le rendu front)
+        // Pour l'instant, l'optimisation recalcule tout pour l'entreprise.
+        const result = await optimizeRoute(companyId);
+        
+        // Si c'est un Tech, on ne lui renvoie QUE sa route dans le résultat ? 
+        // Pour l'instant on renvoie tout, le front filtrera l'affichage.
         res.json({ success: true, route: result.route, path: result.path, unassigned: result.unassigned });
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// 8. Reset des données (Pour l'utilisateur seulement)
-app.get('/init-data', authenticateToken, async (req, res) => {
+// Ajouter Mission (Avec assignation forcée)
+app.post('/missions', authenticateToken, async (req, res) => {
     try {
-        // Supprime UNIQUEMENT les données de l'utilisateur connecté
-        await db.query('DELETE FROM missions WHERE user_id = ?', [req.user.id]);
-        await db.query('DELETE FROM technicians WHERE user_id = ?', [req.user.id]);
-        res.send("✅ Vos données ont été réinitialisées.");
-    } catch (error) { res.status(500).send(error.message); }
+        const { client_name, address, time_slot, duration, technician_id } = req.body;
+        const companyId = req.user.role === 'admin' ? req.user.id : req.user.company_id;
+
+        // Sécurité : Si c'est un tech, il ne peut s'assigner qu'à lui-même
+        let assignedTechId = technician_id;
+        if (req.user.role === 'tech') {
+            assignedTechId = req.user.id;
+        }
+        // Si c'est un admin, technician_id est obligatoire (sélectionné dans le front)
+        if (req.user.role === 'admin' && !assignedTechId) {
+            return res.status(400).json({ message: "Veuillez sélectionner un technicien." });
+        }
+
+        const gps = await getCoordinates(address);
+        if (!gps.found) return res.status(400).json({ success: false, message: "Adresse introuvable" });
+
+        const finalDuration = duration || 30;
+
+        // On insère avec status 'assigned' car on a choisi le technicien
+        const status = 'assigned'; 
+
+        await db.query(
+            `INSERT INTO missions (user_id, client_name, address, lat, lng, status, time_slot, duration_minutes, technician_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [companyId, client_name, address, gps.lat, gps.lng, status, time_slot || 'any', finalDuration, assignedTechId]
+        );
+
+        res.json({ success: true });
+    } catch (error) { res.status(500).json({ success: false, message: error.message }); }
+});
+
+// RESET : Supprimer UNIQUEMENT les missions (Trash button)
+app.delete('/missions/reset', authenticateToken, async (req, res) => {
+    try {
+        const companyId = req.user.role === 'admin' ? req.user.id : req.user.company_id;
+        // On ne touche PAS à la table technicians
+        await db.query('DELETE FROM missions WHERE user_id = ?', [companyId]);
+        res.json({ success: true, message: "Toutes les missions ont été effacées." });
+    } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 Serveur Sécurisé démarré sur http://0.0.0.0:${PORT}`); });
+app.listen(PORT, '0.0.0.0', () => { console.log(`🚀 Serveur Multi-Rôles démarré sur http://0.0.0.0:${PORT}`); });
