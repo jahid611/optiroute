@@ -20,8 +20,12 @@ const corsOptions = {
     credentials: true
 };
 
+// 1. Appliquer CORS
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // Active le pre-flight pour toutes les routes
+
+// 2. CORRECTION DU BUG RENDER ICI 👇
+// On utilise une Regex /(.*)/ au lieu de '*' pour éviter le crash "PathError"
+app.options(/(.*)/, cors(corsOptions)); 
 
 app.use(express.json()); 
 
