@@ -5,12 +5,17 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { jwtDecode } from 'jwt-decode'; 
 
+// --- FIX POUR VERCEL (Remplacement de require par import) ---
+import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
+import iconUrl from 'leaflet/dist/images/marker-icon.png';
+import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+
 // --- 1. CONFIGURATION LEAFLET ---
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-    iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-    iconUrl: require('leaflet/dist/images/marker-icon.png'),
-    shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+    iconRetinaUrl: iconRetinaUrl,
+    iconUrl: iconUrl,
+    shadowUrl: shadowUrl,
 });
 
 // --- 2. CONSTANTES & STYLES ---
@@ -30,7 +35,7 @@ const PILL_RADIUS = '38px';
 const STANDARD_RADIUS = '8px';
 const SHADOW = '0 10px 30px rgba(0,0,0,0.15)';
 
-// Styles définis proprement avec Template Literals (Backticks) corrects
+// Styles
 const rootContainerStyle = (isMobile) => ({
     display: 'flex',
     flexDirection: isMobile ? 'column' : 'row',
@@ -85,7 +90,6 @@ const proTagStyle = {
 };
 
 const cardStyle = { marginBottom: '25px' };
-
 const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK };
 
 const inputStyle = {
@@ -298,7 +302,26 @@ const cancelButtonStyle = {
     letterSpacing: '1px'
 };
 
-// --- 3. COMPOSANTS LOGIQUES ---
+// --- 3. COMPOSANTS LOGIQUES & HELPER FUNCTIONS MANQUANTES ---
+
+// 👇 J'ai rajouté ces deux fonctions qui manquaient dans votre code
+const getStepColor = (index, total) => {
+    if (index === 0) return COLORS.GREEN;
+    if (index === total - 1) return COLORS.RED;
+    return COLORS.BLUE;
+};
+
+const renderClientName = (name, slot) => {
+    let iconSrc = "/icon-morning.svg"; 
+    if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
+    return (
+        <div style={{display: 'flex', alignItems: 'center'}}>
+            <img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} />
+            <span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span>
+        </div>
+    );
+};
+
 function MapController({ center, bounds }) {
     const map = useMap();
     useEffect(() => {
