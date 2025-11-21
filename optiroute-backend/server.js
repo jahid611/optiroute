@@ -56,14 +56,21 @@ app.get('/init-data', async (req, res) => {
 
         // 4. INSERTION DU TECHNICIEN (Données en dur pour tester)
         // On récupère le résultat pour avoir l'ID
-       
+        const [techResult] = await db.query(
+            'INSERT INTO technicians (name, start_lat, start_lng, address) VALUES (?, ?, ?, ?)',
+            ['Thomas le Boss', 48.867196, 2.363607, 'Place de la République, Paris']
+        );
         
         // Si ta config DB ne renvoie pas le format [result], utilise techResult.insertId directement
         const newTechId = techResult.insertId || 1; 
         console.log(`✅ Technicien inséré avec l'ID : ${newTechId}`);
 
         // 5. INSERTION D'UNE MISSION DE TEST (Liée au technicien créé juste avant)
-        
+        await db.query(
+            `INSERT INTO missions (client_name, address, lat, lng, duration_minutes, status, time_slot, technician_id) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            ['Client Test', '10 Rue de Rivoli, Paris', 48.8556, 2.3522, 45, 'assigned', 'morning', newTechId]
+        );
         console.log("✅ Mission de test insérée et liée au technicien.");
 
         res.send(`✅ SUCCÈS TOTAL : Tables créées, Technicien ID ${newTechId} créé, et Mission de test ajoutée !`);
