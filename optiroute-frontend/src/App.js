@@ -73,6 +73,7 @@ function App() {
     const [authCompany, setAuthCompany] = useState("");
     const [authError, setAuthError] = useState("");
     const [authLoading, setAuthLoading] = useState(false);
+    const [duration, setDuration] = useState(30); // Par défaut 30 min
 
     // --- STATES APPLICATION ---
     const [route, setRoute] = useState([]);
@@ -196,14 +197,25 @@ function App() {
     };
 
     const handleAddMission = async (e) => {
-        e.preventDefault(); 
-        if(!newName || !newAddress) return;
-        try {
-            const response = await axios.post(`${API_URL}/missions`, { client_name: newName, address: newAddress, time_slot: timeSlot }, getAuthHeaders());
-            if(response.data.success) { setNewName(""); setNewAddress(""); } 
-            else { alert("Erreur : " + response.data.message); }
-        } catch (error) { alert("Erreur réseau !"); }
-    };
+    e.preventDefault();
+    if(!newName || !newAddress) return;
+    try {
+        // On envoie 'duration' ici
+        const response = await axios.post(`${API_URL}/missions`, { 
+            client_name: newName, 
+            address: newAddress, 
+            time_slot: timeSlot,
+            duration: duration // <--- AJOUT
+        }, getAuthHeaders());
+
+        if(response.data.success) { 
+            setNewName(""); 
+            setNewAddress(""); 
+            setDuration(30); // Reset à 30 après ajout
+        } 
+        else { alert("Erreur : " + response.data.message); }
+    } catch (error) { alert("Erreur réseau !"); }
+};
 
     const handleOptimize = async () => {
         setLoading(true);
@@ -460,26 +472,44 @@ function App() {
                     <p style={helpTextStyle}>Renseignez les informations ci-dessous pour ajouter un point de passage.</p>
 
                     <form onSubmit={handleAddMission}>
-                        <input type="text" placeholder="Nom du client..." value={newName} onChange={(e) => setNewName(e.target.value)} style={inputStyle} />
-                        <input type="text" placeholder="Adresse complète..." value={newAddress} onChange={(e) => setNewAddress(e.target.value)} style={inputStyle} />
-                        
-                        <div style={{position: 'relative', marginBottom: '20px', userSelect: 'none'}}>
-                            <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} style={{...inputStyle, display: 'flex', alignItems: 'center', cursor: 'pointer', position: 'relative'}}>
-                                <img src={timeSlot === 'morning' ? '/icon-morning.svg' : '/icon-afternoon.svg'} alt="icon" style={{width: '20px', height: '20px', marginRight: '12px'}} />
-                                <span style={{flex: 1}}>{timeSlot === 'morning' ? 'Matin (08h - 12h)' : 'Après-midi (14h - 18h)'}</span>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={COLORS.DARK} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s'}}><path d="M6 9l6 6 6-6" /></svg>
-                            </div>
-                            {isDropdownOpen && (
-                                <div style={{position: 'absolute', top: '110%', left: 0, right: 0, backgroundColor: COLORS.WHITE, border: `1px solid ${COLORS.DARK}`, borderRadius: '20px', zIndex: 100, boxShadow: '0 10px 30px rgba(0,0,0,0.15)', overflow: 'hidden', padding: '5px'}}>
-                                    <div onClick={() => { setTimeSlot('morning'); setIsDropdownOpen(false); }} style={dropdownItemStyle}><img src="/icon-morning.svg" alt="M" style={{width: '20px', marginRight: '10px'}} />Matin (08h - 12h)</div>
-                                    <div style={{height: '1px', background: '#eee', margin: '0 10px'}}></div>
-                                    <div onClick={() => { setTimeSlot('afternoon'); setIsDropdownOpen(false); }} style={dropdownItemStyle}><img src="/icon-afternoon.svg" alt="A" style={{width: '20px', marginRight: '10px'}} />Après-midi (14h - 18h)</div>
-                                </div>
-                            )}
-                        </div>
-                        
-                        <button type="submit" style={submitButtonStyle}>ENREGISTRER LA MISSION</button>
-                    </form>
+    <input type="text" placeholder="Nom du client..." value={newName} onChange={(e) => setNewName(e.target.value)} style={inputStyle} />
+    <input type="text" placeholder="Adresse complète..." value={newAddress} onChange={(e) => setNewAddress(e.target.value)} style={inputStyle} />
+    
+    {/* BLOC FLEX : CRÉNEAU + DURÉE */}
+    <div style={{display:'flex', gap:'10px', marginBottom:'20px'}}>
+        
+        {/* 1. SELECTEUR CRÉNEAU */}
+        <div style={{position: 'relative', flex: 1, userSelect: 'none'}}>
+            <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} style={{...inputStyle, display: 'flex', alignItems: 'center', cursor: 'pointer', position: 'relative', marginBottom:0}}>
+                <img src={timeSlot === 'morning' ? '/icon-morning.svg' : '/icon-afternoon.svg'} alt="icon" style={{width: '20px', height: '20px', marginRight: '12px'}} />
+                <span style={{flex: 1, fontSize:'13px'}}>{timeSlot === 'morning' ? 'Matin' : 'Après-midi'}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={COLORS.DARK} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s'}}><path d="M6 9l6 6 6-6" /></svg>
+            </div>
+            {isDropdownOpen && (
+                <div style={{position: 'absolute', top: '110%', left: 0, right: 0, backgroundColor: COLORS.WHITE, border: `1px solid ${COLORS.DARK}`, borderRadius: '20px', zIndex: 100, boxShadow: '0 10px 30px rgba(0,0,0,0.15)', overflow: 'hidden', padding: '5px'}}>
+                    <div onClick={() => { setTimeSlot('morning'); setIsDropdownOpen(false); }} style={dropdownItemStyle}><img src="/icon-morning.svg" alt="M" style={{width: '20px', marginRight: '10px'}} />Matin</div>
+                    <div style={{height: '1px', background: '#eee', margin: '0 10px'}}></div>
+                    <div onClick={() => { setTimeSlot('afternoon'); setIsDropdownOpen(false); }} style={dropdownItemStyle}><img src="/icon-afternoon.svg" alt="A" style={{width: '20px', marginRight: '10px'}} />Après-midi</div>
+                </div>
+            )}
+        </div>
+
+        {/* 2. INPUT DURÉE */}
+        <div style={{width: '80px'}}>
+            <input 
+                type="number" 
+                min="5" 
+                step="5"
+                value={duration} 
+                onChange={(e) => setDuration(parseInt(e.target.value) || 30)} 
+                style={{...inputStyle, textAlign:'center', marginBottom:0, padding:'14px 5px'}} 
+                placeholder="Min"
+            />
+        </div>
+    </div>
+
+    <button type="submit" style={submitButtonStyle}>ENREGISTRER LA MISSION</button>
+</form>
                 </div>
 
                 <div style={actionButtonsContainerStyle}>

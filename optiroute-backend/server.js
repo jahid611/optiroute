@@ -84,20 +84,25 @@ app.get('/', (req, res) => res.send("OptiRoute Backend V2 (Secure) is Running.")
 // Note l'ajout de 'authenticateToken' comme 2ème argument
 
 // 3. Ajouter une mission (Protégé)
+// 3. Ajouter une mission (Avec Durée personnalisée)
 app.post('/missions', authenticateToken, async (req, res) => {
     try {
-        // req.user.id est disponible grâce au middleware !
         const userId = req.user.id; 
-        const { client_name, address, time_slot } = req.body;
+        // On récupère 'duration' en plus
+        const { client_name, address, time_slot, duration } = req.body;
 
         if (!client_name || !address) return res.status(400).json({ success: false, message: "Champs manquants" });
 
         const gps = await getCoordinates(address);
         if (!gps.found) return res.status(400).json({ success: false, message: "Adresse introuvable" });
 
+        // Si pas de durée envoyée, on met 30 par défaut
+        const finalDuration = duration || 30;
+
+        // On ajoute duration_minutes dans la requête SQL
         const [result] = await db.query(
-            `INSERT INTO missions (user_id, client_name, address, lat, lng, status, time_slot) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [userId, client_name, address, gps.lat, gps.lng, "pending", time_slot || 'any']
+            `INSERT INTO missions (user_id, client_name, address, lat, lng, status, time_slot, duration_minutes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            [userId, client_name, address, gps.lat, gps.lng, "pending", time_slot || 'any', finalDuration]
         );
 
         res.json({ success: true, id: result.insertId });

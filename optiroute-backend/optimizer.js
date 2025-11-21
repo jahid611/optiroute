@@ -31,7 +31,11 @@ async function optimizeRoute(userId) {
         id: m.id,
         location: [parseFloat(m.lng), parseFloat(m.lat)],
         type: 'service',
-        service: 1800, // 30 min par défaut
+        
+        // On prend la durée de la BDD (en minutes) * 60 pour avoir des secondes
+        // Si la durée est vide ou nulle, on met 30 min (1800s) par sécurité
+        service: (m.duration_minutes || 30) * 60, 
+        
         time_windows: [ TIME_WINDOWS[m.time_slot] || TIME_WINDOWS.any ],
         description: m.client_name
     }));
