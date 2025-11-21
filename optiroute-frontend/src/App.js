@@ -12,21 +12,23 @@ L.Icon.Default.mergeOptions({
     shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-// --- CHARTE GRAPHIQUE ---
+// --- CHARTE GRAPHIQUE & UI ---
 const COLORS = {
-    DARK: '#3b4651', 
-    BLUE: '#2b79c2', 
-    GREEN: '#28a745', 
-    RED: '#dc3545',   
-    WHITE: '#fff',
-    BORDER: '#dcdcde',
-    GRAY_TEXT: '#6c757d',
-    SUCCESS: '#28a745',
-    WARNING: '#ff9800'
+    DARK: '#1e293b', // Un gris anthracite plus moderne (Slate-900)
+    BLUE: '#3b82f6', // Un bleu royal vif (Blue-500)
+    GREEN: '#10b981', // Emerald-500
+    RED: '#ef4444',   // Red-500
+    WHITE: '#ffffff',
+    GLASS_BG: 'rgba(255, 255, 255, 0.85)', // Blanc semi-transparent pour l'effet blur
+    BORDER: 'rgba(255, 255, 255, 0.4)', // Bordure subtile
+    GRAY_TEXT: '#64748b', // Slate-500
+    INPUT_BG: 'rgba(255, 255, 255, 0.9)', // Fond des inputs
+    SUCCESS: '#10b981',
+    WARNING: '#f59e0b'
 };
 
-const PILL_RADIUS = '38px'; 
-const STANDARD_RADIUS = '4px';
+const PILL_RADIUS = '12px'; 
+const PANEL_RADIUS = '24px';
 
 // CRÉATION DES MARQUEURS COLORES
 const createCustomIcon = (index, total) => {
@@ -38,22 +40,22 @@ const createCustomIcon = (index, total) => {
         className: 'custom-marker',
         html: `<div style="
             background-color: ${color};
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
-            border: 2px solid white;
-            box-shadow: 0 3px 5px rgba(0,0,0,0.3);
+            border: 3px solid white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-weight: 800;
             font-family: 'Inter', sans-serif;
-            font-size: 12px;
+            font-size: 13px;
         ">${index + 1}</div>`,
-        iconSize: [24, 24],
-        iconAnchor: [12, 12],
-        popupAnchor: [0, -12]
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+        popupAnchor: [0, -14]
     });
 };
 
@@ -61,7 +63,7 @@ function App() {
     // ==========================================
     // 👇 TON IP ICI
     // ==========================================
-const API_URL = "https://optiroute-wxaz.onrender.com";
+    const API_URL = "https://optiroute-wxaz.onrender.com";
     // ==========================================
 
     const [route, setRoute] = useState([]);
@@ -82,7 +84,7 @@ const API_URL = "https://optiroute-wxaz.onrender.com";
     const [unassignedList, setUnassignedList] = useState([]); 
     const [showUnassignedModal, setShowUnassignedModal] = useState(false);
 
-    // TEAM MANAGEMENT (Le retour !)
+    // TEAM MANAGEMENT
     const [showTeamModal, setShowTeamModal] = useState(false);
     const [technicians, setTechnicians] = useState([]);
     const [newTechName, setNewTechName] = useState("");
@@ -98,7 +100,6 @@ const API_URL = "https://optiroute-wxaz.onrender.com";
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Chargement initial des techniciens
     useEffect(() => {
         fetchTechnicians();
     }, []);
@@ -172,7 +173,6 @@ const API_URL = "https://optiroute-wxaz.onrender.com";
         try {
             await axios.get(`${API_URL}/init-data`); 
             setRoute([]); setRoutePath([]); setUnassignedList([]);
-            // On recharge aussi les techniciens par défaut si le reset les touche
             setTimeout(() => fetchTechnicians(), 500); 
             setResetLoading(false); setResetSuccess(true);
             setTimeout(() => { setShowResetModal(false); setResetSuccess(false); }, 1500);
@@ -184,8 +184,8 @@ const API_URL = "https://optiroute-wxaz.onrender.com";
         if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
         return (
             <div style={{display: 'flex', alignItems: 'center'}}>
-                <img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} />
-                <span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span>
+                <img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.7}} />
+                <span style={{fontFamily: "'Inter', sans-serif", fontWeight: '600', fontSize: '15px', color: COLORS.DARK}}>{name}</span>
             </div>
         );
     };
@@ -197,113 +197,25 @@ const API_URL = "https://optiroute-wxaz.onrender.com";
     };
 
     return (
-        <div style={rootContainerStyle(isMobileView)}>
+        <div style={rootContainerStyle}>
             <style>
-                {`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap');`}
+                {`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Oswald:wght@500;700&display=swap');`}
                 {` .leaflet-control-attribution { display: none !important; } `}
                 {` .leaflet-div-icon { background: transparent; border: none; } `}
+                {` 
+                    /* Scrollbar personnalisée */
+                    ::-webkit-scrollbar { width: 6px; }
+                    ::-webkit-scrollbar-track { background: transparent; }
+                    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+                    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+                `}
             </style>
             
-            {/* MODAL GESTION EQUIPE (Le retour) */}
-            {showTeamModal && (
-                <div style={modalOverlayStyle} onClick={() => setShowTeamModal(false)}>
-                    <div style={{...modalContentStyle, maxWidth:'400px'}} onClick={(e) => e.stopPropagation()}>
-                        <h3 style={modalTitleStyle}>MON ÉQUIPE</h3>
-                        
-                        <div style={{maxHeight: '150px', overflowY: 'auto', marginBottom: '20px', textAlign:'left', border: `1px solid ${COLORS.BORDER}`, borderRadius: STANDARD_RADIUS}}>
-                            {technicians.map(t => (
-                                <div key={t.id} style={{display:'flex', justifyContent:'space-between', padding:'10px', borderBottom:`1px solid ${COLORS.BORDER}`, backgroundColor: '#fafafa'}}>
-                                    <div>
-                                        <div style={{fontWeight:'bold', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif"}}>{t.name}</div>
-                                        <div style={{fontSize:'12px', color: COLORS.GRAY_TEXT}}>{t.address}</div>
-                                    </div>
-                                    <button onClick={() => handleDeleteTech(t.id)} style={{background:'transparent', border:'none', color: COLORS.RED, cursor:'pointer', fontWeight:'bold'}}>✕</button>
-                                </div>
-                            ))}
-                        </div>
-
-                        <form onSubmit={handleAddTech}>
-                            <input type="text" placeholder="Nom (ex: Paul)" value={newTechName} onChange={(e) => setNewTechName(e.target.value)} style={inputStyle} />
-                            <input type="text" placeholder="Départ (Adresse)..." value={newTechAddress} onChange={(e) => setNewTechAddress(e.target.value)} style={inputStyle} />
-                            <button type="submit" style={{...submitButtonStyle, marginTop: '5px'}}>AJOUTER</button>
-                        </form>
-
-                        <button onClick={() => setShowTeamModal(false)} style={cancelButtonStyle}>FERMER</button>
-                    </div>
-                </div>
-            )}
-
-            {/* MODALS EXISTANTS */}
-            {navModal && (
-                <div style={modalOverlayStyle} onClick={() => setNavModal(null)}>
-                    <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
-                        <h3 style={modalTitleStyle}>NAVIGATION</h3>
-                        <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
-                            <a href={`https://www.google.com/maps/dir/?api=1&destination=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/google.png" alt="G" style={gpsIconStyle}/>Google Maps</a>
-                            <a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/waze.png" alt="W" style={gpsIconStyle}/>Waze</a>
-                            <a href={`http://maps.apple.com/?daddr=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/apple.png" alt="A" style={gpsIconStyle}/>Apple Plans</a>
-                        </div>
-                        <button onClick={() => setNavModal(null)} style={cancelButtonStyle}>FERMER</button>
-                    </div>
-                </div>
-            )}
-
-            {showUnassignedModal && (
-                <div style={modalOverlayStyle} onClick={() => setShowUnassignedModal(false)}>
-                    <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
-                        <div style={{fontSize: '40px', marginBottom: '10px'}}>⚠️</div>
-                        <h3 style={{...modalTitleStyle, marginBottom: '15px', color: COLORS.WARNING}}>MISSIONS REJETÉES</h3>
-                        <p style={{fontFamily: "'Inter', sans-serif", color: COLORS.GRAY_TEXT, marginBottom: '15px', fontSize:'14px'}}>
-                            OptiRoute n'a pas pu planifier les missions suivantes (Trop loin ou hors horaires) :
-                        </p>
-                        <div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '10px', borderRadius: '8px', marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`}}>
-                            {unassignedList.map((item, i) => (
-                                <div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px'}}>• {item.client}</div>
-                            ))}
-                        </div>
-                        <button onClick={() => setShowUnassignedModal(false)} style={{...submitButtonStyle, marginTop: '0', backgroundColor: COLORS.DARK}}>COMPRIS</button>
-                    </div>
-                </div>
-            )}
-
-            {showResetModal && (
-                <div style={modalOverlayStyle} onClick={() => !resetLoading && setShowResetModal(false)}>
-                    <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
-                        {resetSuccess ? (
-                            <div style={{padding: '20px 0'}}>
-                                <h3 style={{...modalTitleStyle, color: COLORS.SUCCESS, marginBottom: '10px'}}>✅ SUCCÈS</h3>
-                                <p style={{fontFamily: "'Inter', sans-serif", color: COLORS.DARK, fontWeight: 'bold'}}>Données supprimées.</p>
-                            </div>
-                        ) : (
-                            <>
-                                <h3 style={{...modalTitleStyle, color: '#d32f2f'}}>ATTENTION</h3>
-                                <p style={{fontFamily: "'Inter', sans-serif", color: COLORS.DARK, marginBottom: '25px'}}>Voulez-vous vraiment effacer toute la tournée ?</p>
-                                <div style={{display: 'flex', gap: '10px'}}>
-                                    <button onClick={() => setShowResetModal(false)} disabled={resetLoading} style={{...gpsLinkStyle, justifyContent: 'center', backgroundColor: '#fff', color: COLORS.DARK}}>NON</button>
-                                    <button onClick={confirmReset} disabled={resetLoading} style={{...gpsLinkStyle, justifyContent: 'center', backgroundColor: COLORS.DARK, color: '#fff', border: `1px solid ${COLORS.DARK}`}}>{resetLoading ? '...' : 'OUI'}</button>
-                                </div>
-                            </>
-                        )}
-                    </div>
-                </div>
-            )}
-
-            {showEmptyModal && (
-                <div style={modalOverlayStyle} onClick={() => setShowEmptyModal(false)}>
-                    <div style={modalContentStyle} onClick={(e) => e.stopPropagation()}>
-                        <div style={{fontSize: '40px', marginBottom: '15px'}}>👋</div>
-                        <h3 style={{...modalTitleStyle, marginBottom: '15px', color: COLORS.DARK}}>OPTIROUTE</h3>
-                        <p style={{fontFamily: "'Inter', sans-serif", color: COLORS.GRAY_TEXT, marginBottom: '25px', lineHeight: '1.5'}}>Veuillez entrer des trajets ci-dessus pour commencer à rouler !</p>
-                        <button onClick={() => setShowEmptyModal(false)} style={{...submitButtonStyle, marginTop: '0', backgroundColor: COLORS.BLUE}}>C'EST COMPRIS</button>
-                    </div>
-                </div>
-            )}
-
-            <div style={mapContainerStyle(isMobileView)}>
-                <MapContainer center={center} zoom={12} style={{ height: '100%', width: '100%' }} attributionControl={false}>
+            {/* --- MAP CONTAINER (BACKGROUND) --- */}
+            <div style={mapContainerStyle}>
+                <MapContainer center={center} zoom={12} style={{ height: '100%', width: '100%' }} zoomControl={false} attributionControl={false}>
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
                     
-                    {/* Marqueurs Techniciens */}
                     {technicians.map(t => (
                         <Marker key={`tech-${t.id}`} position={[parseFloat(t.start_lat), parseFloat(t.start_lng)]}>
                             <Popup>🏠 {t.name}</Popup>
@@ -317,115 +229,109 @@ const API_URL = "https://optiroute-wxaz.onrender.com";
                     ))}
                     
                     {routePath.length > 0 && (
-                        <Polyline positions={routePath} color={COLORS.BLUE} weight={5} opacity={0.8} /> 
+                        <Polyline positions={routePath} color={COLORS.BLUE} weight={6} opacity={0.75} lineCap="round" lineJoin="round" /> 
                     )}
                 </MapContainer>
             </div>
 
-            <div style={panelContainerStyle(isMobileView)}>
+            {/* --- GLASS PANEL (FOREGROUND) --- */}
+            <div style={glassPanelStyle(isMobileView)}>
+                
+                {/* HEADER */}
                 <div style={panelHeaderStyle}>
                     <div style={{display:'flex', alignItems:'center'}}>
-                        <img src="/logo-truck.svg" alt="Logo" style={{height: '36px', marginRight: '15px'}} />
-                        <h2 style={{margin: 0, color: COLORS.DARK, fontSize: '1.8em', fontFamily: "'Oswald', sans-serif", fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px'}}>
+                        <img src="/logo-truck.svg" alt="Logo" style={{height: '32px', marginRight: '12px', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'}} />
+                        <h2 style={{margin: 0, color: COLORS.DARK, fontSize: '22px', fontFamily: "'Oswald', sans-serif", fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px'}}>
                             OptiRoute <span style={proTagStyle}>PRO</span>
                         </h2>
                     </div>
                 </div>
 
-                <div style={cardStyle}>
-                    {/* HEADER : TRAJETS + BOUTON EQUIPE */}
-                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px'}}>
-                        <div style={{display: 'flex', alignItems: 'center'}}>
-                            <img src="/icon-plus.svg" alt="+" style={{width:'18px', marginRight:'10px'}} />
-                            <h4 style={{margin:0, color: COLORS.DARK, fontSize: '1.1em', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px'}}>TRAJETS</h4>
-                        </div>
-                        {/* 👇 LE BOUTON QUI TE MANQUAIT */}
-                        <button onClick={() => setShowTeamModal(true)} style={{background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '12px', color: COLORS.BLUE, fontFamily: "'Inter', sans-serif", fontWeight: '600', textDecoration: 'underline'}}>
-                            👥 Gérer l'équipe
+                {/* CARD : AJOUT MISSION */}
+                <div style={contentSectionStyle}>
+                    <div style={headerWithButtonStyle}>
+                        <h4 style={sectionTitleStyle}>NOUVEAU TRAJET</h4>
+                        <button onClick={() => setShowTeamModal(true)} style={textButtonStyle}>
+                            👥 Équipe
                         </button>
                     </div>
                     
-                    <p style={helpTextStyle}>Renseignez les informations ci-dessous pour ajouter un point de passage.</p>
+                    <p style={helpTextStyle}>Ajoutez vos points de passage ci-dessous.</p>
 
                     <form onSubmit={handleAddMission}>
                         <input type="text" placeholder="Nom du client..." value={newName} onChange={(e) => setNewName(e.target.value)} style={inputStyle} />
                         <input type="text" placeholder="Adresse complète..." value={newAddress} onChange={(e) => setNewAddress(e.target.value)} style={inputStyle} />
                         
-                        <div style={{position: 'relative', marginBottom: '20px', userSelect: 'none'}}>
+                        <div style={{position: 'relative', marginBottom: '15px', userSelect: 'none'}}>
                             <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} style={{...inputStyle, display: 'flex', alignItems: 'center', cursor: 'pointer', position: 'relative'}}>
-                                <img src={timeSlot === 'morning' ? '/icon-morning.svg' : '/icon-afternoon.svg'} alt="icon" style={{width: '20px', height: '20px', marginRight: '12px'}} />
-                                <span style={{flex: 1}}>{timeSlot === 'morning' ? 'Matin (08h - 12h)' : 'Après-midi (14h - 18h)'}</span>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={COLORS.DARK} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s'}}><path d="M6 9l6 6 6-6" /></svg>
+                                <img src={timeSlot === 'morning' ? '/icon-morning.svg' : '/icon-afternoon.svg'} alt="icon" style={{width: '18px', height: '18px', marginRight: '10px', opacity: 0.6}} />
+                                <span style={{flex: 1, fontWeight: '500'}}>{timeSlot === 'morning' ? 'Matin (08h - 12h)' : 'Après-midi (14h - 18h)'}</span>
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={COLORS.DARK} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s', opacity: 0.5}}><path d="M6 9l6 6 6-6" /></svg>
                             </div>
                             {isDropdownOpen && (
-                                <div style={{position: 'absolute', top: '110%', left: 0, right: 0, backgroundColor: COLORS.WHITE, border: `1px solid ${COLORS.DARK}`, borderRadius: '20px', zIndex: 100, boxShadow: '0 10px 30px rgba(0,0,0,0.15)', overflow: 'hidden', padding: '5px'}}>
-                                    <div onClick={() => { setTimeSlot('morning'); setIsDropdownOpen(false); }} style={dropdownItemStyle}><img src="/icon-morning.svg" alt="M" style={{width: '20px', marginRight: '10px'}} />Matin (08h - 12h)</div>
-                                    <div style={{height: '1px', background: '#eee', margin: '0 10px'}}></div>
-                                    <div onClick={() => { setTimeSlot('afternoon'); setIsDropdownOpen(false); }} style={dropdownItemStyle}><img src="/icon-afternoon.svg" alt="A" style={{width: '20px', marginRight: '10px'}} />Après-midi (14h - 18h)</div>
+                                <div style={dropdownStyle}>
+                                    <div onClick={() => { setTimeSlot('morning'); setIsDropdownOpen(false); }} style={dropdownItemStyle}><img src="/icon-morning.svg" alt="M" style={{width: '18px', marginRight: '10px'}} />Matin</div>
+                                    <div style={{height: '1px', background: '#f1f5f9', margin: '0 10px'}}></div>
+                                    <div onClick={() => { setTimeSlot('afternoon'); setIsDropdownOpen(false); }} style={dropdownItemStyle}><img src="/icon-afternoon.svg" alt="A" style={{width: '18px', marginRight: '10px'}} />Après-midi</div>
                                 </div>
                             )}
                         </div>
                         
-                        <button type="submit" style={submitButtonStyle}>ENREGISTRER LA MISSION</button>
+                        <button type="submit" style={mainButtonStyle}>AJOUTER LA MISSION</button>
                     </form>
                 </div>
 
+                {/* ACTIONS */}
                 <div style={actionButtonsContainerStyle}>
                     <div style={buttonsRowStyle}>
                         <button onClick={handleOptimize} disabled={loading} style={optimizeButtonStyle}>
                              {loading ? (
-                                <span style={{fontSize: '16px', color: COLORS.BLUE, fontWeight: 'bold', fontFamily: "'Oswald', sans-serif"}}>CALCUL...</span> 
+                                <span style={{fontSize: '14px', color: COLORS.BLUE, fontWeight: 'bold', fontFamily: "'Oswald', sans-serif", animation: 'pulse 1s infinite'}}>CALCUL EN COURS...</span> 
                              ) : (
-                                 <img src="/logo-truck.svg" alt="Optimize" style={{ width:'100px', height:'auto' }} />
+                                 <div style={optimizeButtonInnerStyle}>
+                                    <img src="/logo-truck.svg" alt="GO" style={{ width:'30px', height:'auto', marginRight:'10px' }} />
+                                    <span>OPTIMISER</span>
+                                 </div>
                              )}
                         </button>
-                        <button onClick={openResetModal} style={resetButtonStyle}>
-                            <img src="/icon-trash.svg" alt="Reset" style={{width:'28px'}} />
+                        <button onClick={openResetModal} style={resetButtonStyle} title="Réinitialiser">
+                            <img src="/icon-trash.svg" alt="Reset" style={{width:'20px', opacity: 0.7}} />
                         </button>
                     </div>
-                    <p style={{...helpTextStyle, textAlign: 'center', marginTop: '15px', marginBottom: '0', width: '100%', maxWidth:'250px'}}>
-                        Une fois vos trajets prêts, cliquez sur le camion pour lancer la mission !
-                    </p>
                 </div>
 
-                <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
-                    <h4 style={{...cardTitleStyle, marginBottom: '5px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '1em', letterSpacing: '1px'}}>FEUILLE DE ROUTE</h4>
-                    <p style={{...helpTextStyle, marginBottom: '15px'}}>L'ordre optimal calculé par OptiRoute s'affichera ici.</p>
-
-                    <div style={missionsListStyle}>
+                {/* LISTE DES STOPS */}
+                <div style={listContainerStyle}>
+                    <h4 style={{...sectionTitleStyle, padding: '0 20px 10px 20px', borderBottom: '1px solid rgba(0,0,0,0.05)'}}>
+                        FEUILLE DE ROUTE {route.length > 0 && <span style={counterBadgeStyle}>{route.length}</span>}
+                    </h4>
+                    
+                    <div style={scrollableListStyle}>
                         {route.length === 0 ? (
-                            <div style={{padding: '30px', textAlign: 'center', color: COLORS.DARK, border: `1px dashed ${COLORS.DARK}`, fontSize: '0.9em', fontFamily: "'Inter', sans-serif", borderRadius: STANDARD_RADIUS}}>
-                                <span style={{fontSize: '40px', marginBottom: '10px', display:'block'}}>👋</span>
-                                <h3 style={{margin: '0 0 10px 0', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '1px'}}>Bienvenue sur OptiRoute</h3>
-                                <p style={{margin: 0, fontFamily: "'Inter', sans-serif", fontSize: '14px', maxWidth: '100%'}}>Veuillez entrer des destinations ci-dessus pour commencer votre optimisation.</p>
+                            <div style={emptyStateStyle}>
+                                <div style={{fontSize: '32px', marginBottom: '10px'}}>📍</div>
+                                <p style={{margin: 0, fontWeight: '500'}}>Aucun trajet planifié.</p>
+                                <p style={{margin: '5px 0 0 0', fontSize: '12px', opacity: 0.6}}>Ajoutez des missions ci-dessus.</p>
                             </div>
                         ) : (
                             route.map((step, index) => {
                                 const stepColor = getStepColor(index, route.length);
                                 return (
                                     <div key={index} style={missionItemStyle}>
-                                        <div style={{
-                                            backgroundColor: stepColor,
-                                            color: 'white',
-                                            width: '32px', height: '32px', borderRadius: '50%',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            fontWeight: 'bold', fontFamily: "'Inter', sans-serif",
-                                            marginRight: '15px', boxShadow: '0 2px 5px rgba(0,0,0,0.15)', flexShrink: 0
-                                        }}>{step.step}</div>
+                                        <div style={{...stepNumberStyle, backgroundColor: stepColor}}>{step.step}</div>
 
                                         <div style={missionInfoStyle}>
                                             <div style={missionTitleStyle}>
                                                 {renderClientName(step.client, step.time_slot)}
                                             </div>
-                                            <div style={missionAddressStyle}>{step.address.substring(0, 40)}...</div>
-                                            <div style={{fontSize: '11px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif"}}>
-                                                 {/* ON AFFICHE LE CAMION QUI GERE CETTE ETAPE SI DISPO */}
-                                                 {step.technician_name ? `🚛 ${step.technician_name} • ` : ''}
-                                                 📍 {step.distance_km} km 
+                                            <div style={missionAddressStyle}>{step.address.substring(0, 35)}{step.address.length > 35 ? '...' : ''}</div>
+                                            <div style={missionMetaContainerStyle}>
+                                                 {step.technician_name && <span style={techTagStyle}>🚛 {step.technician_name}</span>}
+                                                 <span style={distTagStyle}>📍 {step.distance_km} km</span>
                                             </div>
                                         </div>
-                                        <button onClick={() => setNavModal({lat: step.lat, lng: step.lng})} style={compassButtonStyle}>
-                                            <img src="/icon-navigation.svg" alt="GPS" style={{width:'20px'}} />
+                                        <button onClick={() => setNavModal({lat: step.lat, lng: step.lng})} style={navButtonStyle}>
+                                            <img src="/icon-navigation.svg" alt="GPS" style={{width:'16px', opacity: 0.6}} />
                                         </button>
                                     </div>
                                 );
@@ -434,39 +340,255 @@ const API_URL = "https://optiroute-wxaz.onrender.com";
                     </div>
                 </div>
             </div>
+
+            {/* --- MODALS (Gardent leur style clean) --- */}
+            
+            {/* MODAL EQUIPE */}
+            {showTeamModal && (
+                <div style={modalOverlayStyle} onClick={() => setShowTeamModal(false)}>
+                    <div style={modalGlassContentStyle} onClick={(e) => e.stopPropagation()}>
+                        <h3 style={modalTitleStyle}>MON ÉQUIPE</h3>
+                        <div style={techListStyle}>
+                            {technicians.map(t => (
+                                <div key={t.id} style={techItemStyle}>
+                                    <div>
+                                        <div style={{fontWeight:'700', color: COLORS.DARK, fontSize: '14px'}}>{t.name}</div>
+                                        <div style={{fontSize:'11px', color: COLORS.GRAY_TEXT}}>{t.address}</div>
+                                    </div>
+                                    <button onClick={() => handleDeleteTech(t.id)} style={deleteTechButtonStyle}>✕</button>
+                                </div>
+                            ))}
+                        </div>
+                        <form onSubmit={handleAddTech} style={{marginTop: '15px'}}>
+                            <input type="text" placeholder="Nom (ex: Paul)" value={newTechName} onChange={(e) => setNewTechName(e.target.value)} style={inputStyle} />
+                            <input type="text" placeholder="Départ (Adresse)..." value={newTechAddress} onChange={(e) => setNewTechAddress(e.target.value)} style={inputStyle} />
+                            <button type="submit" style={{...mainButtonStyle, padding: '12px'}}>AJOUTER</button>
+                        </form>
+                        <button onClick={() => setShowTeamModal(false)} style={cancelButtonStyle}>FERMER</button>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL NAVIGATION */}
+            {navModal && (
+                <div style={modalOverlayStyle} onClick={() => setNavModal(null)}>
+                    <div style={modalGlassContentStyle} onClick={(e) => e.stopPropagation()}>
+                        <h3 style={modalTitleStyle}>LANCER GPS</h3>
+                        <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+                            <a href={`https://www.google.com/maps/dir/?api=1&destination=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/google.png" alt="G" style={gpsIconStyle}/>Google Maps</a>
+                            <a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/waze.png" alt="W" style={gpsIconStyle}/>Waze</a>
+                            <a href={`http://maps.apple.com/?daddr=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/apple.png" alt="A" style={gpsIconStyle}/>Apple Plans</a>
+                        </div>
+                        <button onClick={() => setNavModal(null)} style={cancelButtonStyle}>RETOUR</button>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL UNASSIGNED */}
+            {showUnassignedModal && (
+                <div style={modalOverlayStyle} onClick={() => setShowUnassignedModal(false)}>
+                    <div style={modalGlassContentStyle} onClick={(e) => e.stopPropagation()}>
+                        <div style={{fontSize: '32px', marginBottom: '10px'}}>⚠️</div>
+                        <h3 style={{...modalTitleStyle, color: COLORS.WARNING, marginBottom: '10px'}}>MISSIONS NON ASSIGNÉES</h3>
+                        <p style={{color: COLORS.GRAY_TEXT, marginBottom: '15px', fontSize:'13px'}}>Impossible de planifier ces trajets (distance ou horaires) :</p>
+                        <div style={unassignedBoxStyle}>
+                            {unassignedList.map((item, i) => (
+                                <div key={i} style={{fontWeight: '600', color: COLORS.DARK, marginBottom: '4px'}}>• {item.client}</div>
+                            ))}
+                        </div>
+                        <button onClick={() => setShowUnassignedModal(false)} style={mainButtonStyle}>COMPRIS</button>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL RESET */}
+            {showResetModal && (
+                <div style={modalOverlayStyle} onClick={() => !resetLoading && setShowResetModal(false)}>
+                    <div style={modalGlassContentStyle} onClick={(e) => e.stopPropagation()}>
+                        {resetSuccess ? (
+                            <div style={{padding: '10px 0'}}>
+                                <h3 style={{...modalTitleStyle, color: COLORS.SUCCESS}}>✅ SUCCÈS</h3>
+                            </div>
+                        ) : (
+                            <>
+                                <h3 style={{...modalTitleStyle, color: COLORS.RED}}>ATTENTION</h3>
+                                <p style={{color: COLORS.DARK, marginBottom: '20px', fontSize: '14px'}}>Tout effacer et recommencer ?</p>
+                                <div style={{display: 'flex', gap: '10px'}}>
+                                    <button onClick={() => setShowResetModal(false)} style={{...cancelButtonStyle, backgroundColor: '#f1f5f9', color: COLORS.DARK, marginTop:0}}>NON</button>
+                                    <button onClick={confirmReset} style={{...mainButtonStyle, backgroundColor: COLORS.RED, marginTop:0}}>{resetLoading ? '...' : 'OUI'}</button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL EMPTY */}
+            {showEmptyModal && (
+                <div style={modalOverlayStyle} onClick={() => setShowEmptyModal(false)}>
+                    <div style={modalGlassContentStyle} onClick={(e) => e.stopPropagation()}>
+                        <div style={{fontSize: '32px', marginBottom: '10px'}}>👋</div>
+                        <h3 style={modalTitleStyle}>OPTIROUTE</h3>
+                        <p style={{color: COLORS.GRAY_TEXT, marginBottom: '20px', fontSize:'14px'}}>Entrez des adresses à gauche pour commencer !</p>
+                        <button onClick={() => setShowEmptyModal(false)} style={{...mainButtonStyle, backgroundColor: COLORS.BLUE}}>C'EST PARTI</button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
 
-// --- STYLES ---
-const helpTextStyle = { color: COLORS.GRAY_TEXT, fontSize: '12px', fontFamily: "'Inter', sans-serif", fontStyle: 'italic', marginTop: '-5px', marginBottom: '15px', lineHeight: '1.4' };
-const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', minHeight: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: '#f0f0f1', overflow: isMobile ? 'auto' : 'hidden' });
-const mapContainerStyle = (isMobile) => ({ flex: isMobile ? 'none' : 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: isMobile ? 'none' : `1px solid ${COLORS.DARK}`, zIndex: 0 });
-const panelContainerStyle = (isMobile) => ({ width: isMobile ? '100%' : '450px', height: isMobile ? 'auto' : '100%', minHeight: isMobile ? '60vh' : '100%', backgroundColor: COLORS.WHITE, padding: '25px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', order: isMobile ? 2 : 1, zIndex: 1000, borderTop: isMobile ? `2px solid ${COLORS.DARK}` : 'none' });
-const panelHeaderStyle = { marginBottom: '25px', paddingBottom: '20px', borderBottom: `2px solid ${COLORS.DARK}` };
-const proTagStyle = { fontSize: '0.4em', backgroundColor: COLORS.BLUE, color: COLORS.WHITE, padding: '2px 6px', verticalAlign: 'top', marginLeft: '8px', fontFamily: "'Inter', sans-serif", fontWeight: '600', borderRadius: STANDARD_RADIUS };
-const cardStyle = { marginBottom: '25px' };
-const cardHeaderStyle = { display: 'flex', alignItems: 'center', marginBottom: '10px' };
-const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK };
-const inputStyle = { width: '100%', padding: '14px 16px', marginBottom: '5px', borderRadius: PILL_RADIUS, border: `1px solid ${COLORS.DARK}`, backgroundColor: COLORS.WHITE, fontSize: '14px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500' };
-const dropdownItemStyle = { padding: '12px 15px', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '14px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, fontWeight: '500', borderRadius: '15px', transition: 'background 0.2s' };
-const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '15px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", marginTop: '10px' };
-const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' };
-const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '30px', width: '100%' };
-const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
-const resetButtonStyle = { padding: '10px', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'invert(38%) sepia(75%) saturate(1968%) hue-rotate(189deg) brightness(92%) contrast(89%)' };
-const missionsListStyle = { display: 'flex', flexDirection: 'column', border: `1px solid ${COLORS.DARK}`, overflowY: 'auto', flex: 1, borderRadius: STANDARD_RADIUS };
-const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '16px', borderBottom: `1px solid ${COLORS.DARK}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
-const missionInfoStyle = { flex: 1, marginRight: '10px' };
-const missionTitleStyle = { fontWeight: '700', fontSize: '15px', color: COLORS.DARK, display: 'flex', alignItems: 'center' };
-const missionStepStyle = { marginRight: '15px', fontWeight: '900', fontSize: '18px', fontFamily: "'Oswald', sans-serif" };
-const missionAddressStyle = { color: '#555', fontSize: '13px', marginTop: '4px', fontFamily: "'Inter', sans-serif" };
-const compassButtonStyle = { backgroundColor: COLORS.WHITE, border: `1px solid ${COLORS.DARK}`, borderRadius: STANDARD_RADIUS, width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
-const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.95)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const modalContentStyle = { background: COLORS.WHITE, padding: '35px', borderRadius: STANDARD_RADIUS, width: '90%', maxWidth: '350px', textAlign: 'center', border: `4px solid ${COLORS.BLUE}`, boxSizing: 'border-box' };
-const modalTitleStyle = { marginTop: 0, marginBottom: '25px', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '1.4em', letterSpacing: '1px' };
-const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', padding: '18px', backgroundColor: '#f8f9fa', color: COLORS.DARK, textDecoration: 'none', borderRadius: STANDARD_RADIUS, border: `1px solid ${COLORS.DARK}`, fontWeight: '700', fontSize: '15px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px', boxSizing: 'border-box' };
-const gpsIconStyle = { width: '26px', height: '26px', objectFit: 'contain', marginRight: '18px' };
-const cancelButtonStyle = { marginTop: '25px', padding: '14px', width: '100%', border: 'none', background: COLORS.DARK, color: COLORS.WHITE, fontWeight:'700', cursor: 'pointer', borderRadius: STANDARD_RADIUS, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '1px' };
+// --- STYLES (GLASSMORPHISM & UI REFRESH) ---
+
+// Layout
+const rootContainerStyle = { position: 'relative', width: '100vw', height: '100vh', overflow: 'hidden', backgroundColor: '#e2e8f0', fontFamily: "'Inter', sans-serif" };
+const mapContainerStyle = { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0 };
+
+// Le Panneau "Glass" Flottant
+const glassPanelStyle = (isMobile) => ({
+    position: 'absolute',
+    top: isMobile ? 'auto' : '20px',
+    bottom: isMobile ? '0' : '20px',
+    left: isMobile ? '0' : '20px',
+    width: isMobile ? '100%' : '400px',
+    height: isMobile ? '55vh' : 'auto',
+    backgroundColor: COLORS.GLASS_BG,
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)', // Safari support
+    borderRadius: isMobile ? `${PANEL_RADIUS} ${PANEL_RADIUS} 0 0` : PANEL_RADIUS,
+    border: `1px solid ${COLORS.BORDER}`,
+    boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)', // Ombre douce glassmorphism
+    zIndex: 1000,
+    display: 'flex',
+    flexDirection: 'column',
+    padding: '0',
+    overflow: 'hidden',
+    transition: 'all 0.3s ease'
+});
+
+// Contenus du panneau
+const panelHeaderStyle = { padding: '20px 25px 15px 25px', borderBottom: '1px solid rgba(0,0,0,0.05)' };
+const proTagStyle = { fontSize: '10px', backgroundColor: COLORS.BLUE, color: COLORS.WHITE, padding: '2px 6px', borderRadius: '4px', verticalAlign: 'middle', marginLeft: '6px' };
+
+const contentSectionStyle = { padding: '20px 25px' };
+const sectionTitleStyle = { margin: 0, fontSize: '12px', fontWeight: '700', color: COLORS.GRAY_TEXT, textTransform: 'uppercase', letterSpacing: '0.8px' };
+const helpTextStyle = { color: '#94a3b8', fontSize: '12px', marginTop: '5px', marginBottom: '15px' };
+
+const headerWithButtonStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' };
+const textButtonStyle = { background: 'none', border: 'none', color: COLORS.BLUE, fontSize: '12px', fontWeight: '600', cursor: 'pointer', padding: 0 };
+
+// Inputs & Formulaires
+const inputStyle = { 
+    width: '100%', 
+    padding: '12px 16px', 
+    marginBottom: '10px', 
+    borderRadius: PILL_RADIUS, 
+    border: '1px solid transparent', 
+    backgroundColor: COLORS.INPUT_BG, 
+    fontSize: '14px', 
+    color: COLORS.DARK, 
+    outline: 'none', 
+    boxSizing: 'border-box', 
+    fontWeight: '500',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.02)',
+    transition: 'all 0.2s'
+};
+// Effet focus via CSS global ou inline interaction (simplifié ici)
+
+const dropdownStyle = { position: 'absolute', top: '110%', left: 0, right: 0, backgroundColor: '#fff', borderRadius: PILL_RADIUS, padding: '5px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', zIndex: 50 };
+const dropdownItemStyle = { padding: '10px 15px', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '14px', fontWeight: '500', borderRadius: '8px', color: COLORS.DARK };
+
+// Boutons
+const mainButtonStyle = { width: '100%', padding: '14px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '600', fontSize: '13px', cursor: 'pointer', marginTop: '5px', letterSpacing: '0.5px', transition: 'transform 0.1s active' };
+
+const actionButtonsContainerStyle = { padding: '0 25px 20px 25px' };
+const buttonsRowStyle = { display: 'flex', gap: '10px' };
+
+const optimizeButtonStyle = { 
+    flex: 1, 
+    padding: '12px', 
+    backgroundColor: COLORS.BLUE, 
+    color: COLORS.WHITE, 
+    border: 'none', 
+    borderRadius: PILL_RADIUS, 
+    cursor: 'pointer', 
+    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' 
+};
+const optimizeButtonInnerStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '700', fontSize: '14px', letterSpacing: '1px', fontFamily: "'Oswald', sans-serif" };
+
+const resetButtonStyle = { 
+    width: '48px', 
+    backgroundColor: '#fff', 
+    border: '1px solid #e2e8f0', 
+    borderRadius: PILL_RADIUS, 
+    cursor: 'pointer', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center' 
+};
+
+// Liste des Missions
+const listContainerStyle = { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.4)', borderTop: '1px solid rgba(255,255,255,0.5)', paddingTop: '15px' };
+const scrollableListStyle = { flex: 1, overflowY: 'auto', padding: '0 20px 20px 20px' };
+const counterBadgeStyle = { backgroundColor: COLORS.DARK, color: 'white', padding: '2px 6px', borderRadius: '10px', fontSize: '10px', verticalAlign: 'text-top', marginLeft: '5px' };
+
+const emptyStateStyle = { textAlign: 'center', color: COLORS.GRAY_TEXT, padding: '40px 20px', border: '2px dashed rgba(0,0,0,0.1)', borderRadius: '16px', marginTop: '10px' };
+
+const missionItemStyle = { 
+    backgroundColor: '#fff', 
+    padding: '12px', 
+    marginBottom: '10px', 
+    borderRadius: '16px', 
+    display: 'flex', 
+    alignItems: 'center',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
+    border: '1px solid rgba(0,0,0,0.03)'
+};
+
+const stepNumberStyle = { 
+    width: '28px', height: '28px', borderRadius: '50%', 
+    display: 'flex', alignItems: 'center', justifyContent: 'center', 
+    color: 'white', fontWeight: '700', fontSize: '12px', 
+    marginRight: '12px', flexShrink: 0,
+    boxShadow: '0 2px 4px rgba(0,0,0,0.15)'
+};
+
+const missionInfoStyle = { flex: 1, minWidth: 0 };
+const missionTitleStyle = { marginBottom: '2px' };
+const missionAddressStyle = { color: '#64748b', fontSize: '12px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' };
+const missionMetaContainerStyle = { display: 'flex', gap: '8px', marginTop: '6px' };
+
+const techTagStyle = { fontSize: '10px', color: COLORS.BLUE, backgroundColor: '#eff6ff', padding: '2px 6px', borderRadius: '4px', fontWeight: '600' };
+const distTagStyle = { fontSize: '10px', color: '#64748b', backgroundColor: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: '600' };
+
+const navButtonStyle = { width: '32px', height: '32px', borderRadius: '10px', border: '1px solid #f1f5f9', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginLeft: '10px' };
+
+// Modals Glass Style
+const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' };
+
+const modalGlassContentStyle = { 
+    background: 'rgba(255, 255, 255, 0.95)', 
+    backdropFilter: 'blur(16px)',
+    padding: '30px', 
+    borderRadius: '24px', 
+    width: '90%', 
+    maxWidth: '380px', 
+    textAlign: 'center', 
+    boxShadow: '0 20px 50px rgba(0,0,0,0.2)',
+    border: '1px solid rgba(255,255,255,0.5)'
+};
+
+const modalTitleStyle = { marginTop: 0, marginBottom: '15px', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '18px', letterSpacing: '1px' };
+
+// Gestion Equipe Styles
+const techListStyle = { maxHeight: '150px', overflowY: 'auto', marginBottom: '15px', textAlign:'left', backgroundColor: '#f8fafc', borderRadius: '12px', padding: '8px' };
+const techItemStyle = { display:'flex', justifyContent:'space-between', alignItems: 'center', padding:'8px', borderBottom:'1px solid #e2e8f0' };
+const deleteTechButtonStyle = { background:'rgba(239, 68, 68, 0.1)', border:'none', color: COLORS.RED, cursor:'pointer', width: '24px', height: '24px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' };
+
+const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', padding: '12px', backgroundColor: '#fff', color: COLORS.DARK, textDecoration: 'none', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: '600', fontSize: '14px', boxSizing: 'border-box', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' };
+const gpsIconStyle = { width: '20px', height: '20px', objectFit: 'contain', marginRight: '12px' };
+
+const cancelButtonStyle = { marginTop: '15px', padding: '12px', width: '100%', border: 'none', background: 'transparent', color: COLORS.GRAY_TEXT, fontWeight:'600', cursor: 'pointer', fontSize: '13px' };
+const unassignedBoxStyle = { textAlign: 'left', backgroundColor: '#fffbeb', padding: '12px', borderRadius: '12px', marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, fontSize: '13px' };
 
 export default App;
