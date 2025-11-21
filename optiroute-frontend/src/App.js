@@ -18,7 +18,7 @@ const COLORS = {
     BLUE: '#2b79c2', 
     GREEN: '#28a745', 
     RED: '#dc3545',   
-    WHITE: '#fff',
+    WHITE: '#ffffff',
     BORDER: '#dcdcde',
     GRAY_TEXT: '#6c757d',
     SUCCESS: '#28a745',
@@ -61,7 +61,7 @@ function App() {
     // ==========================================
     // 👇 TON IP ICI
     // ==========================================
-const API_URL = "https://optiroute-wxaz.onrender.com";
+    const API_URL = "https://optiroute-wxaz.onrender.com";
     // ==========================================
 
     const [route, setRoute] = useState([]);
@@ -82,7 +82,7 @@ const API_URL = "https://optiroute-wxaz.onrender.com";
     const [unassignedList, setUnassignedList] = useState([]); 
     const [showUnassignedModal, setShowUnassignedModal] = useState(false);
 
-    // TEAM MANAGEMENT (Le retour !)
+    // TEAM MANAGEMENT
     const [showTeamModal, setShowTeamModal] = useState(false);
     const [technicians, setTechnicians] = useState([]);
     const [newTechName, setNewTechName] = useState("");
@@ -204,7 +204,7 @@ const API_URL = "https://optiroute-wxaz.onrender.com";
                 {` .leaflet-div-icon { background: transparent; border: none; } `}
             </style>
             
-            {/* MODAL GESTION EQUIPE (Le retour) */}
+            {/* MODAL GESTION EQUIPE */}
             {showTeamModal && (
                 <div style={modalOverlayStyle} onClick={() => setShowTeamModal(false)}>
                     <div style={{...modalContentStyle, maxWidth:'400px'}} onClick={(e) => e.stopPropagation()}>
@@ -256,11 +256,15 @@ const API_URL = "https://optiroute-wxaz.onrender.com";
                         <p style={{fontFamily: "'Inter', sans-serif", color: COLORS.GRAY_TEXT, marginBottom: '15px', fontSize:'14px'}}>
                             OptiRoute n'a pas pu planifier les missions suivantes (Trop loin ou hors horaires) :
                         </p>
+                        
                         <div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '10px', borderRadius: '8px', marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`}}>
                             {unassignedList.map((item, i) => (
-                                <div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px'}}>• {item.client}</div>
+                                <div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px'}}>
+                                    • {item.client}
+                                </div>
                             ))}
                         </div>
+
                         <button onClick={() => setShowUnassignedModal(false)} style={{...submitButtonStyle, marginTop: '0', backgroundColor: COLORS.DARK}}>COMPRIS</button>
                     </div>
                 </div>
@@ -419,7 +423,6 @@ const API_URL = "https://optiroute-wxaz.onrender.com";
                                             </div>
                                             <div style={missionAddressStyle}>{step.address.substring(0, 40)}...</div>
                                             <div style={{fontSize: '11px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif"}}>
-                                                 {/* ON AFFICHE LE CAMION QUI GERE CETTE ETAPE SI DISPO */}
                                                  {step.technician_name ? `🚛 ${step.technician_name} • ` : ''}
                                                  📍 {step.distance_km} km 
                                             </div>
@@ -442,7 +445,31 @@ const API_URL = "https://optiroute-wxaz.onrender.com";
 const helpTextStyle = { color: COLORS.GRAY_TEXT, fontSize: '12px', fontFamily: "'Inter', sans-serif", fontStyle: 'italic', marginTop: '-5px', marginBottom: '15px', lineHeight: '1.4' };
 const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', minHeight: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: '#f0f0f1', overflow: isMobile ? 'auto' : 'hidden' });
 const mapContainerStyle = (isMobile) => ({ flex: isMobile ? 'none' : 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: isMobile ? 'none' : `1px solid ${COLORS.DARK}`, zIndex: 0 });
-const panelContainerStyle = (isMobile) => ({ width: isMobile ? '100%' : '450px', height: isMobile ? 'auto' : '100%', minHeight: isMobile ? '60vh' : '100%', backgroundColor: COLORS.WHITE, padding: '25px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', order: isMobile ? 2 : 1, zIndex: 1000, borderTop: isMobile ? `2px solid ${COLORS.DARK}` : 'none' });
+
+// ==================================================================
+// 👇 UPDATE: BLUR EFFECT & DARKER WHITE (Glassmorphism)
+// ==================================================================
+const panelContainerStyle = (isMobile) => ({ 
+    width: isMobile ? '100%' : '450px', 
+    height: isMobile ? 'auto' : '100%', 
+    minHeight: isMobile ? '60vh' : '100%', 
+    
+    // Fond blanc transparent
+    backgroundColor: 'rgba(255, 255, 255, 0.75)', 
+    // Effet flou
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    
+    padding: '25px', 
+    boxSizing: 'border-box', 
+    display: 'flex', 
+    flexDirection: 'column', 
+    order: isMobile ? 2 : 1, 
+    zIndex: 1000, 
+    borderTop: isMobile ? `2px solid ${COLORS.DARK}` : 'none' 
+});
+// ==================================================================
+
 const panelHeaderStyle = { marginBottom: '25px', paddingBottom: '20px', borderBottom: `2px solid ${COLORS.DARK}` };
 const proTagStyle = { fontSize: '0.4em', backgroundColor: COLORS.BLUE, color: COLORS.WHITE, padding: '2px 6px', verticalAlign: 'top', marginLeft: '8px', fontFamily: "'Inter', sans-serif", fontWeight: '600', borderRadius: STANDARD_RADIUS };
 const cardStyle = { marginBottom: '25px' };
