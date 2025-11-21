@@ -484,7 +484,7 @@ const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom
 const modalContentStyle = { background: COLORS.WHITE, padding: '35px', borderRadius: STANDARD_RADIUS, width: '90%', maxWidth: '350px', textAlign: 'center', border: `4px solid ${COLORS.BLUE}`, boxSizing: 'border-box' };
 const modalTitleStyle = { marginTop: 0, marginBottom: '25px', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '1.4em', letterSpacing: '1px' };
 const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', padding: '18px', backgroundColor: '#f8f9fa', color: COLORS.DARK, textDecoration: 'none', borderRadius: STANDARD_RADIUS, border: `1px solid ${COLORS.DARK}`, fontWeight: '700', fontSize: '15px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px', boxSizing: 'border-box' };
-const gpsIconStyle = { width: '26px', height: '26px', objectFit: 'contain', marginRight: '18px' };
+const gpsIconStyle = { width: '27px', height: '26px', objectFit: 'contain', marginRight: '18px' };
 const cancelButtonStyle = { marginTop: '25px', padding: '14px', width: '100%', border: 'none', background: COLORS.DARK, color: COLORS.WHITE, fontWeight:'700', cursor: 'pointer', borderRadius: STANDARD_RADIUS, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '1px' };
 
 export default App;
