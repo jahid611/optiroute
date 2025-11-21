@@ -59,11 +59,22 @@ const createCustomIcon = (index, total) => {
 
 function App() {
     // ==========================================
-    // 👇 TON IP ICI
+    // CONFIGURATION API
     // ==========================================
     const API_URL = "https://optiroute-wxaz.onrender.com";
     // ==========================================
 
+    // --- STATES AUTHENTIFICATION ---
+    const [token, setToken] = useState(localStorage.getItem('optiroute_token'));
+    const [userCompany, setUserCompany] = useState(localStorage.getItem('optiroute_company') || '');
+    const [isLoginView, setIsLoginView] = useState(true);
+    const [authEmail, setAuthEmail] = useState("");
+    const [authPass, setAuthPass] = useState("");
+    const [authCompany, setAuthCompany] = useState("");
+    const [authError, setAuthError] = useState("");
+    const [authLoading, setAuthLoading] = useState(false);
+
+    // --- STATES APPLICATION ---
     const [route, setRoute] = useState([]);
     const [routePath, setRoutePath] = useState([]); 
     const [loading, setLoading] = useState(false);
@@ -98,23 +109,78 @@ function App() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    // Chargement initial des techniciens
+    // Chargement initial des techniciens (Seulement si connecté)
     useEffect(() => {
-        fetchTechnicians();
-    }, []);
+        if (token) {
+            fetchTechnicians();
+        }
+    }, [token]);
+
+    // --- HELPER AUTH HEADER ---
+    // Ajoute le token à chaque requête
+    const getAuthHeaders = () => ({ headers: { Authorization: `Bearer ${token}` } });
+
+    // --- LOGIQUE AUTHENTIFICATION ---
+    const handleAuth = async (e) => {
+        e.preventDefault();
+        setAuthError("");
+        setAuthLoading(true);
+
+        try {
+            const endpoint = isLoginView ? '/auth/login' : '/auth/register';
+            const payload = isLoginView 
+                ? { email: authEmail, password: authPass }
+                : { email: authEmail, password: authPass, company_name: authCompany };
+
+            const res = await axios.post(`${API_URL}${endpoint}`, payload);
+
+            if (isLoginView) {
+                // LOGIN SUCCESS
+                const tk = res.data.token;
+                const comp = res.data.company;
+                localStorage.setItem('optiroute_token', tk);
+                localStorage.setItem('optiroute_company', comp);
+                setToken(tk);
+                setUserCompany(comp);
+            } else {
+                // REGISTER SUCCESS
+                alert("Compte créé ! Connectez-vous maintenant.");
+                setIsLoginView(true);
+            }
+        } catch (err) {
+            setAuthError(err.response?.data?.message || "Erreur de connexion");
+        } finally {
+            setAuthLoading(false);
+        }
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('optiroute_token');
+        localStorage.removeItem('optiroute_company');
+        setToken(null);
+        setUserCompany("");
+        setRoute([]);
+        setRoutePath([]);
+        setTechnicians([]);
+    };
+
+    // --- LOGIQUE MÉTIER ---
 
     const fetchTechnicians = async () => {
         try {
-            const res = await axios.get(`${API_URL}/technicians`);
+            const res = await axios.get(`${API_URL}/technicians`, getAuthHeaders());
             setTechnicians(res.data);
-        } catch (e) { console.error("Erreur chargement techniciens"); }
+        } catch (e) { 
+            console.error("Erreur chargement techniciens", e);
+            if(e.response?.status === 401 || e.response?.status === 403) handleLogout();
+        }
     };
 
     const handleAddTech = async (e) => {
         e.preventDefault();
         if (!newTechName || !newTechAddress) return;
         try {
-            await axios.post(`${API_URL}/technicians`, { name: newTechName, address: newTechAddress });
+            await axios.post(`${API_URL}/technicians`, { name: newTechName, address: newTechAddress }, getAuthHeaders());
             setNewTechName(""); setNewTechAddress("");
             fetchTechnicians();
             alert("Technicien ajouté !");
@@ -124,7 +190,7 @@ function App() {
     const handleDeleteTech = async (id) => {
         if(!window.confirm("Supprimer ce technicien ?")) return;
         try {
-            await axios.delete(`${API_URL}/technicians/${id}`);
+            await axios.delete(`${API_URL}/technicians/${id}`, getAuthHeaders());
             fetchTechnicians();
         } catch (e) { alert("Erreur"); }
     };
@@ -133,7 +199,7 @@ function App() {
         e.preventDefault(); 
         if(!newName || !newAddress) return;
         try {
-            const response = await axios.post(`${API_URL}/missions`, { client_name: newName, address: newAddress, time_slot: timeSlot });
+            const response = await axios.post(`${API_URL}/missions`, { client_name: newName, address: newAddress, time_slot: timeSlot }, getAuthHeaders());
             if(response.data.success) { setNewName(""); setNewAddress(""); } 
             else { alert("Erreur : " + response.data.message); }
         } catch (error) { alert("Erreur réseau !"); }
@@ -143,7 +209,7 @@ function App() {
         setLoading(true);
         setUnassignedList([]); 
         try {
-            const response = await axios.get(`${API_URL}/optimize`);
+            const response = await axios.get(`${API_URL}/optimize`, getAuthHeaders());
             
             if (response.data.path && Array.isArray(response.data.route)) {
                 setRoute(response.data.route);
@@ -160,7 +226,8 @@ function App() {
             }
         } catch (error) { 
             console.error(error);
-            setShowEmptyModal(true); 
+            alert("Erreur lors de l'optimisation : " + (error.response?.data?.error || error.message));
+            // setShowEmptyModal(true); // Optionnel selon UX
         }
         setLoading(false);
     };
@@ -170,9 +237,8 @@ function App() {
     const confirmReset = async () => {
         setResetLoading(true);
         try {
-            await axios.get(`${API_URL}/init-data`); 
+            await axios.get(`${API_URL}/init-data`, getAuthHeaders()); 
             setRoute([]); setRoutePath([]); setUnassignedList([]);
-            // On recharge aussi les techniciens par défaut si le reset les touche
             setTimeout(() => fetchTechnicians(), 500); 
             setResetLoading(false); setResetSuccess(true);
             setTimeout(() => { setShowResetModal(false); setResetSuccess(false); }, 1500);
@@ -196,6 +262,43 @@ function App() {
         return COLORS.BLUE;
     };
 
+    // ==========================================
+    // RENDER : ÉCRAN DE CONNEXION (Si pas de token)
+    // ==========================================
+    if (!token) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: COLORS.DARK, color: 'white', fontFamily: "'Inter', sans-serif" }}>
+                <div style={{ background: 'white', padding: '40px', borderRadius: '12px', width: '90%', maxWidth: '400px', color: COLORS.DARK, textAlign: 'center', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }}>
+                    <img src="/logo-truck.svg" alt="Logo" style={{ height: '50px', marginBottom: '20px' }} />
+                    <h2 style={{ margin: '0 0 20px 0', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase' }}>
+                        {isLoginView ? "Connexion Pro" : "Créer un compte"}
+                    </h2>
+                    
+                    {authError && <div style={{ color: COLORS.RED, marginBottom: '15px', fontSize: '14px', fontWeight:'bold' }}>⚠️ {authError}</div>}
+
+                    <form onSubmit={handleAuth}>
+                        {!isLoginView && (
+                            <input type="text" placeholder="Nom de l'entreprise" required value={authCompany} onChange={e => setAuthCompany(e.target.value)} style={inputStyle} />
+                        )}
+                        <input type="email" placeholder="Email" required value={authEmail} onChange={e => setAuthEmail(e.target.value)} style={inputStyle} />
+                        <input type="password" placeholder="Mot de passe" required value={authPass} onChange={e => setAuthPass(e.target.value)} style={inputStyle} />
+                        
+                        <button type="submit" disabled={authLoading} style={submitButtonStyle}>
+                            {authLoading ? "..." : (isLoginView ? "SE CONNECTER" : "S'INSCRIRE")}
+                        </button>
+                    </form>
+                    
+                    <p style={{ marginTop: '20px', fontSize: '14px', color: COLORS.GRAY_TEXT, cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setIsLoginView(!isLoginView)}>
+                        {isLoginView ? "Pas encore de compte ? Créer un compte" : "Déjà un compte ? Se connecter"}
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    // ==========================================
+    // RENDER : APPLICATION PRINCIPALE (Si Token OK)
+    // ==========================================
     return (
         <div style={rootContainerStyle(isMobileView)}>
             <style>
@@ -328,11 +431,17 @@ function App() {
 
             <div style={panelContainerStyle(isMobileView)}>
                 <div style={panelHeaderStyle}>
-                    <div style={{display:'flex', alignItems:'center'}}>
-                        <img src="/logo-truck.svg" alt="Logo" style={{height: '36px', marginRight: '15px'}} />
-                        <h2 style={{margin: 0, color: COLORS.DARK, fontSize: '1.8em', fontFamily: "'Oswald', sans-serif", fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px'}}>
-                            OptiRoute <span style={proTagStyle}>PRO</span>
-                        </h2>
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+                        <div style={{display:'flex', alignItems:'center'}}>
+                            <img src="/logo-truck.svg" alt="Logo" style={{height: '36px', marginRight: '15px'}} />
+                            <div>
+                                <h2 style={{margin: 0, color: COLORS.DARK, fontSize: '1.8em', fontFamily: "'Oswald', sans-serif", fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px'}}>
+                                    OptiRoute <span style={proTagStyle}>PRO</span>
+                                </h2>
+                                <div style={{fontSize: '12px', color: COLORS.GRAY_TEXT, marginTop: '2px'}}>{userCompany}</div>
+                            </div>
+                        </div>
+                        <button onClick={handleLogout} style={{background: 'transparent', border: 'none', color: COLORS.RED, cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration:'underline'}}>Déconnexion</button>
                     </div>
                 </div>
 
@@ -343,7 +452,6 @@ function App() {
                             <img src="/icon-plus.svg" alt="+" style={{width:'18px', marginRight:'10px'}} />
                             <h4 style={{margin:0, color: COLORS.DARK, fontSize: '1.1em', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px'}}>TRAJETS</h4>
                         </div>
-                        {/* 👇 LE BOUTON QUI TE MANQUAIT */}
                         <button onClick={() => setShowTeamModal(true)} style={{background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '12px', color: COLORS.BLUE, fontFamily: "'Inter', sans-serif", fontWeight: '600', textDecoration: 'underline'}}>
                             👥 Gérer l'équipe
                         </button>
