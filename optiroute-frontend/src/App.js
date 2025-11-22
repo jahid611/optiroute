@@ -109,7 +109,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
 
         // 1. Ligne "Client" et "Adresse"
         // Environ 230px depuis le haut
-        const row1_Y = height - 230;
+        const row1_Y = height - 250;
         
         // Client (Gauche)
         firstPage.drawText(mission.client || "", { 
@@ -131,7 +131,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
 
         // 2. Ligne "Téléphone" et "Date"
         // Environ 270px depuis le haut
-        const row2_Y = height - 270;
+        const row2_Y = height - 290;
         
         if(mission.phone) {
             firstPage.drawText(mission.phone, { 
@@ -152,7 +152,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
 
         // 3. Ligne "Technicien" et "Statut"
         // Environ 380px depuis le haut
-        const row3_Y = height - 380;
+        const row3_Y = height - 400;
 
         firstPage.drawText(technicianName || "", { 
             x: 100, 
@@ -173,8 +173,8 @@ const generatePDF = async (mission, technicianName, companyName) => {
         // Environ 460px depuis le haut
         if (mission.comments) {
             firstPage.drawText(mission.comments, { 
-                x: 50, 
-                y: height - 460, 
+                x: 60, 
+                y: height - 465, 
                 size: 10, 
                 font: font,
                 maxWidth: 500
@@ -437,6 +437,9 @@ function App() {
     useEffect(() => {
         const handleResize = () => setScreenWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
+        
+        // 👇 AJOUTE CETTE LIGNE ICI 👇
+        Crisp.configure("3a2abcb6-a8fd-4fc5-b856-a99c36e6ad0b");
         
         try {
             // eslint-disable-next-line
