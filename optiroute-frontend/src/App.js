@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css'; 
@@ -18,65 +18,108 @@ L.Icon.Default.mergeOptions({
     shadowUrl: shadowUrl,
 });
 
-// --- 2. CONSTANTES & STYLES ---
+// --- 2. CONSTANTES & STYLES (DESIGN PASTEL PRO) ---
 const COLORS = {
     DARK: '#3b4651', 
     BLUE: '#2b79c2', 
-    GREEN: '#28a745', 
-    RED: '#dc3545', 
+    PASTEL_BLUE: '#A0C4FF', // Nouveau
+    PASTEL_GREEN: '#B9FBC0', // Nouveau
+    PASTEL_RED: '#FFADAD',   // Nouveau
     WHITE: '#ffffff', 
-    BORDER: '#dcdcde', 
+    BORDER: '#e0e0e0', 
     GRAY_TEXT: '#6c757d', 
-    BG_LIGHT: '#f0f0f1', 
-    WARNING: '#ff9800'
+    BG_LIGHT: '#f8f9fa', 
+    WARNING: '#ffd6a5'
 };
 
 const PILL_RADIUS = '38px'; 
-const STANDARD_RADIUS = '8px';
-const SHADOW = '0 10px 30px rgba(0,0,0,0.15)';
+const STANDARD_RADIUS = '12px';
+const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 
-// Styles
+// Styles CSS-in-JS
 const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', minHeight: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: COLORS.BG_LIGHT, overflow: isMobile ? 'auto' : 'hidden' });
-const mapContainerStyle = (isMobile) => ({ flex: isMobile ? 'none' : 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: '1px solid ' + COLORS.DARK, zIndex: 0 });
-const panelContainerStyle = (isMobile) => ({ width: isMobile ? '100%' : '450px', height: isMobile ? 'auto' : '100%', minHeight: isMobile ? '60vh' : '100%', backgroundColor: 'rgba(255, 255, 255, 0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: '30px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', order: isMobile ? 2 : 1, zIndex: 1000, borderTop: isMobile ? '2px solid ' + COLORS.DARK : 'none', boxShadow: isMobile ? 'none' : '-5px 0 20px rgba(0,0,0,0.05)' });
-const panelHeaderStyle = { marginBottom: '30px', paddingBottom: '20px', borderBottom: '2px solid ' + COLORS.DARK };
+const mapContainerStyle = (isMobile) => ({ flex: isMobile ? 'none' : 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: '1px solid ' + COLORS.BORDER, zIndex: 0 });
+const panelContainerStyle = (isMobile) => ({ width: isMobile ? '100%' : '450px', height: isMobile ? 'auto' : '100%', minHeight: isMobile ? '60vh' : '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: '30px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', order: isMobile ? 2 : 1, zIndex: 1000, borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none', boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)' });
+const panelHeaderStyle = { marginBottom: '25px', paddingBottom: '20px', borderBottom: '2px solid ' + COLORS.DARK };
 const proTagStyle = { fontSize: '0.4em', backgroundColor: COLORS.BLUE, color: COLORS.WHITE, padding: '3px 6px', verticalAlign: 'top', marginLeft: '8px', fontFamily: "'Inter', sans-serif", fontWeight: '700', borderRadius: '4px' };
 const cardStyle = { marginBottom: '25px' };
 const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK };
-const inputStyle = { width: '100%', padding: '16px 20px', marginBottom: '10px', borderRadius: PILL_RADIUS, border: 'none', backgroundColor: COLORS.WHITE, fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '600', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' };
+const inputStyle = { width: '100%', padding: '14px 20px', marginBottom: '10px', borderRadius: PILL_RADIUS, border: '1px solid transparent', backgroundColor: COLORS.WHITE, fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: '0.2s' };
 const dropdownItemStyle = { padding: '12px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, fontWeight: '600', transition: 'background 0.2s' };
-const submitButtonStyle = { width: '100%', padding: '18px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", transition: 'transform 0.1s', boxShadow: '0 5px 15px rgba(0,0,0,0.1)' };
+const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
 const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px', marginTop: 'auto' };
 const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%' };
 const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
 const resetButtonStyle = { padding: '10px', backgroundColor: 'white', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', width: '50px', height: '50px' };
 const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'auto', flex: 1, borderRadius: STANDARD_RADIUS, paddingRight: '5px' };
-const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.03)' };
+// Style pastel pour les items
+const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
 const missionInfoStyle = { flex: 1, marginRight: '10px' };
 const missionTitleStyle = { fontWeight: '700', fontSize: '14px', color: COLORS.DARK, display: 'flex', alignItems: 'center', fontFamily: "'Inter', sans-serif" };
 const missionAddressStyle = { color: COLORS.GRAY_TEXT, fontSize: '12px', marginTop: '2px', fontFamily: "'Inter', sans-serif" };
-const compassButtonStyle = { backgroundColor: '#f8f9fa', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
-const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.6)', backdropFilter: 'blur(5px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const modalContentStyle = { background: COLORS.WHITE, padding: '40px', borderRadius: '20px', width: '90%', maxWidth: '350px', textAlign: 'center', border: '2px solid ' + COLORS.BLUE, boxSizing: 'border-box', boxShadow: SHADOW };
-const modalTitleStyle = { marginTop: 0, marginBottom: '15px', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '20px', letterSpacing: '1px' };
-const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', padding: '15px', backgroundColor: '#f8f9fa', color: COLORS.DARK, textDecoration: 'none', borderRadius: STANDARD_RADIUS, border: '1px solid #eee', fontWeight: '700', fontSize: '14px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px', boxSizing: 'border-box' };
+const compassButtonStyle = { backgroundColor: '#f8f9fa', border: '1px solid #eee', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
+const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.4)', backdropFilter: 'blur(8px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' };
+const modalContentStyle = { background: COLORS.WHITE, padding: '40px', borderRadius: '24px', width: '90%', maxWidth: '400px', textAlign: 'center', border: 'none', boxSizing: 'border-box', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' };
+const modalTitleStyle = { marginTop: 0, marginBottom: '10px', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '22px', letterSpacing: '1px' };
+const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', padding: '15px', backgroundColor: '#fff', color: COLORS.DARK, textDecoration: 'none', borderRadius: STANDARD_RADIUS, border: '1px solid #eee', fontWeight: '700', fontSize: '14px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px', boxSizing: 'border-box', boxShadow:'0 2px 5px rgba(0,0,0,0.02)' };
 const gpsIconStyle = { width: '24px', height: '24px', objectFit: 'contain', marginRight: '15px' };
-const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', border: 'none', background: COLORS.DARK, color: COLORS.WHITE, fontWeight: '700', cursor: 'pointer', borderRadius: PILL_RADIUS, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '1px' };
+const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', border: 'none', background: 'transparent', color: COLORS.GRAY_TEXT, fontWeight: '600', cursor: 'pointer', borderRadius: PILL_RADIUS, fontFamily: "'Inter', sans-serif", fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' };
 
-// --- 3. COMPOSANTS LOGIQUES ---
-const getStepColor = (index, total) => {
-    if (index === 0) return COLORS.GREEN;
-    if (index === total - 1) return COLORS.RED;
-    return COLORS.BLUE;
+// --- 3. COMPOSANTS UTILITAIRES ---
+
+// Convertit minutes en "1h 30min"
+const formatDuration = (minutes) => {
+    if (!minutes) return "";
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h > 0) return `${h}h ${m > 0 ? m + 'min' : ''}`;
+    return `${m} min`;
 };
 
-const renderClientName = (name, slot) => {
-    let iconSrc = "/icon-morning.svg"; 
-    if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
+// Composant Auto-complétion Adresse
+const AddressInput = ({ placeholder, value, onChange }) => {
+    const [suggestions, setSuggestions] = useState([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(async () => {
+            if (value.length > 3 && showSuggestions) {
+                try {
+                    const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${value}&limit=5`);
+                    const data = await response.json();
+                    setSuggestions(data.features);
+                } catch (e) { console.error(e); }
+            } else {
+                setSuggestions([]);
+            }
+        }, 300);
+        return () => clearTimeout(delayDebounceFn);
+    }, [value, showSuggestions]);
+
     return (
-        <div style={{display: 'flex', alignItems: 'center'}}>
-            <img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} />
-            <span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span>
+        <div style={{ position: 'relative', width: '100%' }}>
+            <input 
+                type="text" 
+                placeholder={placeholder} 
+                value={value} 
+                onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }} 
+                style={inputStyle} 
+            />
+            {suggestions.length > 0 && showSuggestions && (
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', borderRadius: '12px', boxShadow: SHADOW, zIndex: 1000, overflow: 'hidden', marginTop: '-5px', border: '1px solid ' + COLORS.BORDER }}>
+                    {suggestions.map((s, i) => (
+                        <div 
+                            key={i} 
+                            onClick={() => { onChange(s.properties.label); setShowSuggestions(false); }} 
+                            style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px', textAlign:'left', fontFamily:"'Inter', sans-serif" }}
+                            onMouseEnter={(e) => e.target.style.backgroundColor = COLORS.BG_LIGHT}
+                            onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                        >
+                            📍 {s.properties.label}
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };
@@ -94,14 +137,17 @@ function MapController({ center, bounds }) {
 }
 
 const createCustomIcon = (index, total, isMyMission) => {
-    let color = isMyMission ? COLORS.BLUE : COLORS.GRAY_TEXT; 
-    if (index === 0 && isMyMission) color = COLORS.GREEN;
-    if (index === total - 1 && isMyMission) color = COLORS.RED;
+    // Couleurs Pastel
+    let bgColor = isMyMission ? COLORS.PASTEL_BLUE : '#e0e0e0'; 
+    let textColor = COLORS.DARK;
+
+    if (index === 0 && isMyMission) { bgColor = COLORS.PASTEL_GREEN; }
+    if (index === total - 1 && isMyMission) { bgColor = COLORS.PASTEL_RED; }
 
     return L.divIcon({
         className: 'custom-marker',
-        html: `<div style="background-color: ${color}; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 5px rgba(0,0,0,0.3); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`,
-        iconSize: [24, 24], iconAnchor: [12, 12], popupAnchor: [0, -12]
+        html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`,
+        iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14]
     });
 };
 
@@ -114,6 +160,7 @@ function App() {
     const [userRole, setUserRole] = useState(null);
     const [userId, setUserId] = useState(null);
     const [userName, setUserName] = useState("");
+    const [userCompany, setUserCompany] = useState(localStorage.getItem('optiroute_company') || "");
 
     // Login
     const [isLoginView, setIsLoginView] = useState(true);
@@ -136,6 +183,8 @@ function App() {
     const [timeSlot, setTimeSlot] = useState("morning");
     const [duration, setDuration] = useState(30);
     const [isAddingMission, setIsAddingMission] = useState(false);
+    
+    // Tech Form
     const [newTechName, setNewTechName] = useState("");
     const [newTechAddress, setNewTechAddress] = useState("");
     const [newTechEmail, setNewTechEmail] = useState("");
@@ -174,6 +223,8 @@ function App() {
                     setUserRole(decoded.role);
                     setUserId(decoded.id);
                     setUserName(decoded.name);
+                    
+                    // Si c'est un tech, auto-select
                     if (decoded.role === 'tech') setSelectedTechId(decoded.id);
                     
                     try {
@@ -205,7 +256,12 @@ function App() {
             const res = await axios.post(`${API_URL}${endpoint}`, payload);
             if (isLoginView) {
                 localStorage.setItem('optiroute_token', res.data.token);
+                // Stocker le nom de l'entreprise si dispo
+                const compName = res.data.name || '';
+                localStorage.setItem('optiroute_company', compName);
+                
                 setToken(res.data.token);
+                setUserCompany(compName);
             } else {
                 setToast({message: "Compte créé.", type: "success"}); setIsLoginView(true);
             }
@@ -215,6 +271,7 @@ function App() {
 
     const handleLogout = () => {
         localStorage.removeItem('optiroute_token'); 
+        localStorage.removeItem('optiroute_company');
         setToken(null); setUserRole(null); setRoute([]); setPendingMissions([]);
     };
 
@@ -222,7 +279,8 @@ function App() {
         try {
             const res = await axios.get(`${API_URL}/technicians`, getAuthHeaders());
             setTechnicians(res.data);
-        } catch (e) { if(e.response?.status === 401) handleLogout(); }
+            return res.data;
+        } catch (e) { if(e.response?.status === 401) handleLogout(); return []; }
     };
 
     const handleAddTech = async (e) => {
@@ -232,10 +290,18 @@ function App() {
         try {
             await axios.post(`${API_URL}/technicians`, { name: newTechName, address: newTechAddress, email: newTechEmail, password: newTechPass }, getAuthHeaders());
             setNewTechName(""); setNewTechAddress(""); setNewTechEmail(""); setNewTechPass("");
-            const res = await axios.get(`${API_URL}/technicians`, getAuthHeaders());
-            setTechnicians(res.data);
-            const added = res.data[res.data.length - 1];
-            if (added) { setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); setMapBounds(null); }
+            
+            // Rafraichir la liste
+            const updatedList = await fetchTechnicians();
+            
+            // SÉLECTION AUTOMATIQUE DU NOUVEAU TECH
+            const added = updatedList[updatedList.length - 1];
+            if (added) { 
+                setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); 
+                setMapBounds(null);
+                setSelectedTechId(added.id); // <-- ICI : On le sélectionne pour les missions
+            }
+            
             setToast({ message: "Technicien ajouté", type: "success" });
             setShowTeamModal(false);
         } catch (error) { alert("Erreur ajout"); }
@@ -249,6 +315,8 @@ function App() {
             await axios.delete(`${API_URL}/technicians/${techToDelete}`, getAuthHeaders()); 
             await fetchTechnicians();
             setTechToDelete(null);
+            // Si on supprime celui sélectionné, on désélectionne
+            if (selectedTechId === techToDelete) setSelectedTechId(null);
             setToast({ message: "Technicien supprimé", type: "success" });
         } catch (e) { alert("Erreur"); }
         finally { setIsDeletingTech(false); }
@@ -325,13 +393,18 @@ function App() {
 
             {techToDelete && <div style={{...modalOverlayStyle, zIndex: 10002}} onClick={() => !isDeletingTech && setTechToDelete(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/icon-trash.svg" alt="Del" style={{width:'40px', marginBottom:'15px'}} /><h3 style={{...modalTitleStyle, color: COLORS.DARK}}>SUPPRIMER ?</h3><div style={{display:'flex', gap:'10px'}}><button onClick={() => setTechToDelete(null)} style={{...cancelButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`, marginTop:0}}>NON</button><button onClick={executeDeleteTech} style={{...submitButtonStyle, marginTop:0, backgroundColor:COLORS.RED}}>{isDeletingTech ? "..." : "OUI"}</button></div></div></div>}
 
-            {showTeamModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowTeamModal(false)}><div style={{...modalContentStyle, maxWidth:'450px', padding:'40px'}} onClick={e => e.stopPropagation()}><div style={{display:'flex', alignItems:'center', marginBottom:'20px', borderBottom:`2px solid ${COLORS.DARK}`, paddingBottom:'15px'}}><h3 style={{margin:0, fontFamily:"'Oswald', sans-serif", fontSize:'24px', textTransform:'uppercase'}}>MON ÉQUIPE</h3></div><div style={{maxHeight: '200px', overflowY: 'auto', marginBottom: '30px'}}>{technicians.map(t => (<div key={t.id} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'15px', marginBottom:'10px', border:`1px solid ${COLORS.BORDER}`, borderRadius:STANDARD_RADIUS, backgroundColor: '#fafafa'}}><div><div style={{fontWeight:'700', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", fontSize:'16px'}}>{t.name}</div><div style={{fontSize:'12px', color: COLORS.GRAY_TEXT}}>{t.email}</div></div>{userRole === 'admin' && (<button onClick={() => setTechToDelete(t.id)} style={{background:'transparent', border:'none', cursor:'pointer', opacity:0.6}}><img src="/icon-trash.svg" alt="Del" style={{width:'20px'}} /></button>)}</div>))}</div>{userRole === 'admin' && (<form onSubmit={handleAddTech}><input type="text" placeholder="Nom" value={newTechName} onChange={(e) => setNewTechName(e.target.value)} style={inputStyle} /><input type="text" placeholder="Adresse" value={newTechAddress} onChange={(e) => setNewTechAddress(e.target.value)} style={inputStyle} /><input type="email" placeholder="Email" value={newTechEmail} onChange={(e) => setNewTechEmail(e.target.value)} style={inputStyle} /><input type="password" placeholder="Mot de passe" value={newTechPass} onChange={(e) => setNewTechPass(e.target.value)} style={inputStyle} /><button type="submit" disabled={isAddingTech} style={{...submitButtonStyle, marginTop: '10px'}}>{isAddingTech ? "..." : "CRÉER"}</button></form>)}<button onClick={() => setShowTeamModal(false)} style={{...cancelButtonStyle, background:'transparent', color:COLORS.GRAY_TEXT, border:'none', textDecoration:'underline', fontSize:'12px'}}>FERMER</button></div></div>}
+            {showTeamModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowTeamModal(false)}><div style={{...modalContentStyle, maxWidth:'450px', padding:'40px'}} onClick={e => e.stopPropagation()}><div style={{display:'flex', alignItems:'center', marginBottom:'20px', borderBottom:`2px solid ${COLORS.DARK}`, paddingBottom:'15px'}}><h3 style={{margin:0, fontFamily:"'Oswald', sans-serif", fontSize:'24px', textTransform:'uppercase'}}>MON ÉQUIPE</h3></div><div style={{maxHeight: '250px', overflowY: 'auto', marginBottom: '30px'}}>{technicians.map(t => (<div key={t.id} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'15px', marginBottom:'10px', border:`1px solid ${COLORS.BORDER}`, borderRadius:STANDARD_RADIUS, backgroundColor: COLORS.BG_LIGHT}}>
+                <div style={{display:'flex', alignItems:'center'}}>
+                    <div style={{width:'35px', height:'35px', borderRadius:'50%', backgroundColor:COLORS.BLUE, color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', marginRight:'15px', fontSize:'14px'}}>{t.name.charAt(0)}</div>
+                    <div><div style={{fontWeight:'700', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", fontSize:'16px'}}>{t.name}</div><div style={{fontSize:'12px', color: COLORS.GRAY_TEXT}}>{t.email}</div></div>
+                </div>
+                {userRole === 'admin' && (<button onClick={() => setTechToDelete(t.id)} style={{background:'transparent', border:'none', cursor:'pointer', opacity:0.6}}><img src="/icon-trash.svg" alt="Del" style={{width:'20px'}} /></button>)}</div>))}</div>{userRole === 'admin' && (<form onSubmit={handleAddTech}><input type="text" placeholder="Nom" value={newTechName} onChange={(e) => setNewTechName(e.target.value)} style={inputStyle} /><AddressInput placeholder="Adresse (Départ)" value={newTechAddress} onChange={setNewTechAddress} /><input type="email" placeholder="Email" value={newTechEmail} onChange={(e) => setNewTechEmail(e.target.value)} style={inputStyle} /><input type="password" placeholder="Mot de passe" value={newTechPass} onChange={(e) => setNewTechPass(e.target.value)} style={inputStyle} /><button type="submit" disabled={isAddingTech} style={{...submitButtonStyle, marginTop: '10px'}}>{isAddingTech ? "..." : "CRÉER LE COMPTE"}</button></form>)}<button onClick={() => setShowTeamModal(false)} style={{...cancelButtonStyle, border:'none', marginTop:'10px'}}>FERMER</button></div></div>}
 
             {showResetModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowResetModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/icon-trash.svg" alt="!" style={{width:'40px', marginBottom:'15px'}}/ ><h3 style={modalTitleStyle}>VIDER ?</h3><div style={{display:'flex', gap:'10px'}}><button onClick={()=>setShowResetModal(false)} style={{...cancelButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`, marginTop:0}}>ANNULER</button><button onClick={confirmResetMissions} style={{...submitButtonStyle, marginTop:0, backgroundColor:COLORS.DARK}}>{loading ? "..." : "CONFIRMER"}</button></div></div></div>}
 
             {navModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setNavModal(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={modalTitleStyle}>NAVIGATION</h3><div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}><a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/waze.png" alt="W" style={gpsIconStyle}/>Waze</a><a href={`http://googleusercontent.com/maps.google.com/?q=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/google.png" alt="G" style={gpsIconStyle}/>Google Maps</a></div><button onClick={() => setNavModal(null)} style={cancelButtonStyle}>FERMER</button></div></div>}
-            {showEmptyModal && <div style={modalOverlayStyle} onClick={() => setShowEmptyModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} /><h3 style={modalTitleStyle}>OPTIROUTE</h3><button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button></div></div>}
-            {showUnassignedModal && <div style={modalOverlayStyle} onClick={() => setShowUnassignedModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3><div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>{unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}</div><button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button></div></div>}
+            {showEmptyModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowEmptyModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} /><h3 style={modalTitleStyle}>OPTIROUTE</h3><button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button></div></div>}
+            {showUnassignedModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowUnassignedModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3><div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>{unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}</div><button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button></div></div>}
 
             <div style={mapContainerStyle(isMobileView)}>
                 <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
@@ -346,7 +419,14 @@ function App() {
             <div style={panelContainerStyle(isMobileView)}>
                 <div style={panelHeaderStyle}>
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
-                        <div style={{display:'flex', alignItems:'center'}}><img src="/logo-truck.svg" alt="Logo" style={{height: '36px', marginRight: '15px'}} /><div><h2 style={{margin: 0, color: COLORS.DARK, fontSize: '1.8em', fontFamily: "'Oswald', sans-serif", fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px'}}>OptiRoute <span style={proTagStyle}>PRO</span></h2><div style={{fontSize: '12px', color: COLORS.GRAY_TEXT, marginTop: '2px', fontFamily:"'Inter', sans-serif", fontWeight:'500'}}>{userRole === 'admin' ? 'ADMINISTRATION' : `TECHNICIEN : ${userName}`}</div></div></div>
+                        <div style={{display:'flex', alignItems:'center'}}><img src="/logo-truck.svg" alt="Logo" style={{height: '36px', marginRight: '15px'}} />
+                            <div>
+                                <h2 style={{margin: 0, color: COLORS.DARK, fontSize: '1.8em', fontFamily: "'Oswald', sans-serif", fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px'}}>OptiRoute <span style={proTagStyle}>PRO</span></h2>
+                                <div style={{fontSize: '12px', color: COLORS.GRAY_TEXT, marginTop: '2px', fontFamily:"'Inter', sans-serif", fontWeight:'500', textTransform:'uppercase'}}>
+                                    {userRole === 'admin' ? `ADMINISTRATION : ${userCompany}` : `TECHNICIEN : ${userName}`}
+                                </div>
+                            </div>
+                        </div>
                         <button onClick={handleLogout} style={{background: 'transparent', border: 'none', color: COLORS.RED, cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration:'underline', fontFamily:"'Inter', sans-serif"}}>DÉCONNEXION</button>
                     </div>
                 </div>
@@ -380,20 +460,28 @@ function App() {
                     <form onSubmit={handleAddMission} style={{opacity: (userRole === 'admin' && !selectedTechId) ? 0.5 : 1, pointerEvents: (userRole === 'admin' && !selectedTechId) ? 'none' : 'auto', transition: '0.3s'}}>
                         
                         <input type="text" placeholder="CLIENT" value={newName} onChange={(e) => setNewName(e.target.value)} style={inputStyle} />
-                        <input type="text" placeholder="ADRESSE" value={newAddress} onChange={(e) => setNewAddress(e.target.value)} style={inputStyle} />
                         
-                        <div style={{display:'flex', gap:'10px', marginBottom:'10px'}}>
+                        {/* NOUVEAU : AUTO-COMPLÉTION ADRESSE */}
+                        <AddressInput placeholder="ADRESSE" value={newAddress} onChange={setNewAddress} />
+                        
+                        <div style={{display:'flex', gap:'10px', marginBottom:'5px'}}>
                             <div style={{position: 'relative', flex: 1, userSelect: 'none'}}>
                                 <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} style={{...inputStyle, display: 'flex', alignItems: 'center', cursor: 'pointer', position: 'relative', marginBottom:0}}><img src={timeSlot === 'morning' ? '/icon-morning.svg' : '/icon-afternoon.svg'} alt="time" style={{width: '18px', marginRight: '10px'}} /><span style={{flex: 1, fontSize:'13px', textTransform:'uppercase', fontWeight:'600'}}>{timeSlot === 'morning' ? 'MATIN' : 'APRÈS-MIDI'}</span></div>
                                 {isDropdownOpen && (<div style={{position: 'absolute', top: '110%', left: 0, right: 0, backgroundColor: COLORS.WHITE, border: `1px solid ${COLORS.DARK}`, borderRadius: '20px', zIndex: 100, boxShadow: SHADOW, overflow: 'hidden', padding: '5px'}}><div onClick={() => { setTimeSlot('morning'); setIsDropdownOpen(false); }} style={dropdownItemStyle}><img src="/icon-morning.svg" alt="M" style={{width: '18px', marginRight: '10px'}} />MATIN</div><div style={{height: '1px', background: '#eee', margin: '0 10px'}}></div><div onClick={() => { setTimeSlot('afternoon'); setIsDropdownOpen(false); }} style={dropdownItemStyle}><img src="/icon-afternoon.svg" alt="A" style={{width: '18px', marginRight: '10px'}} />APRÈS-MIDI</div></div>)}
                             </div>
                             <div style={{width: '90px', position:'relative'}}><input type="number" min="5" step="5" value={duration} onChange={(e) => setDuration(parseInt(e.target.value) || 30)} style={{...inputStyle, textAlign:'center', marginBottom:0, paddingRight:'25px'}} /><span style={{position:'absolute', right:'10px', top:'50%', transform:'translateY(-50%)', fontSize:'10px', color:COLORS.GRAY_TEXT, fontWeight:'bold'}}>MIN</span></div>
                         </div>
+                        
+                        {/* Aide Durée */}
+                        <div style={{textAlign:'right', fontSize:'11px', color:COLORS.GRAY_TEXT, fontStyle:'italic', marginBottom:'15px'}}>
+                            Temps estimé : <strong>{formatDuration(duration)}</strong>
+                        </div>
+
                         <button type="submit" disabled={isAddingMission} style={{...submitButtonStyle, opacity: isAddingMission ? 0.7 : 1}}>{isAddingMission ? "..." : "AJOUTER AU TRAJET"}</button>
                     </form>
                 </div>
 
-                {pendingMissions.length > 0 && (<div style={{marginBottom: '20px', border: `1px dashed ${COLORS.BLUE}`, borderRadius: STANDARD_RADIUS, padding: '15px', backgroundColor: 'rgba(43, 121, 194, 0.05)'}}><div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}><h5 style={{margin:0, color:COLORS.BLUE, fontFamily:"'Oswald', sans-serif", fontSize:'14px'}}>EN ATTENTE ({pendingMissions.length})</h5></div><div style={{maxHeight:'80px', overflowY:'auto'}}>{pendingMissions.map((pm, idx) => (<div key={idx} style={{fontSize:'12px', marginBottom:'4px', display:'flex', alignItems:'center', fontFamily:"'Inter', sans-serif"}}><div style={{width:'6px', height:'6px', borderRadius:'50%', background:COLORS.BLUE, marginRight:'8px'}}></div><span style={{fontWeight:'600', marginRight:'5px', color:COLORS.DARK}}>{pm.name}</span> <span style={{color:COLORS.GRAY_TEXT}}>({pm.time} min)</span></div>))}</div></div>)}
+                {pendingMissions.length > 0 && (<div style={{marginBottom: '20px', border: `1px dashed ${COLORS.BLUE}`, borderRadius: STANDARD_RADIUS, padding: '15px', backgroundColor: 'rgba(43, 121, 194, 0.05)'}}><div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}><h5 style={{margin:0, color:COLORS.BLUE, fontFamily:"'Oswald', sans-serif", fontSize:'14px'}}>EN ATTENTE ({pendingMissions.length})</h5></div><div style={{maxHeight:'80px', overflowY:'auto'}}>{pendingMissions.map((pm, idx) => (<div key={idx} style={{fontSize:'12px', marginBottom:'4px', display:'flex', alignItems:'center', fontFamily:"'Inter', sans-serif"}}><div style={{width:'6px', height:'6px', borderRadius:'50%', background:COLORS.BLUE, marginRight:'8px'}}></div><span style={{fontWeight:'600', marginRight:'5px', color:COLORS.DARK}}>{pm.name}</span> <span style={{color:COLORS.GRAY_TEXT}}>({formatDuration(pm.time)})</span></div>))}</div></div>)}
 
                 <div style={actionButtonsContainerStyle}>
                     <div style={buttonsRowStyle}>
@@ -405,7 +493,7 @@ function App() {
                 <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
                     <h4 style={{...cardTitleStyle, marginBottom: '10px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '14px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>FEUILLE DE ROUTE</h4>
                     <div style={missionsListStyle}>
-                        {route.length === 0 ? (<div style={{padding: '30px', textAlign: 'center', color: COLORS.GRAY_TEXT, fontSize: '0.9em', fontFamily: "'Inter', sans-serif"}}><div style={{opacity:0.3, fontSize:'40px', marginBottom:'10px'}}>🗺️</div><p style={{margin: 0}}>La carte est vide.</p></div>) : (route.map((step, index) => { const stepColor = getStepColor(index, route.length); return (<div key={index} style={missionItemStyle}><div style={{backgroundColor: stepColor, color: 'white', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontFamily: "'Inter', sans-serif", marginRight: '15px', boxShadow: '0 2px 5px rgba(0,0,0,0.15)', flexShrink: 0}}>{step.step}</div><div style={missionInfoStyle}><div style={missionTitleStyle}>{renderClientName(step.client, step.time_slot)}</div><div style={missionAddressStyle}>{step.address.substring(0, 35)}...</div><div style={{fontSize: '10px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif", textTransform:'uppercase'}}>{step.technician_name ? `🚛 ${step.technician_name} • ` : ''}📍 {step.distance_km} km</div></div><button onClick={() => setNavModal({lat: step.lat, lng: step.lng})} style={compassButtonStyle}><img src="/icon-navigation.svg" alt="GPS" style={{width:'18px'}} /></button></div>); }))}
+                        {route.length === 0 ? (<div style={{padding: '30px', textAlign: 'center', color: COLORS.GRAY_TEXT, fontSize: '0.9em', fontFamily: "'Inter', sans-serif"}}><div style={{opacity:0.3, fontSize:'40px', marginBottom:'10px'}}>🗺️</div><p style={{margin: 0}}>La carte est vide.</p></div>) : (route.map((step, index) => { const stepColor = getStepColor(index, route.length); return (<div key={index} style={missionItemStyle}><div style={{backgroundColor: stepColor, color: COLORS.DARK, width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontFamily: "'Inter', sans-serif", marginRight: '15px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', flexShrink: 0, border:'2px solid white'}}>{step.step}</div><div style={missionInfoStyle}><div style={missionTitleStyle}>{renderClientName(step.client, step.time_slot)}</div><div style={missionAddressStyle}>{step.address.substring(0, 35)}...</div><div style={{fontSize: '10px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif", textTransform:'uppercase'}}>{step.technician_name ? `🚛 ${step.technician_name} • ` : ''}📍 {step.distance_km} km</div></div><button onClick={() => setNavModal({lat: step.lat, lng: step.lng})} style={compassButtonStyle}><img src="/icon-navigation.svg" alt="GPS" style={{width:'18px'}} /></button></div>); }))}
                     </div>
                 </div>
             </div>
