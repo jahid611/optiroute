@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-// SUPPRESSION DE useRef ICI POUR ÉVITER L'ERREUR VERCEL
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css'; 
@@ -149,6 +148,24 @@ const createCustomIcon = (index, total, isMyMission) => {
         html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`,
         iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14]
     });
+};
+
+// --- AJOUT DES FONCTIONS MANQUANTES ---
+const getStepColor = (index, total) => {
+    if (index === 0) return COLORS.PASTEL_GREEN; // Pastel pour le départ
+    if (index === total - 1) return COLORS.PASTEL_RED; // Pastel pour la fin
+    return COLORS.PASTEL_BLUE; // Pastel pour les étapes
+};
+
+const renderClientName = (name, slot) => {
+    let iconSrc = "/icon-morning.svg"; 
+    if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
+    return (
+        <div style={{display: 'flex', alignItems: 'center'}}>
+            <img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} />
+            <span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span>
+        </div>
+    );
 };
 
 // --- 4. APPLICATION ---
