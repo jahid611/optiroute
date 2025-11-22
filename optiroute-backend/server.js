@@ -134,7 +134,8 @@ app.get('/optimize', authenticateToken, async (req, res) => {
 
 app.post('/missions', authenticateToken, async (req, res) => {
     try {
-        const { client_name, address, time_slot, duration, technician_id } = req.body;
+        // AJOUT : phone et comments
+        const { client_name, address, time_slot, duration, technician_id, phone, comments } = req.body;
         const companyId = req.user.role === 'admin' ? req.user.id : req.user.company_id;
 
         let assignedTechId = technician_id;
@@ -151,9 +152,10 @@ app.post('/missions', authenticateToken, async (req, res) => {
         const finalDuration = duration || 30;
         const status = 'assigned'; 
 
+        // AJOUT DANS LA REQUÊTE SQL
         await db.query(
-            `INSERT INTO missions (user_id, client_name, address, lat, lng, status, time_slot, duration_minutes, technician_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [companyId, client_name, address, gps.lat, gps.lng, status, time_slot || 'any', finalDuration, assignedTechId]
+            `INSERT INTO missions (user_id, client_name, address, lat, lng, status, time_slot, duration_minutes, technician_id, phone, comments) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [companyId, client_name, address, gps.lat, gps.lng, status, time_slot || 'any', finalDuration, assignedTechId, phone || '', comments || '']
         );
 
         res.json({ success: true });

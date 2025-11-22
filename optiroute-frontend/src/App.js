@@ -20,16 +20,9 @@ L.Icon.Default.mergeOptions({
 
 // --- 2. CONSTANTES & STYLES (DESIGN PASTEL PRO) ---
 const COLORS = {
-    DARK: '#3b4651', 
-    BLUE: '#2b79c2', 
-    PASTEL_BLUE: '#A0C4FF', 
-    PASTEL_GREEN: '#B9FBC0', 
-    PASTEL_RED: '#FFADAD',   
-    WHITE: '#ffffff', 
-    BORDER: '#e0e0e0', 
-    GRAY_TEXT: '#6c757d', 
-    BG_LIGHT: '#f8f9fa', 
-    WARNING: '#ffd6a5'
+    DARK: '#3b4651', BLUE: '#2b79c2', PASTEL_BLUE: '#A0C4FF', 
+    PASTEL_GREEN: '#B9FBC0', PASTEL_RED: '#FFADAD', WHITE: '#ffffff', 
+    BORDER: '#e0e0e0', GRAY_TEXT: '#6c757d', BG_LIGHT: '#f8f9fa', WARNING: '#ffd6a5'
 };
 
 const PILL_RADIUS = '38px'; 
@@ -52,11 +45,12 @@ const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent:
 const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
 const resetButtonStyle = { padding: '10px', backgroundColor: 'white', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', width: '50px', height: '50px' };
 const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'auto', flex: 1, borderRadius: STANDARD_RADIUS, paddingRight: '5px' };
-const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
+const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
 const missionInfoStyle = { flex: 1, marginRight: '10px' };
 const missionTitleStyle = { fontWeight: '700', fontSize: '14px', color: COLORS.DARK, display: 'flex', alignItems: 'center', fontFamily: "'Inter', sans-serif" };
 const missionAddressStyle = { color: COLORS.GRAY_TEXT, fontSize: '12px', marginTop: '2px', fontFamily: "'Inter', sans-serif" };
-const compassButtonStyle = { backgroundColor: '#f8f9fa', border: '1px solid #eee', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' };
+const compassButtonStyle = { backgroundColor: '#f8f9fa', border: '1px solid #eee', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginLeft:'5px' };
+const phoneButtonStyle = { backgroundColor: COLORS.PASTEL_GREEN, border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration:'none', marginLeft:'5px' };
 const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.4)', backdropFilter: 'blur(8px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const modalContentStyle = { background: COLORS.WHITE, padding: '40px', borderRadius: '24px', width: '90%', maxWidth: '400px', textAlign: 'center', border: 'none', boxSizing: 'border-box', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' };
 const modalTitleStyle = { marginTop: 0, marginBottom: '10px', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '22px', letterSpacing: '1px' };
@@ -66,7 +60,6 @@ const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', b
 
 // --- 3. COMPOSANTS UTILITAIRES ---
 
-// Convertit minutes en "1h 30min"
 const formatDuration = (minutes) => {
     if (!minutes) return "";
     const h = Math.floor(minutes / 60);
@@ -75,7 +68,6 @@ const formatDuration = (minutes) => {
     return `${m} min`;
 };
 
-// Composant Auto-complétion Adresse
 const AddressInput = ({ placeholder, value, onChange }) => {
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -136,10 +128,8 @@ function MapController({ center, bounds }) {
 }
 
 const createCustomIcon = (index, total, isMyMission) => {
-    // Couleurs Pastel
     let bgColor = isMyMission ? COLORS.PASTEL_BLUE : '#e0e0e0'; 
     let textColor = COLORS.DARK;
-
     if (index === 0 && isMyMission) { bgColor = COLORS.PASTEL_GREEN; }
     if (index === total - 1 && isMyMission) { bgColor = COLORS.PASTEL_RED; }
 
@@ -150,11 +140,10 @@ const createCustomIcon = (index, total, isMyMission) => {
     });
 };
 
-// --- AJOUT DES FONCTIONS MANQUANTES ---
 const getStepColor = (index, total) => {
-    if (index === 0) return COLORS.PASTEL_GREEN; // Pastel pour le départ
-    if (index === total - 1) return COLORS.PASTEL_RED; // Pastel pour la fin
-    return COLORS.PASTEL_BLUE; // Pastel pour les étapes
+    if (index === 0) return COLORS.PASTEL_GREEN; 
+    if (index === total - 1) return COLORS.PASTEL_RED; 
+    return COLORS.PASTEL_BLUE; 
 };
 
 const renderClientName = (name, slot) => {
@@ -197,6 +186,8 @@ function App() {
     // Forms
     const [newName, setNewName] = useState("");
     const [newAddress, setNewAddress] = useState("");
+    const [newPhone, setNewPhone] = useState(""); // NEW
+    const [newComments, setNewComments] = useState(""); // NEW
     const [timeSlot, setTimeSlot] = useState("morning");
     const [duration, setDuration] = useState(30);
     const [isAddingMission, setIsAddingMission] = useState(false);
@@ -240,10 +231,7 @@ function App() {
                     setUserRole(decoded.role);
                     setUserId(decoded.id);
                     setUserName(decoded.name);
-                    
-                    // Si c'est un tech, auto-select
                     if (decoded.role === 'tech') setSelectedTechId(decoded.id);
-                    
                     try {
                         const res = await axios.get(`${API_URL}/technicians`, { headers: { Authorization: `Bearer ${token}` } });
                         setTechnicians(res.data);
@@ -254,7 +242,6 @@ function App() {
             }
         };
         initApp();
-
         return () => window.removeEventListener('resize', handleResize);
         // eslint-disable-next-line
     }, [token]);
@@ -273,10 +260,8 @@ function App() {
             const res = await axios.post(`${API_URL}${endpoint}`, payload);
             if (isLoginView) {
                 localStorage.setItem('optiroute_token', res.data.token);
-                // Stocker le nom de l'entreprise si dispo
                 const compName = res.data.name || '';
                 localStorage.setItem('optiroute_company', compName);
-                
                 setToken(res.data.token);
                 setUserCompany(compName);
             } else {
@@ -307,18 +292,13 @@ function App() {
         try {
             await axios.post(`${API_URL}/technicians`, { name: newTechName, address: newTechAddress, email: newTechEmail, password: newTechPass }, getAuthHeaders());
             setNewTechName(""); setNewTechAddress(""); setNewTechEmail(""); setNewTechPass("");
-            
-            // Rafraichir la liste
             const updatedList = await fetchTechnicians();
-            
-            // SÉLECTION AUTOMATIQUE DU NOUVEAU TECH
             const added = updatedList[updatedList.length - 1];
             if (added) { 
                 setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); 
                 setMapBounds(null);
-                setSelectedTechId(added.id); // <-- ICI : On le sélectionne pour les missions
+                setSelectedTechId(added.id); 
             }
-            
             setToast({ message: "Technicien ajouté", type: "success" });
             setShowTeamModal(false);
         } catch (error) { alert("Erreur ajout"); }
@@ -332,7 +312,6 @@ function App() {
             await axios.delete(`${API_URL}/technicians/${techToDelete}`, getAuthHeaders()); 
             await fetchTechnicians();
             setTechToDelete(null);
-            // Si on supprime celui sélectionné, on désélectionne
             if (selectedTechId === techToDelete) setSelectedTechId(null);
             setToast({ message: "Technicien supprimé", type: "success" });
         } catch (e) { alert("Erreur"); }
@@ -347,11 +326,13 @@ function App() {
         try {
             const response = await axios.post(`${API_URL}/missions`, { 
                 client_name: newName, address: newAddress, time_slot: timeSlot, duration: duration,
-                technician_id: selectedTechId 
+                technician_id: selectedTechId,
+                phone: newPhone, // Envoi nouveau champ
+                comments: newComments // Envoi nouveau champ
             }, getAuthHeaders());
             if(response.data.success) { 
                 setPendingMissions([...pendingMissions, { name: newName, time: duration, techId: selectedTechId }]);
-                setNewName(""); setNewAddress(""); 
+                setNewName(""); setNewAddress(""); setNewPhone(""); setNewComments("");
                 setToast({ message: "Mission assignée", type: "success" });
             } 
             else { alert(response.data.message); }
@@ -481,6 +462,10 @@ function App() {
                         {/* NOUVEAU : AUTO-COMPLÉTION ADRESSE */}
                         <AddressInput placeholder="ADRESSE" value={newAddress} onChange={setNewAddress} />
                         
+                        {/* CHAMPS TÉLÉPHONE & COMMENTAIRE */}
+                        <input type="text" placeholder="TÉLÉPHONE (Optionnel)" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} style={inputStyle} />
+                        <input type="text" placeholder="COMMENTAIRE (Digicode, etc.)" value={newComments} onChange={(e) => setNewComments(e.target.value)} style={inputStyle} />
+
                         <div style={{display:'flex', gap:'10px', marginBottom:'5px'}}>
                             <div style={{position: 'relative', flex: 1, userSelect: 'none'}}>
                                 <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} style={{...inputStyle, display: 'flex', alignItems: 'center', cursor: 'pointer', position: 'relative', marginBottom:0}}><img src={timeSlot === 'morning' ? '/icon-morning.svg' : '/icon-afternoon.svg'} alt="time" style={{width: '18px', marginRight: '10px'}} /><span style={{flex: 1, fontSize:'13px', textTransform:'uppercase', fontWeight:'600'}}>{timeSlot === 'morning' ? 'MATIN' : 'APRÈS-MIDI'}</span></div>
@@ -510,7 +495,22 @@ function App() {
                 <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
                     <h4 style={{...cardTitleStyle, marginBottom: '10px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '14px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>FEUILLE DE ROUTE</h4>
                     <div style={missionsListStyle}>
-                        {route.length === 0 ? (<div style={{padding: '30px', textAlign: 'center', color: COLORS.GRAY_TEXT, fontSize: '0.9em', fontFamily: "'Inter', sans-serif"}}><div style={{opacity:0.3, fontSize:'40px', marginBottom:'10px'}}>🗺️</div><p style={{margin: 0}}>La carte est vide.</p></div>) : (route.map((step, index) => { const stepColor = getStepColor(index, route.length); return (<div key={index} style={missionItemStyle}><div style={{backgroundColor: stepColor, color: COLORS.DARK, width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontFamily: "'Inter', sans-serif", marginRight: '15px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', flexShrink: 0, border:'2px solid white'}}>{step.step}</div><div style={missionInfoStyle}><div style={missionTitleStyle}>{renderClientName(step.client, step.time_slot)}</div><div style={missionAddressStyle}>{step.address.substring(0, 35)}...</div><div style={{fontSize: '10px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif", textTransform:'uppercase'}}>{step.technician_name ? `🚛 ${step.technician_name} • ` : ''}📍 {step.distance_km} km</div></div><button onClick={() => setNavModal({lat: step.lat, lng: step.lng})} style={compassButtonStyle}><img src="/icon-navigation.svg" alt="GPS" style={{width:'18px'}} /></button></div>); }))}
+                        {route.length === 0 ? (<div style={{padding: '30px', textAlign: 'center', color: COLORS.GRAY_TEXT, fontSize: '0.9em', fontFamily: "'Inter', sans-serif"}}><div style={{opacity:0.3, fontSize:'40px', marginBottom:'10px'}}>🗺️</div><p style={{margin: 0}}>La carte est vide.</p></div>) : (route.map((step, index) => { const stepColor = getStepColor(index, route.length); return (
+                            <div key={index} style={missionItemStyle}>
+                                <div style={{backgroundColor: stepColor, color: COLORS.DARK, width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontFamily: "'Inter', sans-serif", marginRight: '15px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', flexShrink: 0, border:'2px solid white'}}>{step.step}</div>
+                                <div style={missionInfoStyle}>
+                                    <div style={missionTitleStyle}>{renderClientName(step.client, step.time_slot)}</div>
+                                    <div style={missionAddressStyle}>{step.address.substring(0, 35)}...</div>
+                                    <div style={{fontSize: '10px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif", textTransform:'uppercase'}}>{step.technician_name ? `🚛 ${step.technician_name} • ` : ''}📍 {step.distance_km} km</div>
+                                    {/* AFFICHAGE TEL & NOTE */}
+                                    {step.comments && <div style={{fontSize:'11px', color:COLORS.GRAY_TEXT, marginTop:'4px', fontStyle:'italic'}}>📝 {step.comments}</div>}
+                                </div>
+                                <div style={{display:'flex'}}>
+                                    {step.phone && <a href={`tel:${step.phone}`} style={phoneButtonStyle}>📞</a>}
+                                    <button onClick={() => setNavModal({lat: step.lat, lng: step.lng})} style={compassButtonStyle}><img src="/icon-navigation.svg" alt="GPS" style={{width:'18px'}} /></button>
+                                </div>
+                            </div>
+                        ); }))}
                     </div>
                 </div>
             </div>
