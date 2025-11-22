@@ -384,11 +384,17 @@ function App() {
     };
 
     const confirmSignatureAndFinish = () => {
-        // Sécurité : on vérifie si le canvas est prêt et non vide
+        // Vérification défensive
         if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
-            const signatureData = sigCanvas.current.getTrimmedCanvas().toDataURL('image/png');
-            updateStatusOnServer(missionToSign, 'done', signatureData);
-            setMissionToSign(null);
+            try {
+                // FIX : On utilise toDataURL() direct pour éviter le bug "_n is not a function"
+                const signatureData = sigCanvas.current.toDataURL();
+                updateStatusOnServer(missionToSign, 'done', signatureData);
+                setMissionToSign(null);
+            } catch (e) {
+                console.error("Erreur signature:", e);
+                alert("Erreur lors de la sauvegarde de la signature. Réessayez.");
+            }
         } else {
             alert("Veuillez signer avant de valider.");
         }
