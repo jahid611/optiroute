@@ -19,7 +19,7 @@ L.Icon.Default.mergeOptions({
     shadowUrl: shadowUrl,
 });
 
-// --- 2. CONSTANTES & STYLES ---
+// --- 2. CONSTANTES & STYLES (DESIGN PASTEL PRO) ---
 const COLORS = {
     DARK: '#3b4651', BLUE: '#2b79c2', PASTEL_BLUE: '#A0C4FF', 
     PASTEL_GREEN: '#B9FBC0', PASTEL_RED: '#FFADAD', WHITE: '#ffffff', 
@@ -31,7 +31,37 @@ const PILL_RADIUS = '38px';
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 
-// Styles
+// --- STYLES LANDING PAGE (NOUVEAU) ---
+const landingContainerStyle = {
+    minHeight: '100vh', backgroundColor: COLORS.BG_LIGHT, fontFamily: "'Inter', sans-serif", color: COLORS.DARK, overflowX: 'hidden'
+};
+const navStyle = {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px',
+    backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER
+};
+const heroSectionStyle = {
+    padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center'
+};
+const heroTitleStyle = {
+    fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(40px, 6vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px'
+};
+const heroSubtitleStyle = {
+    fontSize: '18px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6'
+};
+const ctaButtonStyle = {
+    padding: '18px 40px', fontSize: '16px', fontWeight: '700', color: COLORS.WHITE, backgroundColor: COLORS.BLUE,
+    border: 'none', borderRadius: PILL_RADIUS, cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", letterSpacing: '1px',
+    boxShadow: '0 10px 25px rgba(43, 121, 194, 0.4)', transition: 'transform 0.2s'
+};
+const featuresGridStyle = {
+    display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', padding: '60px 10%', maxWidth: '1400px', margin: '0 auto'
+};
+const featureCardStyle = (color) => ({
+    backgroundColor: COLORS.WHITE, padding: '40px', borderRadius: '24px', border: `1px solid ${COLORS.BORDER}`,
+    boxShadow: SHADOW, position: 'relative', overflow: 'hidden'
+});
+
+// Styles App (Existants)
 const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', minHeight: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: COLORS.BG_LIGHT, overflow: isMobile ? 'auto' : 'hidden' });
 const mapContainerStyle = (isMobile) => ({ flex: isMobile ? 'none' : 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: '1px solid ' + COLORS.BORDER, zIndex: 0 });
 const panelContainerStyle = (isMobile) => ({ width: isMobile ? '100%' : '450px', height: isMobile ? 'auto' : '100%', minHeight: isMobile ? '60vh' : '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: '30px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', order: isMobile ? 2 : 1, zIndex: 1000, borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none', boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)' });
@@ -41,7 +71,7 @@ const cardStyle = { marginBottom: '25px' };
 const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK };
 const inputStyle = { width: '100%', padding: '14px 20px', marginBottom: '10px', borderRadius: PILL_RADIUS, border: '1px solid transparent', backgroundColor: COLORS.WHITE, fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: '0.2s' };
 const dropdownItemStyle = { padding: '12px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, fontWeight: '600', transition: 'background 0.2s' };
-const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif'", transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
+const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
 const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px', marginTop: 'auto' };
 const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%' };
 const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
@@ -131,7 +161,59 @@ const renderClientName = (name, slot) => {
     return (<div style={{display: 'flex', alignItems: 'center'}}><img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} /><span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span></div>);
 };
 
-// --- 4. APPLICATION ---
+// --- 4. LANDING PAGE (NOUVEAU) ---
+const LandingPage = ({ onStart }) => (
+    <div style={landingContainerStyle}>
+        {/* Navbar */}
+        <nav style={navStyle}>
+            <div style={{display:'flex', alignItems:'center'}}>
+                <img src="/logo-truck.svg" alt="Logo" style={{height:'40px', marginRight:'15px'}} />
+                <span style={{fontFamily:"'Oswald', sans-serif", fontSize:'24px', fontWeight:'bold', letterSpacing:'1px'}}>OPTIROUTE <span style={proTagStyle}>PRO</span></span>
+            </div>
+            <button onClick={onStart} style={{...submitButtonStyle, width:'auto', padding:'10px 25px', fontSize:'12px', boxShadow:'none'}}>ACCÈS CLIENT</button>
+        </nav>
+
+        {/* Hero */}
+        <section style={heroSectionStyle}>
+            <span style={{color: COLORS.BLUE, fontWeight:'bold', letterSpacing:'2px', fontSize:'14px', marginBottom:'10px', display:'block'}}>LA SOLUTION B2B ULTIME</span>
+            <h1 style={heroTitleStyle}>OPTIMISEZ VOS TOURNÉES<br/>EN UN CLIC</h1>
+            <p style={heroSubtitleStyle}>
+                Fini les feuilles volantes. Offrez à vos techniciens et livreurs l'outil qu'ils méritent.
+                Planification IA, suivi GPS en temps réel et signatures clients digitalisées.
+            </p>
+            <button onClick={onStart} style={ctaButtonStyle}>COMMENCER GRATUITEMENT</button>
+            <div style={{marginTop:'50px'}}>
+                <img src="/logo-truck.svg" alt="Truck" style={{width:'200px', opacity:0.1}} />
+            </div>
+        </section>
+
+        {/* Features Grid */}
+        <section style={featuresGridStyle}>
+            <div style={featureCardStyle(COLORS.PASTEL_BLUE)}>
+                <div style={{fontSize:'40px', marginBottom:'20px'}}>🧠</div>
+                <h3 style={{fontFamily:"'Oswald', sans-serif", fontSize:'20px', marginBottom:'10px'}}>INTELLIGENCE ARTIFICIELLE</h3>
+                <p style={{color:COLORS.GRAY_TEXT, lineHeight:'1.5'}}>Notre algorithme VROOM calcule le trajet le plus rapide en prenant en compte les créneaux horaires et le trafic.</p>
+            </div>
+            <div style={featureCardStyle(COLORS.PASTEL_GREEN)}>
+                <div style={{fontSize:'40px', marginBottom:'20px'}}>📱</div>
+                <h3 style={{fontFamily:"'Oswald', sans-serif", fontSize:'20px', marginBottom:'10px'}}>APPLICATION TERRAIN</h3>
+                <p style={{color:COLORS.GRAY_TEXT, lineHeight:'1.5'}}>Vos équipes accèdent à leur feuille de route sur mobile, lancent le GPS (Waze/Maps) et valident les étapes.</p>
+            </div>
+            <div style={featureCardStyle(COLORS.PASTEL_RED)}>
+                <div style={{fontSize:'40px', marginBottom:'20px'}}>✍️</div>
+                <h3 style={{fontFamily:"'Oswald', sans-serif", fontSize:'20px', marginBottom:'10px'}}>PREUVE DE PASSAGE</h3>
+                <p style={{color:COLORS.GRAY_TEXT, lineHeight:'1.5'}}>Signature électronique et photos horodatées pour certifier chaque intervention auprès de vos clients.</p>
+            </div>
+        </section>
+        
+        {/* Footer */}
+        <footer style={{textAlign:'center', padding:'40px', color:COLORS.GRAY_TEXT, fontSize:'12px', borderTop:'1px solid '+COLORS.BORDER}}>
+            © 2024 OptiRoute Pro. Designed for excellence.
+        </footer>
+    </div>
+);
+
+// --- 5. APPLICATION PRINCIPALE ---
 function App() {
     const API_URL = "https://optiroute-wxaz.onrender.com";
 
@@ -141,6 +223,10 @@ function App() {
     const [userId, setUserId] = useState(null);
     const [userName, setUserName] = useState("");
     const [userCompany, setUserCompany] = useState(localStorage.getItem('optiroute_company') || "");
+    
+    // STATE LANDING PAGE
+    const [showLanding, setShowLanding] = useState(!token); // Si pas de token, on montre la landing
+
     const [activeTab, setActiveTab] = useState(0);
 
     const [isLoginView, setIsLoginView] = useState(true);
@@ -196,6 +282,7 @@ function App() {
     const handleLogout = () => {
         localStorage.removeItem('optiroute_token'); localStorage.removeItem('optiroute_company');
         setToken(null); setUserRole(null); setRoute([]); setPendingMissions([]);
+        setShowLanding(true); // Retour à l'accueil après déco
     };
 
     const fetchTechnicians = async () => {
@@ -211,6 +298,7 @@ function App() {
         window.addEventListener('resize', handleResize);
         const initApp = async () => {
             if (token) {
+                setShowLanding(false); // Si token, on cache la landing direct
                 try {
                     const decoded = jwtDecode(token);
                     setUserRole(decoded.role); setUserId(decoded.id); setUserName(decoded.name);
@@ -241,6 +329,7 @@ function App() {
                 localStorage.setItem('optiroute_token', res.data.token);
                 const compName = res.data.name || ''; localStorage.setItem('optiroute_company', compName);
                 setToken(res.data.token); setUserCompany(compName);
+                setShowLanding(false); // Masquer landing après login
             } else { setToast({message: "Compte créé.", type: "success"}); setIsLoginView(true); }
         } catch (err) { setAuthError(err.response?.data?.message || "Erreur."); } 
         finally { setAuthLoading(false); }
@@ -347,9 +436,17 @@ function App() {
         finally { setLoading(false); }
     };
 
-    // VIEW
+    // --- CONDITIONAL RENDERING : LANDING PAGE vs APP ---
+    if (showLanding && !token) {
+        return <LandingPage onStart={() => setShowLanding(false)} />;
+    }
+
+    // --- LOGIN VIEW ---
     if (!token) return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: COLORS.DARK, color: 'white', fontFamily: "'Inter', sans-serif" }}>
+            {/* Bouton retour accueil */}
+            <button onClick={() => setShowLanding(true)} style={{position:'absolute', top:'20px', left:'20px', background:'transparent', border:'1px solid white', color:'white', padding:'10px 20px', borderRadius:'30px', cursor:'pointer', fontWeight:'bold'}}>← ACCUEIL</button>
+            
             <div style={{ background: 'white', padding: '50px', borderRadius: STANDARD_RADIUS, width: '90%', maxWidth: '400px', color: COLORS.DARK, textAlign: 'center', boxShadow: SHADOW }}>
                 <img src="/logo-truck.svg" alt="OptiRoute" style={{ height: '60px', marginBottom: '30px' }} />
                 <h2 style={{ margin: '0 0 30px 0', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize:'24px' }}>{isLoginView ? "Connexion" : "Compte Entreprise"}</h2>
@@ -365,6 +462,7 @@ function App() {
         </div>
     );
 
+    // --- MAIN APP VIEW ---
     return (
         <div style={rootContainerStyle(isMobileView)}>
             <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap'); .leaflet-control-attribution { display: none !important; } .leaflet-div-icon { background: transparent; border: none; }`}</style>
@@ -379,7 +477,7 @@ function App() {
 
             {showResetModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowResetModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/icon-trash.svg" alt="!" style={{width:'40px', marginBottom:'15px'}}/ ><h3 style={modalTitleStyle}>VIDER ?</h3><div style={{display:'flex', gap:'10px'}}><button onClick={()=>setShowResetModal(false)} style={{...cancelButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`, marginTop:0}}>ANNULER</button><button onClick={confirmResetMissions} style={{...submitButtonStyle, marginTop:0, backgroundColor:COLORS.DARK}}>{loading ? "..." : "CONFIRMER"}</button></div></div></div>}
 
-            {navModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setNavModal(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={modalTitleStyle}>NAVIGATION</h3><div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}><a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/waze.png" alt="W" style={gpsIconStyle}/>Waze</a><a href={`http://googleusercontent.com/maps.google.com/?q=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/google.png" alt="G" style={gpsIconStyle}/>Google Maps</a></div><button onClick={() => setNavModal(null)} style={cancelButtonStyle}>FERMER</button></div></div>}
+            {navModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setNavModal(null)}><div style={{modalContentStyle}} onClick={e => e.stopPropagation()}><h3 style={modalTitleStyle}>NAVIGATION</h3><div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}><a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/waze.png" alt="W" style={gpsIconStyle}/>Waze</a><a href={`http://googleusercontent.com/maps.google.com/?q=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/google.png" alt="G" style={gpsIconStyle}/>Google Maps</a></div><button onClick={() => setNavModal(null)} style={cancelButtonStyle}>FERMER</button></div></div>}
             {showEmptyModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowEmptyModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} /><h3 style={modalTitleStyle}>OPTIROUTE</h3><button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button></div></div>}
             {showUnassignedModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowUnassignedModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3><div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>{unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}</div><button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button></div></div>}
 
@@ -405,7 +503,6 @@ function App() {
                             </div>
                         </div>
                         
-                        {/* NAVIGATION */}
                         <div style={{display:'flex', alignItems:'center'}}>
                             {activeTab === 0 && <div onClick={() => setActiveTab(1)} style={navArrowStyle}>➡️</div>}
                             {activeTab === 1 && <div onClick={() => setActiveTab(0)} style={{...navArrowStyle, transform:'rotate(180deg)'}}>➡️</div>}
@@ -414,9 +511,6 @@ function App() {
                     </div>
                 </div>
 
-                {/* SLIDER CONTENT */}
-                
-                {/* FACE A : SAISIE */}
                 {activeTab === 0 && (
                 <>
                     <div style={cardStyle}>
@@ -430,21 +524,20 @@ function App() {
                                 <div style={{fontSize:'11px', fontWeight:'bold', color:COLORS.GRAY_TEXT, marginBottom:'5px'}}>AFFECTER À :</div>
                                 <div style={{display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'5px'}}>
                                     {technicians.map(t => (
-                                    <div key={t.id} onClick={() => {
-                                        setSelectedTechId(t.id); // Sélectionne le tech
-                                        // UX : La carte vole vers le point de départ du tech
-                                        setMapCenter([parseFloat(t.start_lat), parseFloat(t.start_lng)]);
-                                        setMapBounds(null); // Reset du zoom pour focus sur le point
-                                    }} style={{
-                                        padding:'8px 15px', borderRadius:PILL_RADIUS, cursor:'pointer', fontSize:'12px', fontWeight:'bold', whiteSpace:'nowrap',
-                                        backgroundColor: selectedTechId === t.id ? COLORS.DARK : COLORS.WHITE,
-                                        color: selectedTechId === t.id ? COLORS.WHITE : COLORS.DARK,
-                                        border: '1px solid ' + (selectedTechId === t.id ? COLORS.DARK : COLORS.BORDER),
-                                        transition: '0.2s' // Petite transition fluide
-                                    }}>
-                                        {t.name}
-                                    </div>
-                                ))}
+                                        <div key={t.id} onClick={() => {
+                                            setSelectedTechId(t.id);
+                                            setMapCenter([parseFloat(t.start_lat), parseFloat(t.start_lng)]);
+                                            setMapBounds(null);
+                                        }} style={{
+                                            padding:'8px 15px', borderRadius:PILL_RADIUS, cursor:'pointer', fontSize:'12px', fontWeight:'bold', whiteSpace:'nowrap',
+                                            backgroundColor: selectedTechId === t.id ? COLORS.DARK : COLORS.WHITE,
+                                            color: selectedTechId === t.id ? COLORS.WHITE : COLORS.DARK,
+                                            border: '1px solid ' + (selectedTechId === t.id ? COLORS.DARK : COLORS.BORDER),
+                                            transition: '0.2s'
+                                        }}>
+                                            {t.name}
+                                        </div>
+                                    ))}
                                 </div>
                                 {!selectedTechId && <div style={{fontSize:'11px', color:COLORS.RED, marginTop:'5px'}}>* Sélectionnez un technicien</div>}
                             </div>
@@ -476,7 +569,6 @@ function App() {
                 </>
                 )}
 
-                {/* FACE B : FEUILLE DE ROUTE */}
                 {activeTab === 1 && (
                     <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', height:'100%'}}>
                         <h4 style={{...cardTitleStyle, marginBottom: '15px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '16px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>FEUILLE DE ROUTE</h4>
@@ -493,7 +585,6 @@ function App() {
                                             
                                             {(step.status === 'assigned' || !step.status) && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'in_progress')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_GREEN, color:COLORS.DARK}}>DÉMARRER</button>}
                                             {step.status === 'in_progress' && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'done')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_RED, color:COLORS.DARK}}>TERMINER</button>}
-                                            
                                             {step.status === 'done' && (
                                                 <div style={{marginTop:'10px'}}>
                                                     <div style={{fontSize:'11px', color:COLORS.SUCCESS_TEXT, fontWeight:'bold', fontFamily:"'Inter', sans-serif"}}>✅ MISSION TERMINÉE</div>
