@@ -6,6 +6,7 @@ import L from 'leaflet';
 import { jwtDecode } from 'jwt-decode'; 
 import SignatureCanvas from 'react-signature-canvas';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'; // <--- Import Important pour le nouveau PDF
+import { Crisp } from "crisp-sdk-web";
 
 // --- FIX POUR VERCEL ---
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
