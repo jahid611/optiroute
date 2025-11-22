@@ -387,7 +387,22 @@ function App() {
                 <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
                     <MapController center={mapCenter} bounds={mapBounds} />
-                    {technicians.map(t => (<Marker key={`tech-${t.id}`} position={[parseFloat(t.start_lat), parseFloat(t.start_lng)]}><Popup><div style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase'}}>🏠 {t.name}</div></Popup></Marker>))}
+                    {technicians.map(t => (
+                                    <div key={t.id} onClick={() => {
+                                        setSelectedTechId(t.id); // Sélectionne le tech
+                                        // UX : La carte vole vers le point de départ du tech
+                                        setMapCenter([parseFloat(t.start_lat), parseFloat(t.start_lng)]);
+                                        setMapBounds(null); // Reset du zoom pour focus sur le point
+                                    }} style={{
+                                        padding:'8px 15px', borderRadius:PILL_RADIUS, cursor:'pointer', fontSize:'12px', fontWeight:'bold', whiteSpace:'nowrap',
+                                        backgroundColor: selectedTechId === t.id ? COLORS.DARK : COLORS.WHITE,
+                                        color: selectedTechId === t.id ? COLORS.WHITE : COLORS.DARK,
+                                        border: '1px solid ' + (selectedTechId === t.id ? COLORS.DARK : COLORS.BORDER),
+                                        transition: '0.2s' // Petite transition fluide
+                                    }}>
+                                        {t.name}
+                                    </div>
+                                ))}
                     {route.map((step, index) => (<Marker key={index} position={[step.lat, step.lng]} icon={createCustomIcon(index, route.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>))}
                     {routePath.length > 0 && <Polyline positions={routePath} color={COLORS.BLUE} weight={5} opacity={0.8} />}
                 </MapContainer>
