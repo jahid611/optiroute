@@ -492,7 +492,45 @@ function App() {
                     <MapController center={mapCenter} bounds={mapBounds} />
                     {technicians.map(t => (<Marker key={`tech-${t.id}`} position={[parseFloat(t.start_lat), parseFloat(t.start_lng)]}><Popup><div style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase'}}>🏠 {t.name}</div></Popup></Marker>))}
                     {/* MARQUEURS AVEC STATUT */}
-                    {route.map((step, index) => (<Marker key={index} position={[step.lat, step.lng]} icon={createCustomIcon(index, route.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>))}
+                    {route.map((step, index) => { 
+                            const stepColor = getStepColor(index, route.length, step.status); 
+                            return (
+                                <div key={index} style={{...missionItemStyle, backgroundColor: step.status === 'done' ? '#f8f9fa' : 'white', opacity: step.status === 'done' ? 0.8 : 1}}>
+                                    <div style={{display:'flex', width:'100%', alignItems:'flex-start'}}>
+                                        <div style={{backgroundColor: stepColor, color: COLORS.DARK, width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontFamily: "'Inter', sans-serif", marginRight: '15px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', flexShrink: 0, border:'2px solid white'}}>{step.step}</div>
+                                        
+                                        <div style={missionInfoStyle}>
+                                            <div style={missionTitleStyle}>{renderClientName(step.client, step.time_slot)}</div>
+                                            <div style={missionAddressStyle}>{step.address.substring(0, 35)}...</div>
+                                            <div style={{fontSize: '10px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif", textTransform:'uppercase'}}>{step.technician_name ? `🚛 ${step.technician_name} • ` : ''}📍 {step.distance_km} km</div>
+                                            
+                                            {step.comments && <div style={{fontSize:'11px', color:COLORS.GRAY_TEXT, marginTop:'4px', fontStyle:'italic'}}>📝 {step.comments}</div>}
+                                            
+                                            {/* BOUTONS D'ACTION */}
+                                            {(step.status === 'assigned' || !step.status) && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'in_progress')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_GREEN, color:COLORS.DARK}}>DÉMARRER</button>}
+                                            {step.status === 'in_progress' && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'done')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_RED, color:COLORS.DARK}}>TERMINER & SIGNER</button>}
+                                            
+                                            {/* AFFICHAGE DE LA SIGNATURE SI TERMINÉ */}
+                                            {step.status === 'done' && (
+                                                <div style={{marginTop:'10px'}}>
+                                                    <div style={{fontSize:'11px', color:COLORS.SUCCESS_TEXT, fontWeight:'bold', marginBottom:'5px', fontFamily:"'Inter', sans-serif"}}>✅ VALIDÉ</div>
+                                                    {step.signature && (
+                                                        <div style={{border: '1px solid #eee', borderRadius: '8px', padding: '5px', backgroundColor: 'white', width: 'fit-content'}}>
+                                                            <img src={step.signature} alt="Preuve" style={{height: '40px', display: 'block'}} />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    <div style={{display:'flex', flexDirection:'column', gap:'5px'}}>
+                                        {step.phone && <a href={`tel:${step.phone}`} style={phoneButtonStyle}>📞</a>}
+                                        <button onClick={() => setNavModal({lat: step.lat, lng: step.lng})} style={compassButtonStyle}><img src="/icon-navigation.svg" alt="GPS" style={{width:'18px'}} /></button>
+                                    </div>
+                                </div>
+                            ); 
+                        })}
                     {routePath.length > 0 && <Polyline positions={routePath} color={COLORS.BLUE} weight={5} opacity={0.8} />}
                 </MapContainer>
             </div>
