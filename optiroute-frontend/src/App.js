@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { jwtDecode } from 'jwt-decode'; 
 import SignatureCanvas from 'react-signature-canvas';
-import { Crisp } from "crisp-sdk-web";
+import { Crisp } from "crisp-sdk-web"; // Import Crisp
 
 // --- FIX POUR VERCEL ---
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
@@ -20,7 +20,7 @@ L.Icon.Default.mergeOptions({
     shadowUrl: shadowUrl,
 });
 
-// --- 2. CONSTANTES & STYLES ---
+// --- 2. CONSTANTES ---
 const COLORS = {
     DARK: '#3b4651', 
     BLUE: '#2b79c2', 
@@ -39,18 +39,7 @@ const PILL_RADIUS = '38px';
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 
-// --- SVG ICONS (Bleu & Gris Uniquement) ---
-const Icons = {
-    User: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
-    Map: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
-    Check: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
-    Truck: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>,
-    Edit: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>,
-    Help: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
-    Close: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={COLORS.DARK} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-};
-
-// Styles CSS-in-JS
+// --- 3. TOUS LES STYLES (DÉFINIS AVANT LES COMPOSANTS) ---
 const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', minHeight: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: COLORS.BG_LIGHT, overflow: isMobile ? 'auto' : 'hidden' });
 const mapContainerStyle = (isMobile) => ({ flex: isMobile ? 'none' : 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: '1px solid ' + COLORS.BORDER, zIndex: 0 });
 const panelContainerStyle = (isMobile) => ({ width: isMobile ? '100%' : '450px', height: isMobile ? 'auto' : '100%', minHeight: isMobile ? '60vh' : '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: '30px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', order: isMobile ? 2 : 1, zIndex: 1000, borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none', boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)' });
@@ -82,21 +71,29 @@ const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', pad
 const gpsIconStyle = { width: '24px', height: '24px', objectFit: 'contain', marginRight: '15px' };
 const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', border: 'none', background: 'transparent', color: COLORS.GRAY_TEXT, fontWeight: '600', cursor: 'pointer', borderRadius: PILL_RADIUS, fontFamily: "'Inter', sans-serif", fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' };
 
-// Styles pour le tutoriel
-const tutorialContainerStyle = {
-    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: COLORS.BG_LIGHT, zIndex: 20000, overflowY: 'auto', padding: '40px 20px'
-};
-const tutorialHeaderStyle = {
-    maxWidth: '800px', margin: '0 auto 40px', textAlign: 'center'
-};
-const tutorialSectionStyle = {
-    maxWidth: '800px', margin: '0 auto 30px', backgroundColor: 'white', padding: '30px', borderRadius: '20px', boxShadow: SHADOW
-};
-const stepNumberStyle = {
-    display: 'inline-block', backgroundColor: COLORS.BLUE, color: 'white', width: '25px', height: '25px', borderRadius: '50%', textAlign: 'center', lineHeight: '25px', marginRight: '10px', fontWeight: 'bold', fontSize: '14px'
+const landingContainerStyle = { minHeight: '100vh', backgroundColor: COLORS.BG_LIGHT, fontFamily: "'Inter', sans-serif", color: COLORS.DARK, overflowX: 'hidden' };
+const navStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER };
+const heroSectionStyle = { padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' };
+const heroTitleStyle = { fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(40px, 6vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px' };
+const heroSubtitleStyle = { fontSize: '18px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6' };
+const ctaButtonStyle = { padding: '18px 40px', fontSize: '16px', fontWeight: '700', color: COLORS.WHITE, backgroundColor: COLORS.BLUE, border: 'none', borderRadius: PILL_RADIUS, cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", letterSpacing: '1px', boxShadow: '0 10px 25px rgba(43, 121, 194, 0.4)', transition: 'transform 0.2s' };
+const featuresGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', padding: '60px 10%', maxWidth: '1400px', margin: '0 auto' };
+const featureCardStyle = (color) => ({ backgroundColor: COLORS.WHITE, padding: '40px', borderRadius: '24px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, position: 'relative', overflow: 'hidden' });
+const tutorialContainerStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: COLORS.BG_LIGHT, zIndex: 20000, overflowY: 'auto', padding: '40px 20px' };
+const tutorialHeaderStyle = { maxWidth: '800px', margin: '0 auto 40px', textAlign: 'center' };
+const tutorialSectionStyle = { maxWidth: '800px', margin: '0 auto 30px', backgroundColor: 'white', padding: '30px', borderRadius: '20px', boxShadow: SHADOW };
+const stepNumberStyle = { display: 'inline-block', backgroundColor: COLORS.BLUE, color: 'white', width: '25px', height: '25px', borderRadius: '50%', textAlign: 'center', lineHeight: '25px', marginRight: '10px', fontWeight: 'bold', fontSize: '14px' };
+
+// --- 4. SVG ICONS ---
+const Icons = {
+    User: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
+    Map: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
+    Check: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
+    Truck: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>,
+    Help: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
 };
 
-// --- 3. COMPOSANTS UTILITAIRES ---
+// --- 5. COMPOSANTS UTILITAIRES ---
 const formatDuration = (minutes) => {
     if (!minutes) return "";
     const h = Math.floor(minutes / 60);
@@ -108,18 +105,20 @@ const formatDuration = (minutes) => {
 const AddressInput = ({ placeholder, value, onChange }) => {
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
+
     useEffect(() => {
-        const delay = setTimeout(async () => {
+        const delayDebounceFn = setTimeout(async () => {
             if (value.length > 3 && showSuggestions) {
                 try {
                     const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${value}&limit=5`);
                     const data = await response.json();
                     setSuggestions(data.features);
-                } catch (e) {}
+                } catch (e) { console.error(e); }
             } else { setSuggestions([]); }
         }, 300);
-        return () => clearTimeout(delay);
+        return () => clearTimeout(delayDebounceFn);
     }, [value, showSuggestions]);
+
     return (
         <div style={{ position: 'relative', width: '100%' }}>
             <input type="text" placeholder={placeholder} value={value} onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }} style={inputStyle} />
@@ -164,13 +163,13 @@ const renderClientName = (name, slot) => {
     return (<div style={{display: 'flex', alignItems: 'center'}}><img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} /><span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span></div>);
 };
 
-// --- NOUVEAU : PAGE TUTORIEL COMPLÈTE ---
+// --- 6. PAGES (LANDING & TUTORIAL) ---
 const TutorialPage = ({ onClose }) => (
     <div style={tutorialContainerStyle}>
         <div style={tutorialHeaderStyle}>
             <img src="/logo-truck.svg" alt="Logo" style={{height:'60px', marginBottom:'20px'}} />
             <h1 style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase', color:COLORS.DARK, fontSize:'36px'}}>Guide d'Utilisation Complet</h1>
-            <p style={{color:COLORS.GRAY_TEXT, maxWidth:'600px', margin:'0 auto'}}>Maîtrisez OptiRoute Pro en 5 minutes. Tout ce que vous devez savoir pour optimiser vos tournées.</p>
+            <p style={{color:COLORS.GRAY_TEXT, maxWidth:'600px', margin:'0 auto'}}>Maîtrisez OptiRoute Pro en 5 minutes.</p>
         </div>
 
         <div style={tutorialSectionStyle}>
@@ -179,97 +178,67 @@ const TutorialPage = ({ onClose }) => (
                 <h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>1. RÔLE ADMINISTRATEUR (PATRON)</h2>
             </div>
             <p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}>
-                L'administrateur est le chef d'orchestre. Il possède tous les droits pour gérer l'entreprise.<br/><br/>
-                <strong><span style={stepNumberStyle}>A</span> Gérer l'Équipe :</strong> Cliquez sur "GÉRER L'ÉQUIPE" pour ajouter des techniciens. Renseignez leur adresse de départ précise (Dépôt ou Domicile), c'est le point de départ de l'IA.<br/>
-                <strong><span style={stepNumberStyle}>B</span> Créer des Missions :</strong> Sélectionnez d'abord un technicien dans la liste "AFFECTER À". Le formulaire s'active. Renseignez le client, l'adresse (avec auto-complétion), et les détails (Digicode, Tél).<br/>
-                <strong><span style={stepNumberStyle}>C</span> Optimiser :</strong> Une fois toutes les missions ajoutées dans le panier "EN ATTENTE", cliquez sur le CAMION BLEU. L'IA va calculer le meilleur ordre de passage.
+                <strong><span style={stepNumberStyle}>A</span> Gérer l'Équipe :</strong> Cliquez sur "GÉRER L'ÉQUIPE" pour ajouter des techniciens avec leur adresse de départ.<br/>
+                <strong><span style={stepNumberStyle}>B</span> Créer des Missions :</strong> Sélectionnez d'abord un technicien dans la liste. Le formulaire s'active. Renseignez l'adresse (auto-complétion).<br/>
+                <strong><span style={stepNumberStyle}>C</span> Optimiser :</strong> Cliquez sur le CAMION pour calculer le meilleur trajet.
             </p>
         </div>
 
         <div style={tutorialSectionStyle}>
             <div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}>
                 <Icons.Truck />
-                <h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>2. RÔLE TECHNICIEN (TERRAIN)</h2>
+                <h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>2. RÔLE TECHNICIEN</h2>
             </div>
             <p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}>
-                Le technicien accède à une interface simplifiée, pensée pour le mobile.<br/><br/>
-                <strong><span style={stepNumberStyle}>A</span> Connexion :</strong> Utilisez les identifiants fournis par l'administrateur.<br/>
-                <strong><span style={stepNumberStyle}>B</span> Navigation :</strong> Sur la feuille de route, cliquez sur la boussole <Icons.Map/> pour ouvrir Waze ou Google Maps automatiquement vers le client.<br/>
-                <strong><span style={stepNumberStyle}>C</span> Contact :</strong> Cliquez sur le téléphone vert <span style={{color:COLORS.PASTEL_GREEN}}>📞</span> pour appeler le client en un clic.<br/>
-                <strong><span style={stepNumberStyle}>D</span> Validation :</strong> 
-                <ul style={{paddingLeft:'20px', marginTop:'5px'}}>
-                    <li>Cliquez sur "DÉMARRER" quand vous partez vers le client (Passe en vert).</li>
-                    <li>Cliquez sur "TERMINER" une fois le travail fait.</li>
-                    <li>Faites signer le client sur l'écran. La mission passe en "VALIDÉ" et devient grise.</li>
-                </ul>
+                <strong><span style={stepNumberStyle}>A</span> Connexion :</strong> Identifiants fournis par l'admin.<br/>
+                <strong><span style={stepNumberStyle}>B</span> Navigation :</strong> Cliquez sur la boussole pour GPS.<br/>
+                <strong><span style={stepNumberStyle}>C</span> Validation :</strong> "DÉMARRER" puis "TERMINER & SIGNER".
             </p>
         </div>
 
-        <div style={tutorialSectionStyle}>
-            <div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}>
-                <Icons.Check />
-                <h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>3. ASTUCES & RACCOURCIS</h2>
-            </div>
-            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px'}}>
-                <div style={{backgroundColor:COLORS.BG_LIGHT, padding:'15px', borderRadius:'10px'}}>
-                    <h4 style={{margin:'0 0 5px 0', color:COLORS.BLUE}}>Auto-focus Carte</h4>
-                    <p style={{fontSize:'12px', color:COLORS.GRAY_TEXT, margin:0}}>Cliquez sur le nom d'un technicien dans la liste pour que la carte zoome instantanément sur sa position.</p>
-                </div>
-                <div style={{backgroundColor:COLORS.BG_LIGHT, padding:'15px', borderRadius:'10px'}}>
-                    <h4 style={{margin:'0 0 5px 0', color:COLORS.BLUE}}>Mode Slider</h4>
-                    <p style={{fontSize:'12px', color:COLORS.GRAY_TEXT, margin:0}}>Utilisez la flèche ➡️ en haut à droite pour basculer entre le formulaire d'ajout et la feuille de route.</p>
-                </div>
-            </div>
-        </div>
-
         <div style={{textAlign:'center'}}>
-            <button onClick={onClose} style={{...submitButtonStyle, width:'auto', padding:'15px 50px', fontSize:'16px'}}>JE SUIS PRÊT 🚀</button>
+            <button onClick={onClose} style={{...submitButtonStyle, width:'auto', padding:'15px 50px', fontSize:'16px'}}>FERMER LE GUIDE</button>
         </div>
     </div>
 );
 
 const LandingPage = ({ onStart }) => (
-    <div style={{minHeight: '100vh', backgroundColor: COLORS.BG_LIGHT, fontFamily: "'Inter', sans-serif", color: COLORS.DARK, overflowX: 'hidden'}}>
-        <nav style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER}}>
+    <div style={landingContainerStyle}>
+        <nav style={navStyle}>
             <div style={{display:'flex', alignItems:'center'}}>
                 <img src="/logo-truck.svg" alt="Logo" style={{height:'40px', marginRight:'15px'}} />
                 <span style={{fontFamily:"'Oswald', sans-serif", fontSize:'24px', fontWeight:'bold', letterSpacing:'1px'}}>OPTIROUTE <span style={proTagStyle}>PRO</span></span>
             </div>
-            <button onClick={onStart} style={{...submitButtonStyle, width:'auto', padding:'10px 25px', fontSize:'12px', boxShadow:'none'}}>ACCÈS CLIENT</button>
+            <div style={{display:'flex', gap:'10px'}}>
+                <button onClick={onStart} style={{...submitButtonStyle, width:'auto', padding:'10px 25px', fontSize:'12px', boxShadow:'none'}}>ACCÈS CLIENT</button>
+            </div>
         </nav>
-        <section style={{padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+        <section style={heroSectionStyle}>
             <span style={{color: COLORS.BLUE, fontWeight:'bold', letterSpacing:'2px', fontSize:'14px', marginBottom:'10px', display:'block'}}>LA SOLUTION B2B ULTIME</span>
-            <h1 style={{fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(40px, 6vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px'}}>OPTIMISEZ VOS TOURNÉES<br/>EN UN CLIC</h1>
-            <p style={{fontSize: '18px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6'}}>
-                Fini les feuilles volantes. Offrez à vos techniciens et livreurs l'outil qu'ils méritent.
-                Planification IA, suivi GPS en temps réel et signatures clients digitalisées.
-            </p>
-            <button onClick={onStart} style={{padding: '18px 40px', fontSize: '16px', fontWeight: '700', color: COLORS.WHITE, backgroundColor: COLORS.BLUE, border: 'none', borderRadius: PILL_RADIUS, cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", letterSpacing: '1px', boxShadow: '0 10px 25px rgba(43, 121, 194, 0.4)', transition: 'transform 0.2s'}}>COMMENCER GRATUITEMENT</button>
-            <div style={{marginTop:'50px'}}><img src="/logo-truck.svg" alt="Truck" style={{width:'200px', opacity:0.1}} /></div>
+            <h1 style={heroTitleStyle}>OPTIMISEZ VOS TOURNÉES<br/>EN UN CLIC</h1>
+            <button onClick={onStart} style={ctaButtonStyle}>COMMENCER GRATUITEMENT</button>
         </section>
-        <footer style={{textAlign:'center', padding:'40px', color:COLORS.GRAY_TEXT, fontSize:'12px', borderTop:'1px solid '+COLORS.BORDER}}>
-            © 2024 OptiRoute Pro. Designed for excellence.
-        </footer>
+        <section style={featuresGridStyle}>
+            <div style={featureCardStyle(COLORS.PASTEL_BLUE)}>
+                <Icons.Map/>
+                <h3 style={{fontFamily:"'Oswald', sans-serif", fontSize:'20px', marginTop:'10px'}}>INTELLIGENCE ARTIFICIELLE</h3>
+            </div>
+            <div style={featureCardStyle(COLORS.PASTEL_GREEN)}>
+                <Icons.Truck/>
+                <h3 style={{fontFamily:"'Oswald', sans-serif", fontSize:'20px', marginTop:'10px'}}>APPLICATION TERRAIN</h3>
+            </div>
+            <div style={featureCardStyle(COLORS.PASTEL_RED)}>
+                <Icons.Check/>
+                <h3 style={{fontFamily:"'Oswald', sans-serif", fontSize:'20px', marginTop:'10px'}}>PREUVE DE PASSAGE</h3>
+            </div>
+        </section>
     </div>
 );
 
-// --- 4. APPLICATION PRINCIPALE ---
+// --- 7. APPLICATION PRINCIPALE ---
 function App() {
-    // --- CONFIGURATION CRISP (CHAT) ---
-useEffect(() => {
-    // Remplace par ton VRAI ID récupéré sur Crisp
-    Crisp.configure("3a2abcb6-a8fd-4fc5-b856-a99c36e6ad0b");
-
-    // Optionnel : Si l'utilisateur est connecté, on envoie son email à Crisp
-    // Comme ça tu sais qui te parle !
-    if (token && authEmail) {
-        Crisp.user.setEmail(authEmail);
-        Crisp.user.setNickname(userName || authCompany);
-    }
-}, [token, authEmail, userName, authCompany]);
     const API_URL = "https://optiroute-wxaz.onrender.com";
 
-    // States
     const [token, setToken] = useState(localStorage.getItem('optiroute_token'));
     const [userRole, setUserRole] = useState(null);
     const [userId, setUserId] = useState(null);
@@ -277,7 +246,7 @@ useEffect(() => {
     const [userCompany, setUserCompany] = useState(localStorage.getItem('optiroute_company') || "");
     
     const [showLanding, setShowLanding] = useState(!token);
-    const [showTutorial, setShowTutorial] = useState(false); // NOUVEAU STATE TUTORIEL
+    const [showTutorial, setShowTutorial] = useState(false);
 
     const [activeTab, setActiveTab] = useState(0);
     const [isLoginView, setIsLoginView] = useState(true);
@@ -347,6 +316,12 @@ useEffect(() => {
     useEffect(() => {
         const handleResize = () => setScreenWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
+        
+        // Ajout Crisp Chat
+        try {
+            Crisp.configure("3a2abcb6-a8fd-4fc5-b856-a99c36e6ad0b");
+        } catch(e) {}
+
         const initApp = async () => {
             if (token) {
                 setShowLanding(false);
@@ -487,7 +462,7 @@ useEffect(() => {
         finally { setLoading(false); }
     };
 
-    // --- RENDER ---
+    // --- CONDITIONAL RENDERING ---
     if (showTutorial) {
         return <TutorialPage onClose={() => setShowTutorial(false)} />;
     }
@@ -554,18 +529,16 @@ useEffect(() => {
                             </div>
                         </div>
                         
-                        {/* NAVIGATION & HELP */}
                         <div style={{display:'flex', alignItems:'center'}}>
                             {activeTab === 0 && <div onClick={() => setActiveTab(1)} style={navArrowStyle}>➡️</div>}
                             {activeTab === 1 && <div onClick={() => setActiveTab(0)} style={{...navArrowStyle, transform:'rotate(180deg)'}}>➡️</div>}
-                            {/* Bouton Aide */}
+                            {/* Bouton Tuto */}
                             <div onClick={() => setShowTutorial(true)} style={{cursor:'pointer', marginLeft:'10px'}}><Icons.Help/></div>
                             <button onClick={handleLogout} style={{background: 'transparent', border: 'none', color: COLORS.RED, cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration:'underline', fontFamily:"'Inter', sans-serif", marginLeft:'15px'}}>DÉCO</button>
                         </div>
                     </div>
                 </div>
 
-                {/* SLIDER CONTENT */}
                 {activeTab === 0 && (
                 <>
                     <div style={cardStyle}>
