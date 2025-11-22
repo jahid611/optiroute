@@ -19,7 +19,7 @@ L.Icon.Default.mergeOptions({
     shadowUrl: shadowUrl,
 });
 
-// --- 2. CONSTANTES & STYLES (DESIGN PASTEL PRO) ---
+// --- 2. CONSTANTES & STYLES ---
 const COLORS = {
     DARK: '#3b4651', BLUE: '#2b79c2', PASTEL_BLUE: '#A0C4FF', 
     PASTEL_GREEN: '#B9FBC0', PASTEL_RED: '#FFADAD', WHITE: '#ffffff', 
@@ -31,67 +31,31 @@ const PILL_RADIUS = '38px';
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 
-// Styles CSS-in-JS
-const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: COLORS.BG_LIGHT, overflow: 'hidden' });
-const mapContainerStyle = (isMobile) => ({ flex: 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: '1px solid ' + COLORS.BORDER, zIndex: 0 });
-
-// PANNEAU LATÉRAL (Le Rectangle)
-const panelContainerStyle = (isMobile) => ({ 
-    width: isMobile ? '100%' : '450px', 
-    height: isMobile ? '60vh' : '100%', 
-    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-    backdropFilter: 'blur(20px)', 
-    padding: '30px', 
-    boxSizing: 'border-box', 
-    display: 'flex', 
-    flexDirection: 'column', 
-    order: isMobile ? 2 : 1, 
-    zIndex: 1000, 
-    borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none', 
-    boxShadow: '5px 0 30px rgba(0,0,0,0.05)',
-    position: 'relative', // Pour la flèche absolue
-    overflow: 'hidden' // Important pour le slider
-});
-
-const panelHeaderStyle = { marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid ' + COLORS.DARK, display:'flex', justifyContent:'space-between', alignItems:'center' };
+// Styles
+const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', minHeight: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: COLORS.BG_LIGHT, overflow: isMobile ? 'auto' : 'hidden' });
+const mapContainerStyle = (isMobile) => ({ flex: isMobile ? 'none' : 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: '1px solid ' + COLORS.BORDER, zIndex: 0 });
+const panelContainerStyle = (isMobile) => ({ width: isMobile ? '100%' : '450px', height: isMobile ? 'auto' : '100%', minHeight: isMobile ? '60vh' : '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: '30px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', order: isMobile ? 2 : 1, zIndex: 1000, borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none', boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)' });
+const panelHeaderStyle = { marginBottom: '25px', paddingBottom: '20px', borderBottom: '2px solid ' + COLORS.DARK };
 const proTagStyle = { fontSize: '0.4em', backgroundColor: COLORS.BLUE, color: COLORS.WHITE, padding: '3px 6px', verticalAlign: 'top', marginLeft: '8px', fontFamily: "'Inter', sans-serif", fontWeight: '700', borderRadius: '4px' };
-const cardStyle = { marginBottom: '10px', flex: 1, display:'flex', flexDirection:'column' }; // Flex pour remplir
+const cardStyle = { marginBottom: '25px' };
+const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK };
 const inputStyle = { width: '100%', padding: '14px 20px', marginBottom: '10px', borderRadius: PILL_RADIUS, border: '1px solid transparent', backgroundColor: COLORS.WHITE, fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: '0.2s' };
 const dropdownItemStyle = { padding: '12px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, fontWeight: '600', transition: 'background 0.2s' };
-const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
-const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 'auto', paddingBottom:'10px' };
+const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif'", transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
+const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px', marginTop: 'auto' };
 const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%' };
 const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
 const resetButtonStyle = { padding: '10px', backgroundColor: 'white', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', width: '50px', height: '50px' };
-
-// LISTE MISSION (ADAPTÉE AU RECTANGLE)
-const missionsListStyle = { 
-    display: 'flex', 
-    flexDirection: 'column', 
-    border: 'none', 
-    overflowY: 'auto', // Scroll ici
-    flex: 1, 
-    borderRadius: STANDARD_RADIUS, 
-    paddingRight: '5px',
-    maxHeight: '75vh' // Limite hauteur
-};
-
-const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', flexDirection: 'column', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
+const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'auto', flex: 1, borderRadius: STANDARD_RADIUS, paddingRight: '5px' };
+const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
 const missionInfoStyle = { flex: 1, marginRight: '10px' };
 const missionTitleStyle = { fontWeight: '700', fontSize: '14px', color: COLORS.DARK, display: 'flex', alignItems: 'center', fontFamily: "'Inter', sans-serif" };
 const missionAddressStyle = { color: COLORS.GRAY_TEXT, fontSize: '12px', marginTop: '2px', fontFamily: "'Inter', sans-serif" };
 const compassButtonStyle = { backgroundColor: '#f8f9fa', border: '1px solid #eee', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginLeft:'5px' };
 const phoneButtonStyle = { backgroundColor: COLORS.PASTEL_GREEN, border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration:'none', marginLeft:'5px' };
 const statusButtonStyle = { marginTop: '12px', width: '100%', padding: '10px', borderRadius: PILL_RADIUS, border: 'none', fontWeight: '700', fontSize: '12px', cursor: 'pointer', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '1px', transition: '0.2s' };
+const navArrowStyle = { cursor: 'pointer', padding: '10px', background: COLORS.BG_LIGHT, borderRadius: '50%', border: '1px solid '+COLORS.BORDER, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', marginLeft: '10px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', transition: '0.2s' };
 
-// FLÈCHE DE NAVIGATION (CARROUSEL)
-const navArrowStyle = {
-    cursor: 'pointer', padding: '10px', background: COLORS.BG_LIGHT, borderRadius: '50%', border: '1px solid '+COLORS.BORDER,
-    display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', marginLeft: '10px',
-    boxShadow: '0 2px 5px rgba(0,0,0,0.1)', transition: '0.2s'
-};
-
-// MODALS
 const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.4)', backdropFilter: 'blur(8px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const modalContentStyle = { background: COLORS.WHITE, padding: '40px', borderRadius: '24px', width: '90%', maxWidth: '400px', textAlign: 'center', border: 'none', boxSizing: 'border-box', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' };
 const modalTitleStyle = { marginTop: 0, marginBottom: '10px', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '22px', letterSpacing: '1px' };
@@ -100,7 +64,6 @@ const gpsIconStyle = { width: '24px', height: '24px', objectFit: 'contain', marg
 const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', border: 'none', background: 'transparent', color: COLORS.GRAY_TEXT, fontWeight: '600', cursor: 'pointer', borderRadius: PILL_RADIUS, fontFamily: "'Inter', sans-serif", fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' };
 
 // --- 3. COMPOSANTS UTILITAIRES ---
-
 const formatDuration = (minutes) => {
     if (!minutes) return "";
     const h = Math.floor(minutes / 60);
@@ -141,27 +104,19 @@ const AddressInput = ({ placeholder, value, onChange }) => {
 function MapController({ center, bounds }) {
     const map = useMap();
     useEffect(() => {
-        if (bounds && bounds.length > 0) {
-            map.fitBounds(bounds, { padding: [50, 50] });
-        } else if (center) {
-            map.flyTo(center, 13, { duration: 1.5 });
-        }
+        if (bounds && bounds.length > 0) { map.fitBounds(bounds, { padding: [50, 50] }); } 
+        else if (center) { map.flyTo(center, 13, { duration: 1.5 }); }
     }, [center, bounds, map]);
     return null;
 }
 
 const createCustomIcon = (index, total, status, isMyMission) => {
-    let bgColor = '#e0e0e0'; 
-    let textColor = COLORS.DARK;
+    let bgColor = '#e0e0e0'; let textColor = COLORS.DARK;
     if (isMyMission) {
         if (status === 'done') { bgColor = COLORS.PASTEL_RED; textColor = COLORS.GRAY_TEXT; } 
         else { bgColor = COLORS.PASTEL_BLUE; if (index === 0) bgColor = COLORS.PASTEL_GREEN; if (index === total - 1) bgColor = COLORS.PASTEL_RED; }
     }
-    return L.divIcon({
-        className: 'custom-marker',
-        html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`,
-        iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14]
-    });
+    return L.divIcon({ className: 'custom-marker', html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14] });
 };
 
 const getStepColor = (index, total, status) => {
@@ -172,14 +127,8 @@ const getStepColor = (index, total, status) => {
 };
 
 const renderClientName = (name, slot) => {
-    let iconSrc = "/icon-morning.svg"; 
-    if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
-    return (
-        <div style={{display: 'flex', alignItems: 'center'}}>
-            <img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} />
-            <span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span>
-        </div>
-    );
+    let iconSrc = "/icon-morning.svg"; if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
+    return (<div style={{display: 'flex', alignItems: 'center'}}><img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} /><span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span></div>);
 };
 
 // --- 4. APPLICATION ---
@@ -192,8 +141,6 @@ function App() {
     const [userId, setUserId] = useState(null);
     const [userName, setUserName] = useState("");
     const [userCompany, setUserCompany] = useState(localStorage.getItem('optiroute_company') || "");
-
-    // 0 = SAISIE, 1 = ROUTE
     const [activeTab, setActiveTab] = useState(0);
 
     const [isLoginView, setIsLoginView] = useState(true);
@@ -244,6 +191,21 @@ function App() {
 
     const isMobileView = screenWidth < 768;
 
+    const getAuthHeaders = () => ({ headers: { Authorization: `Bearer ${token}` } });
+
+    const handleLogout = () => {
+        localStorage.removeItem('optiroute_token'); localStorage.removeItem('optiroute_company');
+        setToken(null); setUserRole(null); setRoute([]); setPendingMissions([]);
+    };
+
+    const fetchTechnicians = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/technicians`, getAuthHeaders());
+            setTechnicians(res.data); return res.data;
+        } catch (e) { if(e.response?.status === 401) handleLogout(); return []; }
+    };
+
+    // INIT APP
     useEffect(() => {
         const handleResize = () => setScreenWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
@@ -267,7 +229,6 @@ function App() {
 
     useEffect(() => { if (toast) setTimeout(() => setToast(null), 3000); }, [toast]);
 
-    const getAuthHeaders = () => ({ headers: { Authorization: `Bearer ${token}` } });
 
     const handleAuth = async (e) => {
         e.preventDefault();
@@ -285,18 +246,6 @@ function App() {
         finally { setAuthLoading(false); }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('optiroute_token'); localStorage.removeItem('optiroute_company');
-        setToken(null); setUserRole(null); setRoute([]); setPendingMissions([]);
-    };
-
-    const fetchTechnicians = async () => {
-        try {
-            const res = await axios.get(`${API_URL}/technicians`, getAuthHeaders());
-            setTechnicians(res.data); return res.data;
-        } catch (e) { if(e.response?.status === 401) handleLogout(); return []; }
-    };
-
     const handleAddTech = async (e) => {
         e.preventDefault();
         if (!newTechName || !newTechAddress || !newTechEmail || !newTechPass) return;
@@ -306,7 +255,11 @@ function App() {
             setNewTechName(""); setNewTechAddress(""); setNewTechEmail(""); setNewTechPass("");
             const updatedList = await fetchTechnicians();
             const added = updatedList[updatedList.length - 1];
-            if (added) { setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); setMapBounds(null); setSelectedTechId(added.id); }
+            if (added) { 
+                setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); 
+                setMapBounds(null);
+                setSelectedTechId(added.id); 
+            }
             setToast({ message: "Technicien ajouté", type: "success" }); setShowTeamModal(false);
         } catch (error) { alert("Erreur ajout"); }
         finally { setIsAddingTech(false); }
@@ -350,9 +303,7 @@ function App() {
                 myRoute = myRoute.map(step => ({...step, status: step.status || 'assigned'}));
                 setRoute(myRoute); setRoutePath(response.data.path); setPendingMissions([]); 
                 if (response.data.path.length > 0) setMapBounds(response.data.path);
-                
-                // AUTO-SWITCH VERS L'ONGLET ROUTE QUAND C'EST PRÊT
-                setActiveTab(1); 
+                setActiveTab(1); // AUTO SWITCH
             } else { setRoute([]); }
             if (response.data.unassigned?.length > 0) { setUnassignedList(response.data.unassigned); setShowUnassignedModal(true); }
         } catch (error) { console.error(error); alert("Erreur"); }
@@ -396,7 +347,7 @@ function App() {
         finally { setLoading(false); }
     };
 
-    // --- LOGIN VIEW ---
+    // VIEW
     if (!token) return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: COLORS.DARK, color: 'white', fontFamily: "'Inter', sans-serif" }}>
             <div style={{ background: 'white', padding: '50px', borderRadius: STANDARD_RADIUS, width: '90%', maxWidth: '400px', color: COLORS.DARK, textAlign: 'center', boxShadow: SHADOW }}>
@@ -414,7 +365,6 @@ function App() {
         </div>
     );
 
-    // --- MAIN VIEW ---
     return (
         <div style={rootContainerStyle(isMobileView)}>
             <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap'); .leaflet-control-attribution { display: none !important; } .leaflet-div-icon { background: transparent; border: none; }`}</style>
@@ -455,7 +405,7 @@ function App() {
                             </div>
                         </div>
                         
-                        {/* NAVIGATION FLECHE */}
+                        {/* NAVIGATION */}
                         <div style={{display:'flex', alignItems:'center'}}>
                             {activeTab === 0 && <div onClick={() => setActiveTab(1)} style={navArrowStyle}>➡️</div>}
                             {activeTab === 1 && <div onClick={() => setActiveTab(0)} style={{...navArrowStyle, transform:'rotate(180deg)'}}>➡️</div>}
@@ -464,7 +414,7 @@ function App() {
                     </div>
                 </div>
 
-                {/* CONTENU DU SLIDER */}
+                {/* SLIDER CONTENT */}
                 
                 {/* FACE A : SAISIE */}
                 {activeTab === 0 && (
@@ -511,7 +461,6 @@ function App() {
                         </form>
                     </div>
                     {pendingMissions.length > 0 && (<div style={{marginBottom: '20px', border: `1px dashed ${COLORS.BLUE}`, borderRadius: STANDARD_RADIUS, padding: '15px', backgroundColor: 'rgba(43, 121, 194, 0.05)'}}><div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}><h5 style={{margin:0, color:COLORS.BLUE, fontFamily:"'Oswald', sans-serif", fontSize:'14px'}}>EN ATTENTE ({pendingMissions.length})</h5></div><div style={{maxHeight:'80px', overflowY:'auto'}}>{pendingMissions.map((pm, idx) => (<div key={idx} style={{fontSize:'12px', marginBottom:'4px', display:'flex', alignItems:'center', fontFamily:"'Inter', sans-serif"}}><div style={{width:'6px', height:'6px', borderRadius:'50%', background:COLORS.BLUE, marginRight:'8px'}}></div><span style={{fontWeight:'600', marginRight:'5px', color:COLORS.DARK}}>{pm.name}</span> <span style={{color:COLORS.GRAY_TEXT}}>({formatDuration(pm.time)})</span></div>))}</div></div>)}
-                    
                     <div style={actionButtonsContainerStyle}>
                         <div style={buttonsRowStyle}>
                             <button onClick={handleOptimize} disabled={loading} style={optimizeButtonStyle}>{loading ? (<div style={{display:'flex', flexDirection:'column', alignItems:'center'}}><img src="/logo-truck.svg" alt="..." style={{width:'60px', opacity:0.5}} /><span style={{fontSize: '12px', color: COLORS.BLUE, fontWeight: 'bold', fontFamily: "'Oswald', sans-serif", marginTop:'5px'}}>OPTIMISATION...</span></div>) : (<div style={{position:'relative'}}><img src="/logo-truck.svg" alt="Optimize" style={{ width:'100px', height:'auto', filter: 'drop-shadow(0px 5px 10px rgba(0,0,0,0.2))' }} />{pendingMissions.length > 0 && <div style={{position:'absolute', top:'-5px', right:'-5px', background:COLORS.RED, color:'white', borderRadius:'50%', width:'24px', height:'24px', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', border:'2px solid white', boxShadow:'0 2px 5px rgba(0,0,0,0.2)'}}>{pendingMissions.length}</div>}</div>)}</button>
@@ -539,7 +488,6 @@ function App() {
                                             {(step.status === 'assigned' || !step.status) && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'in_progress')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_GREEN, color:COLORS.DARK}}>DÉMARRER</button>}
                                             {step.status === 'in_progress' && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'done')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_RED, color:COLORS.DARK}}>TERMINER</button>}
                                             
-                                            {/* AFFICHAGE SIGNATURE */}
                                             {step.status === 'done' && (
                                                 <div style={{marginTop:'10px'}}>
                                                     <div style={{fontSize:'11px', color:COLORS.SUCCESS_TEXT, fontWeight:'bold', fontFamily:"'Inter', sans-serif"}}>✅ MISSION TERMINÉE</div>
