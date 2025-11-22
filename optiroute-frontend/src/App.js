@@ -498,7 +498,7 @@ function App() {
                             {activeTab === 1 && <div onClick={() => setActiveTab(0)} style={{...navArrowStyle, transform:'rotate(180deg)'}}>➡️</div>}
                             {/* Bouton Tuto */}
                             <div onClick={() => setShowTutorial(true)} style={{cursor:'pointer', marginLeft:'10px'}}><Icons.Help/></div>
-                            <button onClick={handleLogout} style={{background: 'transparent', border: 'none', color: COLORS.RED, cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration:'underline', fontFamily:"'Inter', sans-serif', marginLeft:'15px'}}>DÉCO</button>
+                            <button onClick={handleLogout} style={{background: 'transparent', border: 'none', color: COLORS.RED, cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration:'underline', fontFamily:"'Inter', sans-serif'", marginLeft:'15px'}}>DÉCO</button>
                         </div>
                     </div>
                 </div>
