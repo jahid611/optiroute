@@ -5,8 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { jwtDecode } from 'jwt-decode'; 
 import SignatureCanvas from 'react-signature-canvas';
-import { jsPDF } from "jspdf";
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'; // <--- Import Important pour le nouveau PDF
 
 // --- FIX POUR VERCEL ---
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
@@ -90,8 +89,7 @@ const formatDuration = (minutes) => {
     return `${m} min`;
 };
 
-// --- GÉNÉRATEUR DE PDF PRO ---
-// --- NOUVEAU GÉNÉRATEUR AVEC TEMPLATE ---
+// --- GÉNÉRATEUR DE PDF PRO (CORRIGÉ & CALIBRÉ) ---
 const generatePDF = async (mission, technicianName, companyName) => {
     try {
         // 1. Charger le template
@@ -108,21 +106,12 @@ const generatePDF = async (mission, technicianName, companyName) => {
         const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
         // --- CALIBRAGE DES COORDONNÉES (Y part du bas) ---
-        
-        // 1. Date (En haut à droite)
-        // Environ 130px depuis le haut
-        firstPage.drawText(new Date().toLocaleDateString(), { 
-            x: 450, 
-            y: height - 135, 
-            size: 11, 
-            font: font 
-        });
 
-        // 2. Ligne "Client" et "Adresse"
+        // 1. Ligne "Client" et "Adresse"
         // Environ 230px depuis le haut
         const row1_Y = height - 230;
         
-        // Client (Gauche) - Juste après le label "Client:"
+        // Client (Gauche)
         firstPage.drawText(mission.client || "", { 
             x: 100, 
             y: row1_Y, 
@@ -130,8 +119,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
             font: fontBold 
         });
 
-        // Adresse (Droite) - Juste après le label "Adresse:"
-        // J'ajoute un retour à la ligne auto si l'adresse est longue
+        // Adresse (Droite)
         firstPage.drawText(mission.address || "", { 
             x: 370, 
             y: row1_Y, 
@@ -141,7 +129,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
             lineHeight: 12
         });
 
-        // 3. Ligne "Téléphone" et "Date" (s'il y a un champ date fixe en dessous)
+        // 2. Ligne "Téléphone" et "Date"
         // Environ 270px depuis le haut
         const row2_Y = height - 270;
         
@@ -154,7 +142,15 @@ const generatePDF = async (mission, technicianName, companyName) => {
             });
         }
 
-        // 4. Ligne "Technicien" et "Statut"
+        // Date (Droite) - DÉPLACÉE ICI
+        firstPage.drawText(new Date().toLocaleDateString(), { 
+            x: 370, 
+            y: row2_Y, 
+            size: 11, 
+            font: font 
+        });
+
+        // 3. Ligne "Technicien" et "Statut"
         // Environ 380px depuis le haut
         const row3_Y = height - 380;
 
@@ -173,7 +169,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
             color: rgb(0, 0.5, 0) // Vert foncé
         });
 
-        // 5. Notes
+        // 4. Notes
         // Environ 460px depuis le haut
         if (mission.comments) {
             firstPage.drawText(mission.comments, { 
@@ -185,7 +181,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
             });
         }
 
-        // 6. Signature
+        // 5. Signature
         // Environ 520px depuis le haut (Position de l'image)
         if (mission.signature) {
             const signatureImage = await pdfDoc.embedPng(mission.signature);
@@ -628,7 +624,7 @@ function App() {
 
             {showResetModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowResetModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/icon-trash.svg" alt="!" style={{width:'40px', marginBottom:'15px'}}/ ><h3 style={modalTitleStyle}>VIDER ?</h3><div style={{display:'flex', gap:'10px'}}><button onClick={()=>setShowResetModal(false)} style={{...cancelButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`, marginTop:0}}>ANNULER</button><button onClick={confirmResetMissions} style={{...submitButtonStyle, marginTop:0, backgroundColor:COLORS.DARK}}>{loading ? "..." : "CONFIRMER"}</button></div></div></div>}
 
-            {navModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setNavModal(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={modalTitleStyle}>NAVIGATION</h3><div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}><a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/waze.png" alt="W" style={gpsIconStyle}/>Waze</a><a href={`http://googleusercontent.com/maps.google.com/?q=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/google.png" alt="G" style={gpsIconStyle}/>Google Maps</a></div><button onClick={() => setNavModal(null)} style={cancelButtonStyle}>FERMER</button></div></div>}
+            {navModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setNavModal(null)}><div style={{modalContentStyle}} onClick={e => e.stopPropagation()}><h3 style={modalTitleStyle}>NAVIGATION</h3><div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}><a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/waze.png" alt="W" style={gpsIconStyle}/>Waze</a><a href={`http://googleusercontent.com/maps.google.com/?q=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/google.png" alt="G" style={gpsIconStyle}/>Google Maps</a></div><button onClick={() => setNavModal(null)} style={cancelButtonStyle}>FERMER</button></div></div>}
             {showEmptyModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowEmptyModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} /><h3 style={modalTitleStyle}>OPTIROUTE</h3><button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button></div></div>}
             {showUnassignedModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowUnassignedModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3><div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>{unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}</div><button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button></div></div>}
 
@@ -654,6 +650,7 @@ function App() {
                             </div>
                         </div>
                         
+                        {/* NAVIGATION & HELP */}
                         <div style={{display:'flex', alignItems:'center'}}>
                             {activeTab === 0 && <div onClick={() => setActiveTab(1)} style={navArrowStyle}>➡️</div>}
                             {activeTab === 1 && <div onClick={() => setActiveTab(0)} style={{...navArrowStyle, transform:'rotate(180deg)'}}>➡️</div>}
