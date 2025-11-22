@@ -21,16 +21,9 @@ L.Icon.Default.mergeOptions({
 
 // --- 2. CONSTANTES & STYLES (DESIGN PASTEL PRO) ---
 const COLORS = {
-    DARK: '#3b4651', 
-    BLUE: '#2b79c2', 
-    PASTEL_BLUE: '#A0C4FF', 
-    PASTEL_GREEN: '#B9FBC0', 
-    PASTEL_RED: '#FFADAD',   
-    WHITE: '#ffffff', 
-    BORDER: '#e0e0e0', 
-    GRAY_TEXT: '#6c757d', 
-    BG_LIGHT: '#f8f9fa', 
-    WARNING: '#ffd6a5',
+    DARK: '#3b4651', BLUE: '#2b79c2', PASTEL_BLUE: '#A0C4FF', 
+    PASTEL_GREEN: '#B9FBC0', PASTEL_RED: '#FFADAD', WHITE: '#ffffff', 
+    BORDER: '#e0e0e0', GRAY_TEXT: '#6c757d', BG_LIGHT: '#f8f9fa', WARNING: '#ffd6a5',
     SUCCESS_TEXT: '#2e7d32'
 };
 
@@ -39,22 +32,51 @@ const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 
 // Styles CSS-in-JS
-const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', minHeight: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: COLORS.BG_LIGHT, overflow: isMobile ? 'auto' : 'hidden' });
-const mapContainerStyle = (isMobile) => ({ flex: isMobile ? 'none' : 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: '1px solid ' + COLORS.BORDER, zIndex: 0 });
-const panelContainerStyle = (isMobile) => ({ width: isMobile ? '100%' : '450px', height: isMobile ? 'auto' : '100%', minHeight: isMobile ? '60vh' : '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: '30px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', order: isMobile ? 2 : 1, zIndex: 1000, borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none', boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)' });
-const panelHeaderStyle = { marginBottom: '25px', paddingBottom: '20px', borderBottom: '2px solid ' + COLORS.DARK };
+const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: COLORS.BG_LIGHT, overflow: 'hidden' });
+const mapContainerStyle = (isMobile) => ({ flex: 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: '1px solid ' + COLORS.BORDER, zIndex: 0 });
+
+// PANNEAU LATÉRAL (Le Rectangle)
+const panelContainerStyle = (isMobile) => ({ 
+    width: isMobile ? '100%' : '450px', 
+    height: isMobile ? '60vh' : '100%', 
+    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+    backdropFilter: 'blur(20px)', 
+    padding: '30px', 
+    boxSizing: 'border-box', 
+    display: 'flex', 
+    flexDirection: 'column', 
+    order: isMobile ? 2 : 1, 
+    zIndex: 1000, 
+    borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none', 
+    boxShadow: '5px 0 30px rgba(0,0,0,0.05)',
+    position: 'relative', // Pour la flèche absolue
+    overflow: 'hidden' // Important pour le slider
+});
+
+const panelHeaderStyle = { marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid ' + COLORS.DARK, display:'flex', justifyContent:'space-between', alignItems:'center' };
 const proTagStyle = { fontSize: '0.4em', backgroundColor: COLORS.BLUE, color: COLORS.WHITE, padding: '3px 6px', verticalAlign: 'top', marginLeft: '8px', fontFamily: "'Inter', sans-serif", fontWeight: '700', borderRadius: '4px' };
-const cardStyle = { marginBottom: '25px' };
-const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK };
+const cardStyle = { marginBottom: '10px', flex: 1, display:'flex', flexDirection:'column' }; // Flex pour remplir
 const inputStyle = { width: '100%', padding: '14px 20px', marginBottom: '10px', borderRadius: PILL_RADIUS, border: '1px solid transparent', backgroundColor: COLORS.WHITE, fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: '0.2s' };
 const dropdownItemStyle = { padding: '12px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, fontWeight: '600', transition: 'background 0.2s' };
-const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif'", transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
-const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px', marginTop: 'auto' };
+const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
+const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 'auto', paddingBottom:'10px' };
 const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%' };
 const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
 const resetButtonStyle = { padding: '10px', backgroundColor: 'white', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', width: '50px', height: '50px' };
-const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'auto', flex: 1, borderRadius: STANDARD_RADIUS, paddingRight: '5px' };
-const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
+
+// LISTE MISSION (ADAPTÉE AU RECTANGLE)
+const missionsListStyle = { 
+    display: 'flex', 
+    flexDirection: 'column', 
+    border: 'none', 
+    overflowY: 'auto', // Scroll ici
+    flex: 1, 
+    borderRadius: STANDARD_RADIUS, 
+    paddingRight: '5px',
+    maxHeight: '75vh' // Limite hauteur
+};
+
+const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', flexDirection: 'column', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
 const missionInfoStyle = { flex: 1, marginRight: '10px' };
 const missionTitleStyle = { fontWeight: '700', fontSize: '14px', color: COLORS.DARK, display: 'flex', alignItems: 'center', fontFamily: "'Inter', sans-serif" };
 const missionAddressStyle = { color: COLORS.GRAY_TEXT, fontSize: '12px', marginTop: '2px', fontFamily: "'Inter', sans-serif" };
@@ -62,6 +84,14 @@ const compassButtonStyle = { backgroundColor: '#f8f9fa', border: '1px solid #eee
 const phoneButtonStyle = { backgroundColor: COLORS.PASTEL_GREEN, border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration:'none', marginLeft:'5px' };
 const statusButtonStyle = { marginTop: '12px', width: '100%', padding: '10px', borderRadius: PILL_RADIUS, border: 'none', fontWeight: '700', fontSize: '12px', cursor: 'pointer', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '1px', transition: '0.2s' };
 
+// FLÈCHE DE NAVIGATION (CARROUSEL)
+const navArrowStyle = {
+    cursor: 'pointer', padding: '10px', background: COLORS.BG_LIGHT, borderRadius: '50%', border: '1px solid '+COLORS.BORDER,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', marginLeft: '10px',
+    boxShadow: '0 2px 5px rgba(0,0,0,0.1)', transition: '0.2s'
+};
+
+// MODALS
 const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.4)', backdropFilter: 'blur(8px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const modalContentStyle = { background: COLORS.WHITE, padding: '40px', borderRadius: '24px', width: '90%', maxWidth: '400px', textAlign: 'center', border: 'none', boxSizing: 'border-box', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' };
 const modalTitleStyle = { marginTop: 0, marginBottom: '10px', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '22px', letterSpacing: '1px' };
@@ -82,43 +112,25 @@ const formatDuration = (minutes) => {
 const AddressInput = ({ placeholder, value, onChange }) => {
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-
     useEffect(() => {
-        const delayDebounceFn = setTimeout(async () => {
+        const delay = setTimeout(async () => {
             if (value.length > 3 && showSuggestions) {
                 try {
                     const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${value}&limit=5`);
                     const data = await response.json();
                     setSuggestions(data.features);
-                } catch (e) { console.error(e); }
-            } else {
-                setSuggestions([]);
-            }
+                } catch (e) {}
+            } else { setSuggestions([]); }
         }, 300);
-        return () => clearTimeout(delayDebounceFn);
+        return () => clearTimeout(delay);
     }, [value, showSuggestions]);
-
     return (
         <div style={{ position: 'relative', width: '100%' }}>
-            <input 
-                type="text" 
-                placeholder={placeholder} 
-                value={value} 
-                onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }} 
-                style={inputStyle} 
-            />
+            <input type="text" placeholder={placeholder} value={value} onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }} style={inputStyle} />
             {suggestions.length > 0 && showSuggestions && (
                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', borderRadius: '12px', boxShadow: SHADOW, zIndex: 1000, overflow: 'hidden', marginTop: '-5px', border: '1px solid ' + COLORS.BORDER }}>
                     {suggestions.map((s, i) => (
-                        <div 
-                            key={i} 
-                            onClick={() => { onChange(s.properties.label); setShowSuggestions(false); }} 
-                            style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px', textAlign:'left', fontFamily:"'Inter', sans-serif" }}
-                            onMouseEnter={(e) => e.target.style.backgroundColor = COLORS.BG_LIGHT}
-                            onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
-                        >
-                            📍 {s.properties.label}
-                        </div>
+                        <div key={i} onClick={() => { onChange(s.properties.label); setShowSuggestions(false); }} style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px', textAlign:'left', fontFamily:"'Inter', sans-serif" }} onMouseEnter={(e) => e.target.style.backgroundColor = COLORS.BG_LIGHT} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>📍 {s.properties.label}</div>
                     ))}
                 </div>
             )}
@@ -142,10 +154,9 @@ const createCustomIcon = (index, total, status, isMyMission) => {
     let bgColor = '#e0e0e0'; 
     let textColor = COLORS.DARK;
     if (isMyMission) {
-        if (status === 'done') { bgColor = COLORS.PASTEL_RED; textColor = COLORS.GRAY_TEXT; } // Terminé = Rouge/Grisé
+        if (status === 'done') { bgColor = COLORS.PASTEL_RED; textColor = COLORS.GRAY_TEXT; } 
         else { bgColor = COLORS.PASTEL_BLUE; if (index === 0) bgColor = COLORS.PASTEL_GREEN; if (index === total - 1) bgColor = COLORS.PASTEL_RED; }
     }
-
     return L.divIcon({
         className: 'custom-marker',
         html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`,
@@ -154,7 +165,7 @@ const createCustomIcon = (index, total, status, isMyMission) => {
 };
 
 const getStepColor = (index, total, status) => {
-    if (status === 'done') return COLORS.PASTEL_RED; // Terminé en rouge/rosé
+    if (status === 'done') return COLORS.PASTEL_RED; 
     if (index === 0) return COLORS.PASTEL_GREEN; 
     if (index === total - 1) return COLORS.PASTEL_RED; 
     return COLORS.PASTEL_BLUE; 
@@ -175,14 +186,16 @@ const renderClientName = (name, slot) => {
 function App() {
     const API_URL = "https://optiroute-wxaz.onrender.com";
 
-    // --- STATES ---
+    // States
     const [token, setToken] = useState(localStorage.getItem('optiroute_token'));
     const [userRole, setUserRole] = useState(null);
     const [userId, setUserId] = useState(null);
     const [userName, setUserName] = useState("");
     const [userCompany, setUserCompany] = useState(localStorage.getItem('optiroute_company') || "");
 
-    // Login
+    // 0 = SAISIE, 1 = ROUTE
+    const [activeTab, setActiveTab] = useState(0);
+
     const [isLoginView, setIsLoginView] = useState(true);
     const [authEmail, setAuthEmail] = useState("");
     const [authPass, setAuthPass] = useState("");
@@ -190,14 +203,12 @@ function App() {
     const [authError, setAuthError] = useState("");
     const [authLoading, setAuthLoading] = useState(false);
 
-    // App Data
     const [technicians, setTechnicians] = useState([]);
     const [selectedTechId, setSelectedTechId] = useState(null);
     const [route, setRoute] = useState([]);
     const [routePath, setRoutePath] = useState([]); 
     const [pendingMissions, setPendingMissions] = useState([]);
 
-    // Forms
     const [newName, setNewName] = useState("");
     const [newAddress, setNewAddress] = useState("");
     const [newPhone, setNewPhone] = useState("");
@@ -206,14 +217,12 @@ function App() {
     const [duration, setDuration] = useState(30);
     const [isAddingMission, setIsAddingMission] = useState(false);
     
-    // Tech Form
     const [newTechName, setNewTechName] = useState("");
     const [newTechAddress, setNewTechAddress] = useState("");
     const [newTechEmail, setNewTechEmail] = useState("");
     const [newTechPass, setNewTechPass] = useState("");
     const [isAddingTech, setIsAddingTech] = useState(false);
 
-    // UI
     const [mapCenter, setMapCenter] = useState([48.8675, 2.3639]); 
     const [mapBounds, setMapBounds] = useState(null);
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
@@ -221,7 +230,6 @@ function App() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [toast, setToast] = useState(null);
 
-    // Modals
     const [navModal, setNavModal] = useState(null); 
     const [showTeamModal, setShowTeamModal] = useState(false);
     const [showResetModal, setShowResetModal] = useState(false);
@@ -231,33 +239,24 @@ function App() {
     const [techToDelete, setTechToDelete] = useState(null); 
     const [isDeletingTech, setIsDeletingTech] = useState(false);
     
-    // SIGNATURE STATE (CORRECTION DU REF)
     const [missionToSign, setMissionToSign] = useState(null);
-    const sigCanvas = useRef(null); // <-- IMPORTANT: Initialisé à null
+    const sigCanvas = useRef(null);
 
     const isMobileView = screenWidth < 768;
 
-    // --- INIT ---
     useEffect(() => {
         const handleResize = () => setScreenWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
-        
         const initApp = async () => {
             if (token) {
                 try {
                     const decoded = jwtDecode(token);
-                    setUserRole(decoded.role);
-                    setUserId(decoded.id);
-                    setUserName(decoded.name);
-                    
+                    setUserRole(decoded.role); setUserId(decoded.id); setUserName(decoded.name);
                     if (decoded.role === 'tech') setSelectedTechId(decoded.id);
-                    
                     try {
                         const res = await axios.get(`${API_URL}/technicians`, { headers: { Authorization: `Bearer ${token}` } });
                         setTechnicians(res.data);
-                    } catch (err) {
-                        if(err.response && err.response.status === 401) handleLogout();
-                    }
+                    } catch (err) { if(err.response && err.response.status === 401) handleLogout(); }
                 } catch (e) { handleLogout(); }
             }
         };
@@ -270,7 +269,6 @@ function App() {
 
     const getAuthHeaders = () => ({ headers: { Authorization: `Bearer ${token}` } });
 
-    // --- ACTIONS ---
     const handleAuth = async (e) => {
         e.preventDefault();
         setAuthError(""); setAuthLoading(true);
@@ -280,28 +278,22 @@ function App() {
             const res = await axios.post(`${API_URL}${endpoint}`, payload);
             if (isLoginView) {
                 localStorage.setItem('optiroute_token', res.data.token);
-                const compName = res.data.name || '';
-                localStorage.setItem('optiroute_company', compName);
-                setToken(res.data.token);
-                setUserCompany(compName);
-            } else {
-                setToast({message: "Compte créé.", type: "success"}); setIsLoginView(true);
-            }
+                const compName = res.data.name || ''; localStorage.setItem('optiroute_company', compName);
+                setToken(res.data.token); setUserCompany(compName);
+            } else { setToast({message: "Compte créé.", type: "success"}); setIsLoginView(true); }
         } catch (err) { setAuthError(err.response?.data?.message || "Erreur."); } 
         finally { setAuthLoading(false); }
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('optiroute_token'); 
-        localStorage.removeItem('optiroute_company');
+        localStorage.removeItem('optiroute_token'); localStorage.removeItem('optiroute_company');
         setToken(null); setUserRole(null); setRoute([]); setPendingMissions([]);
     };
 
     const fetchTechnicians = async () => {
         try {
             const res = await axios.get(`${API_URL}/technicians`, getAuthHeaders());
-            setTechnicians(res.data);
-            return res.data;
+            setTechnicians(res.data); return res.data;
         } catch (e) { if(e.response?.status === 401) handleLogout(); return []; }
     };
 
@@ -314,13 +306,8 @@ function App() {
             setNewTechName(""); setNewTechAddress(""); setNewTechEmail(""); setNewTechPass("");
             const updatedList = await fetchTechnicians();
             const added = updatedList[updatedList.length - 1];
-            if (added) { 
-                setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); 
-                setMapBounds(null);
-                setSelectedTechId(added.id); 
-            }
-            setToast({ message: "Technicien ajouté", type: "success" });
-            setShowTeamModal(false);
+            if (added) { setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); setMapBounds(null); setSelectedTechId(added.id); }
+            setToast({ message: "Technicien ajouté", type: "success" }); setShowTeamModal(false);
         } catch (error) { alert("Erreur ajout"); }
         finally { setIsAddingTech(false); }
     };
@@ -330,8 +317,7 @@ function App() {
         setIsDeletingTech(true);
         try { 
             await axios.delete(`${API_URL}/technicians/${techToDelete}`, getAuthHeaders()); 
-            await fetchTechnicians();
-            setTechToDelete(null);
+            await fetchTechnicians(); setTechToDelete(null);
             if (selectedTechId === techToDelete) setSelectedTechId(null);
             setToast({ message: "Technicien supprimé", type: "success" });
         } catch (e) { alert("Erreur"); }
@@ -344,16 +330,12 @@ function App() {
         if(!newName || !newAddress) return;
         setIsAddingMission(true);
         try {
-            const response = await axios.post(`${API_URL}/missions`, { 
-                client_name: newName, address: newAddress, time_slot: timeSlot, duration: duration,
-                technician_id: selectedTechId, phone: newPhone, comments: newComments 
-            }, getAuthHeaders());
+            const response = await axios.post(`${API_URL}/missions`, { client_name: newName, address: newAddress, time_slot: timeSlot, duration: duration, technician_id: selectedTechId, phone: newPhone, comments: newComments }, getAuthHeaders());
             if(response.data.success) { 
                 setPendingMissions([...pendingMissions, { name: newName, time: duration, techId: selectedTechId }]);
                 setNewName(""); setNewAddress(""); setNewPhone(""); setNewComments("");
                 setToast({ message: "Mission assignée", type: "success" });
-            } 
-            else { alert(response.data.message); }
+            } else { alert(response.data.message); }
         } catch (error) { alert("Erreur réseau"); }
         finally { setIsAddingMission(false); }
     };
@@ -368,53 +350,40 @@ function App() {
                 myRoute = myRoute.map(step => ({...step, status: step.status || 'assigned'}));
                 setRoute(myRoute); setRoutePath(response.data.path); setPendingMissions([]); 
                 if (response.data.path.length > 0) setMapBounds(response.data.path);
+                
+                // AUTO-SWITCH VERS L'ONGLET ROUTE QUAND C'EST PRÊT
+                setActiveTab(1); 
             } else { setRoute([]); }
             if (response.data.unassigned?.length > 0) { setUnassignedList(response.data.unassigned); setShowUnassignedModal(true); }
         } catch (error) { console.error(error); alert("Erreur"); }
         finally { setLoading(false); }
     };
 
-    // --- NOUVELLE LOGIQUE SIGNATURE SÉCURISÉE ---
     const triggerStatusUpdate = (missionId, newStatus) => {
-        if (newStatus === 'done') {
-            setMissionToSign(missionId); // Ouvre le modal
-        } else {
-            updateStatusOnServer(missionId, newStatus, null);
-        }
+        if (newStatus === 'done') { setMissionToSign(missionId); } 
+        else { updateStatusOnServer(missionId, newStatus, null); }
     };
 
     const confirmSignatureAndFinish = () => {
-        // Vérification défensive
         if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
             try {
-                // FIX : On utilise toDataURL() direct pour éviter le bug "_n is not a function"
                 const signatureData = sigCanvas.current.toDataURL();
                 updateStatusOnServer(missionToSign, 'done', signatureData);
                 setMissionToSign(null);
-            } catch (e) {
-                console.error("Erreur signature:", e);
-                alert("Erreur lors de la sauvegarde de la signature. Réessayez.");
-            }
-        } else {
-            alert("Veuillez signer avant de valider.");
-        }
+            } catch (e) { alert("Erreur signature"); }
+        } else { alert("Veuillez signer."); }
     };
 
     const updateStatusOnServer = async (missionId, newStatus, signatureData) => {
         if (!missionId) return;
-        
         setRoute(prevRoute => prevRoute.map(step => {
             if (step.id === missionId) return { ...step, status: newStatus };
             return step;
         }));
-
         try {
             await axios.patch(`${API_URL}/missions/${missionId}/status`, { status: newStatus, signature: signatureData }, getAuthHeaders());
-            setToast({ message: newStatus === 'done' ? "Mission Terminée & Signée" : "Mission Démarrée", type: "success" });
-        } catch (error) {
-            alert("Erreur serveur");
-            handleOptimize(); 
-        }
+            setToast({ message: newStatus === 'done' ? "Mission Terminée" : "Mission Démarrée", type: "success" });
+        } catch (error) { handleOptimize(); }
     };
 
     const confirmResetMissions = async () => {
@@ -427,7 +396,7 @@ function App() {
         finally { setLoading(false); }
     };
 
-    // --- VIEW ---
+    // --- LOGIN VIEW ---
     if (!token) return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: COLORS.DARK, color: 'white', fontFamily: "'Inter', sans-serif" }}>
             <div style={{ background: 'white', padding: '50px', borderRadius: STANDARD_RADIUS, width: '90%', maxWidth: '400px', color: COLORS.DARK, textAlign: 'center', boxShadow: SHADOW }}>
@@ -445,40 +414,18 @@ function App() {
         </div>
     );
 
+    // --- MAIN VIEW ---
     return (
         <div style={rootContainerStyle(isMobileView)}>
             <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap'); .leaflet-control-attribution { display: none !important; } .leaflet-div-icon { background: transparent; border: none; }`}</style>
             
             {toast && <div style={{position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', backgroundColor: toast.type === 'success' ? COLORS.DARK : COLORS.BLUE, color: 'white', padding: '15px 30px', borderRadius: PILL_RADIUS, boxShadow: SHADOW, zIndex: 99999, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '14px', display: 'flex', alignItems: 'center'}}><img src="/logo-truck.svg" alt="" style={{width:'20px', height:'20px', marginRight:'15px', filter:'invert(1)'}}/>{toast.message}</div>}
 
-            {/* MODAL SIGNATURE */}
-            {missionToSign && (
-                <div style={modalOverlayStyle} onClick={() => setMissionToSign(null)}>
-                    <div style={modalContentStyle} onClick={e => e.stopPropagation()}>
-                        <h3 style={{...modalTitleStyle, fontSize:'18px'}}>SIGNATURE CLIENT</h3>
-                        <div style={{border: `2px dashed ${COLORS.BORDER}`, borderRadius: STANDARD_RADIUS, backgroundColor: '#f9f9f9', marginBottom: '20px'}}>
-                            <SignatureCanvas 
-                                ref={sigCanvas}
-                                penColor="black"
-                                canvasProps={{width: 300, height: 200, className: 'sigCanvas'}} 
-                            />
-                        </div>
-                        <div style={{display:'flex', gap:'10px'}}>
-                            <button onClick={() => { if(sigCanvas.current) sigCanvas.current.clear(); }} style={{...cancelButtonStyle, border: '1px solid #eee'}}>EFFACER</button>
-                            <button onClick={confirmSignatureAndFinish} style={{...submitButtonStyle, marginTop:0}}>VALIDER</button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {missionToSign && <div style={modalOverlayStyle} onClick={() => setMissionToSign(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, fontSize:'18px'}}>SIGNATURE CLIENT</h3><div style={{border: `2px dashed ${COLORS.BORDER}`, borderRadius: STANDARD_RADIUS, backgroundColor: '#f9f9f9', marginBottom: '20px'}}><SignatureCanvas ref={sigCanvas} penColor="black" canvasProps={{width: 300, height: 200, className: 'sigCanvas'}} /></div><div style={{display:'flex', gap:'10px'}}><button onClick={() => { if(sigCanvas.current) sigCanvas.current.clear(); }} style={{...cancelButtonStyle, border: '1px solid #eee'}}>EFFACER</button><button onClick={confirmSignatureAndFinish} style={{...submitButtonStyle, marginTop:0}}>VALIDER</button></div></div></div>}
 
             {techToDelete && <div style={{...modalOverlayStyle, zIndex: 10002}} onClick={() => !isDeletingTech && setTechToDelete(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/icon-trash.svg" alt="Del" style={{width:'40px', marginBottom:'15px'}} /><h3 style={{...modalTitleStyle, color: COLORS.DARK}}>SUPPRIMER ?</h3><div style={{display:'flex', gap:'10px'}}><button onClick={() => setTechToDelete(null)} style={{...cancelButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`, marginTop:0}}>NON</button><button onClick={executeDeleteTech} style={{...submitButtonStyle, marginTop:0, backgroundColor:COLORS.RED}}>{isDeletingTech ? "..." : "OUI"}</button></div></div></div>}
 
-            {showTeamModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowTeamModal(false)}><div style={{...modalContentStyle, maxWidth:'450px', padding:'40px'}} onClick={e => e.stopPropagation()}><div style={{display:'flex', alignItems:'center', marginBottom:'20px', borderBottom:`2px solid ${COLORS.DARK}`, paddingBottom:'15px'}}><h3 style={{margin:0, fontFamily:"'Oswald', sans-serif", fontSize:'24px', textTransform:'uppercase'}}>MON ÉQUIPE</h3></div><div style={{maxHeight: '250px', overflowY: 'auto', marginBottom: '30px'}}>{technicians.map(t => (<div key={t.id} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'15px', marginBottom:'10px', border:`1px solid ${COLORS.BORDER}`, borderRadius:STANDARD_RADIUS, backgroundColor: COLORS.BG_LIGHT}}>
-                <div style={{display:'flex', alignItems:'center'}}>
-                    <div style={{width:'35px', height:'35px', borderRadius:'50%', backgroundColor:COLORS.BLUE, color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', marginRight:'15px', fontSize:'14px'}}>{t.name.charAt(0)}</div>
-                    <div><div style={{fontWeight:'700', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", fontSize:'16px'}}>{t.name}</div><div style={{fontSize:'12px', color: COLORS.GRAY_TEXT}}>{t.email}</div></div>
-                </div>
-                {userRole === 'admin' && (<button onClick={() => setTechToDelete(t.id)} style={{background:'transparent', border:'none', cursor:'pointer', opacity:0.6}}><img src="/icon-trash.svg" alt="Del" style={{width:'20px'}} /></button>)}</div>))}</div>{userRole === 'admin' && (<form onSubmit={handleAddTech}><input type="text" placeholder="Nom" value={newTechName} onChange={(e) => setNewTechName(e.target.value)} style={inputStyle} /><AddressInput placeholder="Adresse (Départ)" value={newTechAddress} onChange={setNewTechAddress} /><input type="email" placeholder="Email" value={newTechEmail} onChange={(e) => setNewTechEmail(e.target.value)} style={inputStyle} /><input type="password" placeholder="Mot de passe" value={newTechPass} onChange={(e) => setNewTechPass(e.target.value)} style={inputStyle} /><button type="submit" disabled={isAddingTech} style={{...submitButtonStyle, marginTop: '10px'}}>{isAddingTech ? "..." : "CRÉER LE COMPTE"}</button></form>)}<button onClick={() => setShowTeamModal(false)} style={{...cancelButtonStyle, border:'none', marginTop:'10px'}}>FERMER</button></div></div>}
+            {showTeamModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowTeamModal(false)}><div style={{...modalContentStyle, maxWidth:'450px', padding:'40px'}} onClick={e => e.stopPropagation()}><div style={{display:'flex', alignItems:'center', marginBottom:'20px', borderBottom:`2px solid ${COLORS.DARK}`, paddingBottom:'15px'}}><h3 style={{margin:0, fontFamily:"'Oswald', sans-serif", fontSize:'24px', textTransform:'uppercase'}}>MON ÉQUIPE</h3></div><div style={{maxHeight: '250px', overflowY: 'auto', marginBottom: '30px'}}>{technicians.map(t => (<div key={t.id} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'15px', marginBottom:'10px', border:`1px solid ${COLORS.BORDER}`, borderRadius:STANDARD_RADIUS, backgroundColor: COLORS.BG_LIGHT}}><div style={{display:'flex', alignItems:'center'}}><div style={{width:'35px', height:'35px', borderRadius:'50%', backgroundColor:COLORS.BLUE, color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', marginRight:'15px', fontSize:'14px'}}>{t.name.charAt(0)}</div><div><div style={{fontWeight:'700', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", fontSize:'16px'}}>{t.name}</div><div style={{fontSize:'12px', color: COLORS.GRAY_TEXT}}>{t.email}</div></div></div>{userRole === 'admin' && (<button onClick={() => setTechToDelete(t.id)} style={{background:'transparent', border:'none', cursor:'pointer', opacity:0.6}}><img src="/icon-trash.svg" alt="Del" style={{width:'20px'}} /></button>)}</div>))}</div>{userRole === 'admin' && (<form onSubmit={handleAddTech}><input type="text" placeholder="Nom" value={newTechName} onChange={(e) => setNewTechName(e.target.value)} style={inputStyle} /><AddressInput placeholder="Adresse (Départ)" value={newTechAddress} onChange={setNewTechAddress} /><input type="email" placeholder="Email" value={newTechEmail} onChange={(e) => setNewTechEmail(e.target.value)} style={inputStyle} /><input type="password" placeholder="Mot de passe" value={newTechPass} onChange={(e) => setNewTechPass(e.target.value)} style={inputStyle} /><button type="submit" disabled={isAddingTech} style={{...submitButtonStyle, marginTop: '10px'}}>{isAddingTech ? "..." : "CRÉER LE COMPTE"}</button></form>)}<button onClick={() => setShowTeamModal(false)} style={{...cancelButtonStyle, border:'none', marginTop:'10px'}}>FERMER</button></div></div>}
 
             {showResetModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowResetModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/icon-trash.svg" alt="!" style={{width:'40px', marginBottom:'15px'}}/ ><h3 style={modalTitleStyle}>VIDER ?</h3><div style={{display:'flex', gap:'10px'}}><button onClick={()=>setShowResetModal(false)} style={{...cancelButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`, marginTop:0}}>ANNULER</button><button onClick={confirmResetMissions} style={{...submitButtonStyle, marginTop:0, backgroundColor:COLORS.DARK}}>{loading ? "..." : "CONFIRMER"}</button></div></div></div>}
 
@@ -491,53 +438,14 @@ function App() {
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
                     <MapController center={mapCenter} bounds={mapBounds} />
                     {technicians.map(t => (<Marker key={`tech-${t.id}`} position={[parseFloat(t.start_lat), parseFloat(t.start_lng)]}><Popup><div style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase'}}>🏠 {t.name}</div></Popup></Marker>))}
-                    {/* MARQUEURS AVEC STATUT */}
-                    {route.map((step, index) => { 
-                            const stepColor = getStepColor(index, route.length, step.status); 
-                            return (
-                                <div key={index} style={{...missionItemStyle, backgroundColor: step.status === 'done' ? '#f8f9fa' : 'white', opacity: step.status === 'done' ? 0.8 : 1}}>
-                                    <div style={{display:'flex', width:'100%', alignItems:'flex-start'}}>
-                                        <div style={{backgroundColor: stepColor, color: COLORS.DARK, width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontFamily: "'Inter', sans-serif", marginRight: '15px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', flexShrink: 0, border:'2px solid white'}}>{step.step}</div>
-                                        
-                                        <div style={missionInfoStyle}>
-                                            <div style={missionTitleStyle}>{renderClientName(step.client, step.time_slot)}</div>
-                                            <div style={missionAddressStyle}>{step.address.substring(0, 35)}...</div>
-                                            <div style={{fontSize: '10px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif", textTransform:'uppercase'}}>{step.technician_name ? `🚛 ${step.technician_name} • ` : ''}📍 {step.distance_km} km</div>
-                                            
-                                            {step.comments && <div style={{fontSize:'11px', color:COLORS.GRAY_TEXT, marginTop:'4px', fontStyle:'italic'}}>📝 {step.comments}</div>}
-                                            
-                                            {/* BOUTONS D'ACTION */}
-                                            {(step.status === 'assigned' || !step.status) && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'in_progress')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_GREEN, color:COLORS.DARK}}>DÉMARRER</button>}
-                                            {step.status === 'in_progress' && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'done')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_RED, color:COLORS.DARK}}>TERMINER & SIGNER</button>}
-                                            
-                                            {/* AFFICHAGE DE LA SIGNATURE SI TERMINÉ */}
-                                            {step.status === 'done' && (
-                                                <div style={{marginTop:'10px'}}>
-                                                    <div style={{fontSize:'11px', color:COLORS.SUCCESS_TEXT, fontWeight:'bold', marginBottom:'5px', fontFamily:"'Inter', sans-serif"}}>✅ VALIDÉ</div>
-                                                    {step.signature && (
-                                                        <div style={{border: '1px solid #eee', borderRadius: '8px', padding: '5px', backgroundColor: 'white', width: 'fit-content'}}>
-                                                            <img src={step.signature} alt="Preuve" style={{height: '40px', display: 'block'}} />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                    
-                                    <div style={{display:'flex', flexDirection:'column', gap:'5px'}}>
-                                        {step.phone && <a href={`tel:${step.phone}`} style={phoneButtonStyle}>📞</a>}
-                                        <button onClick={() => setNavModal({lat: step.lat, lng: step.lng})} style={compassButtonStyle}><img src="/icon-navigation.svg" alt="GPS" style={{width:'18px'}} /></button>
-                                    </div>
-                                </div>
-                            ); 
-                        })}
+                    {route.map((step, index) => (<Marker key={index} position={[step.lat, step.lng]} icon={createCustomIcon(index, route.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>))}
                     {routePath.length > 0 && <Polyline positions={routePath} color={COLORS.BLUE} weight={5} opacity={0.8} />}
                 </MapContainer>
             </div>
 
             <div style={panelContainerStyle(isMobileView)}>
                 <div style={panelHeaderStyle}>
-                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start'}}>
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width:'100%'}}>
                         <div style={{display:'flex', alignItems:'center'}}><img src="/logo-truck.svg" alt="Logo" style={{height: '36px', marginRight: '15px'}} />
                             <div>
                                 <h2 style={{margin: 0, color: COLORS.DARK, fontSize: '1.8em', fontFamily: "'Oswald', sans-serif", fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px'}}>OptiRoute <span style={proTagStyle}>PRO</span></h2>
@@ -546,100 +454,109 @@ function App() {
                                 </div>
                             </div>
                         </div>
-                        <button onClick={handleLogout} style={{background: 'transparent', border: 'none', color: COLORS.RED, cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration:'underline', fontFamily:"'Inter', sans-serif"}}>DÉCONNEXION</button>
+                        
+                        {/* NAVIGATION FLECHE */}
+                        <div style={{display:'flex', alignItems:'center'}}>
+                            {activeTab === 0 && <div onClick={() => setActiveTab(1)} style={navArrowStyle}>➡️</div>}
+                            {activeTab === 1 && <div onClick={() => setActiveTab(0)} style={{...navArrowStyle, transform:'rotate(180deg)'}}>➡️</div>}
+                            <button onClick={handleLogout} style={{background: 'transparent', border: 'none', color: COLORS.RED, cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration:'underline', fontFamily:"'Inter', sans-serif", marginLeft:'15px'}}>DÉCO</button>
+                        </div>
                     </div>
                 </div>
 
-                <div style={cardStyle}>
-                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
-                        <div style={{display: 'flex', alignItems: 'center'}}><img src="/icon-plus.svg" alt="+" style={{width:'16px', marginRight:'8px'}} /><h4 style={{margin:0, color: COLORS.DARK, fontSize: '14px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '1px'}}>NOUVELLE MISSION</h4></div>
-                        <button onClick={() => setShowTeamModal(true)} style={{background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '12px', color: COLORS.BLUE, fontFamily: "'Inter', sans-serif", fontWeight: '600', textDecoration: 'underline'}}>{userRole === 'admin' ? "GÉRER L'ÉQUIPE" : "VOIR L'ÉQUIPE"}</button>
+                {/* CONTENU DU SLIDER */}
+                
+                {/* FACE A : SAISIE */}
+                {activeTab === 0 && (
+                <>
+                    <div style={cardStyle}>
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
+                            <div style={{display: 'flex', alignItems: 'center'}}><img src="/icon-plus.svg" alt="+" style={{width:'16px', marginRight:'8px'}} /><h4 style={{margin:0, color: COLORS.DARK, fontSize: '14px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '1px'}}>NOUVELLE MISSION</h4></div>
+                            <button onClick={() => setShowTeamModal(true)} style={{background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '12px', color: COLORS.BLUE, fontFamily: "'Inter', sans-serif", fontWeight: '600', textDecoration: 'underline'}}>{userRole === 'admin' ? "GÉRER L'ÉQUIPE" : "VOIR L'ÉQUIPE"}</button>
+                        </div>
+                        
+                        {userRole === 'admin' && (
+                            <div style={{marginBottom:'15px'}}>
+                                <div style={{fontSize:'11px', fontWeight:'bold', color:COLORS.GRAY_TEXT, marginBottom:'5px'}}>AFFECTER À :</div>
+                                <div style={{display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'5px'}}>
+                                    {technicians.map(t => (
+                                        <div key={t.id} onClick={() => setSelectedTechId(t.id)} style={{
+                                            padding:'8px 15px', borderRadius:PILL_RADIUS, cursor:'pointer', fontSize:'12px', fontWeight:'bold', whiteSpace:'nowrap',
+                                            backgroundColor: selectedTechId === t.id ? COLORS.DARK : COLORS.WHITE,
+                                            color: selectedTechId === t.id ? COLORS.WHITE : COLORS.DARK,
+                                            border: '1px solid ' + (selectedTechId === t.id ? COLORS.DARK : COLORS.BORDER)
+                                        }}>
+                                            {t.name}
+                                        </div>
+                                    ))}
+                                </div>
+                                {!selectedTechId && <div style={{fontSize:'11px', color:COLORS.RED, marginTop:'5px'}}>* Sélectionnez un technicien</div>}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleAddMission} style={{opacity: (userRole === 'admin' && !selectedTechId) ? 0.5 : 1, pointerEvents: (userRole === 'admin' && !selectedTechId) ? 'none' : 'auto', transition: '0.3s'}}>
+                            <input type="text" placeholder="CLIENT" value={newName} onChange={(e) => setNewName(e.target.value)} style={inputStyle} />
+                            <AddressInput placeholder="ADRESSE" value={newAddress} onChange={setNewAddress} />
+                            <input type="text" placeholder="TÉLÉPHONE (Optionnel)" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} style={inputStyle} />
+                            <input type="text" placeholder="COMMENTAIRE (Digicode, etc.)" value={newComments} onChange={(e) => setNewComments(e.target.value)} style={inputStyle} />
+                            <div style={{display:'flex', gap:'10px', marginBottom:'5px'}}>
+                                <div style={{position: 'relative', flex: 1, userSelect: 'none'}}>
+                                    <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} style={{...inputStyle, display: 'flex', alignItems: 'center', cursor: 'pointer', position: 'relative', marginBottom:0}}><img src={timeSlot === 'morning' ? '/icon-morning.svg' : '/icon-afternoon.svg'} alt="time" style={{width: '18px', marginRight: '10px'}} /><span style={{flex: 1, fontSize:'13px', textTransform:'uppercase', fontWeight:'600'}}>{timeSlot === 'morning' ? 'MATIN' : 'APRÈS-MIDI'}</span></div>
+                                    {isDropdownOpen && (<div style={{position: 'absolute', top: '110%', left: 0, right: 0, backgroundColor: COLORS.WHITE, border: `1px solid ${COLORS.DARK}`, borderRadius: '20px', zIndex: 100, boxShadow: SHADOW, overflow: 'hidden', padding: '5px'}}><div onClick={() => { setTimeSlot('morning'); setIsDropdownOpen(false); }} style={dropdownItemStyle}><img src="/icon-morning.svg" alt="M" style={{width: '18px', marginRight: '10px'}} />MATIN</div><div style={{height: '1px', background: '#eee', margin: '0 10px'}}></div><div onClick={() => { setTimeSlot('afternoon'); setIsDropdownOpen(false); }} style={dropdownItemStyle}><img src="/icon-afternoon.svg" alt="A" style={{width: '18px', marginRight: '10px'}} />APRÈS-MIDI</div></div>)}
+                                </div>
+                                <div style={{width: '90px', position:'relative'}}><input type="number" min="5" step="5" value={duration} onChange={(e) => setDuration(parseInt(e.target.value) || 30)} style={{...inputStyle, textAlign:'center', marginBottom:0, paddingRight:'25px'}} /><span style={{position:'absolute', right:'10px', top:'50%', transform:'translateY(-50%)', fontSize:'10px', color:COLORS.GRAY_TEXT, fontWeight:'bold'}}>MIN</span></div>
+                            </div>
+                            <div style={{textAlign:'right', fontSize:'11px', color:COLORS.GRAY_TEXT, fontStyle:'italic', marginBottom:'15px'}}>Temps estimé : <strong>{formatDuration(duration)}</strong></div>
+                            <button type="submit" disabled={isAddingMission} style={{...submitButtonStyle, opacity: isAddingMission ? 0.7 : 1}}>{isAddingMission ? "..." : "AJOUTER AU TRAJET"}</button>
+                        </form>
                     </div>
+                    {pendingMissions.length > 0 && (<div style={{marginBottom: '20px', border: `1px dashed ${COLORS.BLUE}`, borderRadius: STANDARD_RADIUS, padding: '15px', backgroundColor: 'rgba(43, 121, 194, 0.05)'}}><div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}><h5 style={{margin:0, color:COLORS.BLUE, fontFamily:"'Oswald', sans-serif", fontSize:'14px'}}>EN ATTENTE ({pendingMissions.length})</h5></div><div style={{maxHeight:'80px', overflowY:'auto'}}>{pendingMissions.map((pm, idx) => (<div key={idx} style={{fontSize:'12px', marginBottom:'4px', display:'flex', alignItems:'center', fontFamily:"'Inter', sans-serif"}}><div style={{width:'6px', height:'6px', borderRadius:'50%', background:COLORS.BLUE, marginRight:'8px'}}></div><span style={{fontWeight:'600', marginRight:'5px', color:COLORS.DARK}}>{pm.name}</span> <span style={{color:COLORS.GRAY_TEXT}}>({formatDuration(pm.time)})</span></div>))}</div></div>)}
                     
-                    {/* SELECTEUR HORS DU FORMULAIRE */}
-                    {userRole === 'admin' && (
-                        <div style={{marginBottom:'15px'}}>
-                            <div style={{fontSize:'11px', fontWeight:'bold', color:COLORS.GRAY_TEXT, marginBottom:'5px'}}>AFFECTER À :</div>
-                            <div style={{display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'5px'}}>
-                                {technicians.map(t => (
-                                    <div key={t.id} onClick={() => setSelectedTechId(t.id)} style={{
-                                        padding:'8px 15px', borderRadius:PILL_RADIUS, cursor:'pointer', fontSize:'12px', fontWeight:'bold', whiteSpace:'nowrap',
-                                        backgroundColor: selectedTechId === t.id ? COLORS.DARK : COLORS.WHITE,
-                                        color: selectedTechId === t.id ? COLORS.WHITE : COLORS.DARK,
-                                        border: '1px solid ' + (selectedTechId === t.id ? COLORS.DARK : COLORS.BORDER)
-                                    }}>
-                                        {t.name}
-                                    </div>
-                                ))}
-                            </div>
-                            {!selectedTechId && <div style={{fontSize:'11px', color:COLORS.RED, marginTop:'5px'}}>* Sélectionnez un technicien</div>}
+                    <div style={actionButtonsContainerStyle}>
+                        <div style={buttonsRowStyle}>
+                            <button onClick={handleOptimize} disabled={loading} style={optimizeButtonStyle}>{loading ? (<div style={{display:'flex', flexDirection:'column', alignItems:'center'}}><img src="/logo-truck.svg" alt="..." style={{width:'60px', opacity:0.5}} /><span style={{fontSize: '12px', color: COLORS.BLUE, fontWeight: 'bold', fontFamily: "'Oswald', sans-serif", marginTop:'5px'}}>OPTIMISATION...</span></div>) : (<div style={{position:'relative'}}><img src="/logo-truck.svg" alt="Optimize" style={{ width:'100px', height:'auto', filter: 'drop-shadow(0px 5px 10px rgba(0,0,0,0.2))' }} />{pendingMissions.length > 0 && <div style={{position:'absolute', top:'-5px', right:'-5px', background:COLORS.RED, color:'white', borderRadius:'50%', width:'24px', height:'24px', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', border:'2px solid white', boxShadow:'0 2px 5px rgba(0,0,0,0.2)'}}>{pendingMissions.length}</div>}</div>)}</button>
+                            {userRole === 'admin' && (<button onClick={()=>setShowResetModal(true)} style={resetButtonStyle}><img src="/icon-trash.svg" alt="Reset" style={{width:'28px', opacity:0.6}} /></button>)}
                         </div>
-                    )}
-
-                    <form onSubmit={handleAddMission} style={{opacity: (userRole === 'admin' && !selectedTechId) ? 0.5 : 1, pointerEvents: (userRole === 'admin' && !selectedTechId) ? 'none' : 'auto', transition: '0.3s'}}>
-                        
-                        <input type="text" placeholder="CLIENT" value={newName} onChange={(e) => setNewName(e.target.value)} style={inputStyle} />
-                        
-                        {/* NOUVEAU : AUTO-COMPLÉTION ADRESSE */}
-                        <AddressInput placeholder="ADRESSE" value={newAddress} onChange={setNewAddress} />
-                        
-                        {/* CHAMPS TÉLÉPHONE & COMMENTAIRE */}
-                        <input type="text" placeholder="TÉLÉPHONE (Optionnel)" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} style={inputStyle} />
-                        <input type="text" placeholder="COMMENTAIRE (Digicode, etc.)" value={newComments} onChange={(e) => setNewComments(e.target.value)} style={inputStyle} />
-
-                        <div style={{display:'flex', gap:'10px', marginBottom:'5px'}}>
-                            <div style={{position: 'relative', flex: 1, userSelect: 'none'}}>
-                                <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} style={{...inputStyle, display: 'flex', alignItems: 'center', cursor: 'pointer', position: 'relative', marginBottom:0}}><img src={timeSlot === 'morning' ? '/icon-morning.svg' : '/icon-afternoon.svg'} alt="time" style={{width: '18px', marginRight: '10px'}} /><span style={{flex: 1, fontSize:'13px', textTransform:'uppercase', fontWeight:'600'}}>{timeSlot === 'morning' ? 'MATIN' : 'APRÈS-MIDI'}</span></div>
-                                {isDropdownOpen && (<div style={{position: 'absolute', top: '110%', left: 0, right: 0, backgroundColor: COLORS.WHITE, border: `1px solid ${COLORS.DARK}`, borderRadius: '20px', zIndex: 100, boxShadow: SHADOW, overflow: 'hidden', padding: '5px'}}><div onClick={() => { setTimeSlot('morning'); setIsDropdownOpen(false); }} style={dropdownItemStyle}><img src="/icon-morning.svg" alt="M" style={{width: '18px', marginRight: '10px'}} />MATIN</div><div style={{height: '1px', background: '#eee', margin: '0 10px'}}></div><div onClick={() => { setTimeSlot('afternoon'); setIsDropdownOpen(false); }} style={dropdownItemStyle}><img src="/icon-afternoon.svg" alt="A" style={{width: '18px', marginRight: '10px'}} />APRÈS-MIDI</div></div>)}
-                            </div>
-                            <div style={{width: '90px', position:'relative'}}><input type="number" min="5" step="5" value={duration} onChange={(e) => setDuration(parseInt(e.target.value) || 30)} style={{...inputStyle, textAlign:'center', marginBottom:0, paddingRight:'25px'}} /><span style={{position:'absolute', right:'10px', top:'50%', transform:'translateY(-50%)', fontSize:'10px', color:COLORS.GRAY_TEXT, fontWeight:'bold'}}>MIN</span></div>
-                        </div>
-                        
-                        {/* Aide Durée */}
-                        <div style={{textAlign:'right', fontSize:'11px', color:COLORS.GRAY_TEXT, fontStyle:'italic', marginBottom:'15px'}}>
-                            Temps estimé : <strong>{formatDuration(duration)}</strong>
-                        </div>
-
-                        <button type="submit" disabled={isAddingMission} style={{...submitButtonStyle, opacity: isAddingMission ? 0.7 : 1}}>{isAddingMission ? "..." : "AJOUTER AU TRAJET"}</button>
-                    </form>
-                </div>
-
-                {pendingMissions.length > 0 && (<div style={{marginBottom: '20px', border: `1px dashed ${COLORS.BLUE}`, borderRadius: STANDARD_RADIUS, padding: '15px', backgroundColor: 'rgba(43, 121, 194, 0.05)'}}><div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}><h5 style={{margin:0, color:COLORS.BLUE, fontFamily:"'Oswald', sans-serif", fontSize:'14px'}}>EN ATTENTE ({pendingMissions.length})</h5></div><div style={{maxHeight:'80px', overflowY:'auto'}}>{pendingMissions.map((pm, idx) => (<div key={idx} style={{fontSize:'12px', marginBottom:'4px', display:'flex', alignItems:'center', fontFamily:"'Inter', sans-serif"}}><div style={{width:'6px', height:'6px', borderRadius:'50%', background:COLORS.BLUE, marginRight:'8px'}}></div><span style={{fontWeight:'600', marginRight:'5px', color:COLORS.DARK}}>{pm.name}</span> <span style={{color:COLORS.GRAY_TEXT}}>({formatDuration(pm.time)})</span></div>))}</div></div>)}
-
-                <div style={actionButtonsContainerStyle}>
-                    <div style={buttonsRowStyle}>
-                        <button onClick={handleOptimize} disabled={loading} style={optimizeButtonStyle}>{loading ? (<div style={{display:'flex', flexDirection:'column', alignItems:'center'}}><img src="/logo-truck.svg" alt="..." style={{width:'60px', opacity:0.5}} /><span style={{fontSize: '12px', color: COLORS.BLUE, fontWeight: 'bold', fontFamily: "'Oswald', sans-serif", marginTop:'5px'}}>OPTIMISATION...</span></div>) : (<div style={{position:'relative'}}><img src="/logo-truck.svg" alt="Optimize" style={{ width:'100px', height:'auto', filter: 'drop-shadow(0px 5px 10px rgba(0,0,0,0.2))' }} />{pendingMissions.length > 0 && <div style={{position:'absolute', top:'-5px', right:'-5px', background:COLORS.RED, color:'white', borderRadius:'50%', width:'24px', height:'24px', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', border:'2px solid white', boxShadow:'0 2px 5px rgba(0,0,0,0.2)'}}>{pendingMissions.length}</div>}</div>)}</button>
-                        {userRole === 'admin' && (<button onClick={()=>setShowResetModal(true)} style={resetButtonStyle}><img src="/icon-trash.svg" alt="Reset" style={{width:'28px', opacity:0.6}} /></button>)}
                     </div>
-                </div>
+                </>
+                )}
 
-                <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
-                    <h4 style={{...cardTitleStyle, marginBottom: '10px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '14px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>FEUILLE DE ROUTE</h4>
-                    <div style={missionsListStyle}>
-                        {route.length === 0 ? (<div style={{padding: '30px', textAlign: 'center', color: COLORS.GRAY_TEXT, fontSize: '0.9em', fontFamily: "'Inter', sans-serif"}}><div style={{opacity:0.3, fontSize:'40px', marginBottom:'10px'}}>🗺️</div><p style={{margin: 0}}>La carte est vide.</p></div>) : (route.map((step, index) => { const stepColor = getStepColor(index, route.length, step.status); return (
-                            <div key={index} style={{...missionItemStyle, backgroundColor: step.status === 'done' ? '#f5f5f5' : 'white', opacity: step.status === 'done' ? 0.7 : 1}}>
-                                <div style={{display:'flex', width:'100%', alignItems:'flex-start'}}>
-                                    <div style={{backgroundColor: stepColor, color: COLORS.DARK, width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontFamily: "'Inter', sans-serif", marginRight: '15px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', flexShrink: 0, border:'2px solid white'}}>{step.step}</div>
-                                    <div style={missionInfoStyle}>
-                                        <div style={missionTitleStyle}>{renderClientName(step.client, step.time_slot)}</div>
-                                        <div style={missionAddressStyle}>{step.address.substring(0, 35)}...</div>
-                                        <div style={{fontSize: '10px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif", textTransform:'uppercase'}}>{step.technician_name ? `🚛 ${step.technician_name} • ` : ''}📍 {step.distance_km} km</div>
-                                        {step.comments && <div style={{fontSize:'11px', color:COLORS.GRAY_TEXT, marginTop:'4px', fontStyle:'italic'}}>📝 {step.comments}</div>}
-                                        
-                                        {(step.status === 'assigned' || !step.status) && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'in_progress')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_GREEN, color:COLORS.DARK}}>DÉMARRER</button>}
-                                        {step.status === 'in_progress' && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'done')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_RED, color:COLORS.DARK}}>TERMINER</button>}
-                                        {step.status === 'done' && <div style={{marginTop:'10px', fontSize:'12px', color:COLORS.SUCCESS_TEXT, fontWeight:'bold', fontFamily:"'Inter', sans-serif"}}>✅ MISSION TERMINÉE</div>}
-
+                {/* FACE B : FEUILLE DE ROUTE */}
+                {activeTab === 1 && (
+                    <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', height:'100%'}}>
+                        <h4 style={{...cardTitleStyle, marginBottom: '15px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '16px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>FEUILLE DE ROUTE</h4>
+                        <div style={missionsListStyle}>
+                            {route.length === 0 ? (<div style={{padding: '30px', textAlign: 'center', color: COLORS.GRAY_TEXT, fontSize: '0.9em', fontFamily: "'Inter', sans-serif"}}><div style={{opacity:0.3, fontSize:'40px', marginBottom:'10px'}}>🗺️</div><p style={{margin: 0}}>La carte est vide.</p></div>) : (route.map((step, index) => { const stepColor = getStepColor(index, route.length, step.status); return (
+                                <div key={index} style={{...missionItemStyle, backgroundColor: step.status === 'done' ? '#f5f5f5' : 'white', opacity: step.status === 'done' ? 0.7 : 1}}>
+                                    <div style={{display:'flex', width:'100%', alignItems:'flex-start'}}>
+                                        <div style={{backgroundColor: stepColor, color: COLORS.DARK, width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontFamily: "'Inter', sans-serif", marginRight: '15px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', flexShrink: 0, border:'2px solid white'}}>{step.step}</div>
+                                        <div style={missionInfoStyle}>
+                                            <div style={missionTitleStyle}>{renderClientName(step.client, step.time_slot)}</div>
+                                            <div style={missionAddressStyle}>{step.address.substring(0, 35)}...</div>
+                                            <div style={{fontSize: '10px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif", textTransform:'uppercase'}}>{step.technician_name ? `🚛 ${step.technician_name} • ` : ''}📍 {step.distance_km} km</div>
+                                            {step.comments && <div style={{fontSize:'11px', color:COLORS.GRAY_TEXT, marginTop:'4px', fontStyle:'italic'}}>📝 {step.comments}</div>}
+                                            
+                                            {(step.status === 'assigned' || !step.status) && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'in_progress')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_GREEN, color:COLORS.DARK}}>DÉMARRER</button>}
+                                            {step.status === 'in_progress' && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'done')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_RED, color:COLORS.DARK}}>TERMINER</button>}
+                                            
+                                            {/* AFFICHAGE SIGNATURE */}
+                                            {step.status === 'done' && (
+                                                <div style={{marginTop:'10px'}}>
+                                                    <div style={{fontSize:'11px', color:COLORS.SUCCESS_TEXT, fontWeight:'bold', fontFamily:"'Inter', sans-serif"}}>✅ MISSION TERMINÉE</div>
+                                                    {step.signature && <div style={{marginTop:'5px', border:'1px solid #eee', padding:'2px', background:'white', width:'fit-content'}}><img src={step.signature} alt="Sign" style={{height:'30px'}} /></div>}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div style={{display:'flex', flexDirection:'column', gap:'5px'}}>
+                                        {step.phone && <a href={`tel:${step.phone}`} style={phoneButtonStyle}>📞</a>}
+                                        <button onClick={() => setNavModal({lat: step.lat, lng: step.lng})} style={compassButtonStyle}><img src="/icon-navigation.svg" alt="GPS" style={{width:'18px'}} /></button>
                                     </div>
                                 </div>
-                                <div style={{display:'flex', flexDirection:'column', gap:'5px'}}>
-                                    {step.phone && <a href={`tel:${step.phone}`} style={phoneButtonStyle}>📞</a>}
-                                    <button onClick={() => setNavModal({lat: step.lat, lng: step.lng})} style={compassButtonStyle}><img src="/icon-navigation.svg" alt="GPS" style={{width:'18px'}} /></button>
-                                </div>
-                            </div>
-                        ); }))}
+                            ); }))}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     );
