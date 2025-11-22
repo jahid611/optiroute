@@ -132,7 +132,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
 
         // 2. Ligne "Téléphone" et "Date"
         // Environ 270px depuis le haut
-        const row2_Y = height - 290;
+        const row2_Y = height - 310;
         
         if(mission.phone) {
             firstPage.drawText(mission.phone, { 
@@ -153,7 +153,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
 
         // 3. Ligne "Technicien" et "Statut"
         // Environ 380px depuis le haut
-        const row3_Y = height - 400;
+        const row3_Y = height - 410;
 
         firstPage.drawText(technicianName || "", { 
             x: 100, 
@@ -174,8 +174,8 @@ const generatePDF = async (mission, technicianName, companyName) => {
         // Environ 460px depuis le haut
         if (mission.comments) {
             firstPage.drawText(mission.comments, { 
-                x: 60, 
-                y: height - 465, 
+                x: 75, 
+                y: height - 470, 
                 size: 10, 
                 font: font,
                 maxWidth: 500
