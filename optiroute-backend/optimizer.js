@@ -87,7 +87,8 @@ async function optimizeRoute(userId) {
                             technician_name: techName,
                             phone: m.phone,
                             comments: m.comments,
-                            status: m.status // On renvoie aussi le statut actuel
+                            status: m.status, // On renvoie aussi le statut actuel
+                            signature: m.signature
                         });
                         order++;
                     }
