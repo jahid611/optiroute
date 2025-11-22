@@ -170,19 +170,28 @@ app.delete('/missions/reset', authenticateToken, async (req, res) => {
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
+// Changer le statut (+ Signature optionnelle)
 app.patch('/missions/:id/status', authenticateToken, async (req, res) => {
     try {
-        const { status } = req.body; // 'in_progress' ou 'done'
+        const { status, signature } = req.body; 
         const missionId = req.params.id;
         
-        // Sécurité : Vérifier que le statut est valide
-        if (!['in_progress', 'done', 'assigned'].includes(status)) {
+        if (!['in_progress', 'done', 'assigned', 'pending'].includes(status)) {
             return res.status(400).json({ message: "Statut invalide" });
         }
 
-        await db.query('UPDATE missions SET status = ? WHERE id = ?', [status, missionId]);
+        // Si on termine, on enregistre la signature, sinon juste le statut
+        if (status === 'done' && signature) {
+            await db.query('UPDATE missions SET status = ?, signature = ? WHERE id = ?', [status, signature, missionId]);
+        } else {
+            await db.query('UPDATE missions SET status = ? WHERE id = ?', [status, missionId]);
+        }
+
         res.json({ success: true });
-    } catch (error) { res.status(500).json({ error: error.message }); }
+    } catch (error) { 
+        console.error(error);
+        res.status(500).json({ error: error.message }); 
+    }
 });
 
 // Route de santé pour Render (Ping)

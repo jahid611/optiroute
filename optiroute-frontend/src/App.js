@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Ajout useRef
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css'; 
 import L from 'leaflet';
 import { jwtDecode } from 'jwt-decode'; 
+import SignatureCanvas from 'react-signature-canvas'; // <--- NOUVEAU
 
 // --- FIX POUR VERCEL ---
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
@@ -18,19 +19,11 @@ L.Icon.Default.mergeOptions({
     shadowUrl: shadowUrl,
 });
 
-// --- 2. CONSTANTES & STYLES (DESIGN PASTEL PRO) ---
+// --- 2. CONSTANTES & STYLES ---
 const COLORS = {
-    DARK: '#3b4651', 
-    BLUE: '#2b79c2', 
-    PASTEL_BLUE: '#A0C4FF', 
-    PASTEL_GREEN: '#B9FBC0', 
-    PASTEL_RED: '#FFADAD',   
-    PASTEL_GRAY: '#CFD8DC', // Pour les missions terminées
-    WHITE: '#ffffff', 
-    BORDER: '#e0e0e0', 
-    GRAY_TEXT: '#6c757d', 
-    BG_LIGHT: '#f8f9fa', 
-    WARNING: '#ffd6a5',
+    DARK: '#3b4651', BLUE: '#2b79c2', PASTEL_BLUE: '#A0C4FF', 
+    PASTEL_GREEN: '#B9FBC0', PASTEL_RED: '#FFADAD', WHITE: '#ffffff', 
+    BORDER: '#e0e0e0', GRAY_TEXT: '#6c757d', BG_LIGHT: '#f8f9fa', WARNING: '#ffd6a5',
     SUCCESS_TEXT: '#2e7d32'
 };
 
@@ -38,7 +31,7 @@ const PILL_RADIUS = '38px';
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 
-// Styles CSS-in-JS
+// Styles
 const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', minHeight: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: COLORS.BG_LIGHT, overflow: isMobile ? 'auto' : 'hidden' });
 const mapContainerStyle = (isMobile) => ({ flex: isMobile ? 'none' : 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: '1px solid ' + COLORS.BORDER, zIndex: 0 });
 const panelContainerStyle = (isMobile) => ({ width: isMobile ? '100%' : '450px', height: isMobile ? 'auto' : '100%', minHeight: isMobile ? '60vh' : '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: '30px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', order: isMobile ? 2 : 1, zIndex: 1000, borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none', boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)' });
@@ -48,14 +41,13 @@ const cardStyle = { marginBottom: '25px' };
 const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK };
 const inputStyle = { width: '100%', padding: '14px 20px', marginBottom: '10px', borderRadius: PILL_RADIUS, border: '1px solid transparent', backgroundColor: COLORS.WHITE, fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: '0.2s' };
 const dropdownItemStyle = { padding: '12px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, fontWeight: '600', transition: 'background 0.2s' };
-const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald'", fontFamily: 'sans-serif', transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
+const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif'", transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
 const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px', marginTop: 'auto' };
 const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%' };
 const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
 const resetButtonStyle = { padding: '10px', backgroundColor: 'white', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', width: '50px', height: '50px' };
 const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'auto', flex: 1, borderRadius: STANDARD_RADIUS, paddingRight: '5px' };
-const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', flexDirection: 'column', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
-const missionHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' };
+const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
 const missionInfoStyle = { flex: 1, marginRight: '10px' };
 const missionTitleStyle = { fontWeight: '700', fontSize: '14px', color: COLORS.DARK, display: 'flex', alignItems: 'center', fontFamily: "'Inter', sans-serif" };
 const missionAddressStyle = { color: COLORS.GRAY_TEXT, fontSize: '12px', marginTop: '2px', fontFamily: "'Inter', sans-serif" };
@@ -63,7 +55,6 @@ const compassButtonStyle = { backgroundColor: '#f8f9fa', border: '1px solid #eee
 const phoneButtonStyle = { backgroundColor: COLORS.PASTEL_GREEN, border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration:'none', marginLeft:'5px' };
 const statusButtonStyle = { marginTop: '12px', width: '100%', padding: '10px', borderRadius: PILL_RADIUS, border: 'none', fontWeight: '700', fontSize: '12px', cursor: 'pointer', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '1px', transition: '0.2s' };
 
-// MODALS
 const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.4)', backdropFilter: 'blur(8px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const modalContentStyle = { background: COLORS.WHITE, padding: '40px', borderRadius: '24px', width: '90%', maxWidth: '400px', textAlign: 'center', border: 'none', boxSizing: 'border-box', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' };
 const modalTitleStyle = { marginTop: 0, marginBottom: '10px', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '22px', letterSpacing: '1px' };
@@ -72,7 +63,6 @@ const gpsIconStyle = { width: '24px', height: '24px', objectFit: 'contain', marg
 const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', border: 'none', background: 'transparent', color: COLORS.GRAY_TEXT, fontWeight: '600', cursor: 'pointer', borderRadius: PILL_RADIUS, fontFamily: "'Inter', sans-serif", fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' };
 
 // --- 3. COMPOSANTS UTILITAIRES ---
-
 const formatDuration = (minutes) => {
     if (!minutes) return "";
     const h = Math.floor(minutes / 60);
@@ -84,43 +74,25 @@ const formatDuration = (minutes) => {
 const AddressInput = ({ placeholder, value, onChange }) => {
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-
     useEffect(() => {
-        const delayDebounceFn = setTimeout(async () => {
+        const delay = setTimeout(async () => {
             if (value.length > 3 && showSuggestions) {
                 try {
                     const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${value}&limit=5`);
                     const data = await response.json();
                     setSuggestions(data.features);
-                } catch (e) { console.error(e); }
-            } else {
-                setSuggestions([]);
-            }
+                } catch (e) {}
+            } else { setSuggestions([]); }
         }, 300);
-        return () => clearTimeout(delayDebounceFn);
+        return () => clearTimeout(delay);
     }, [value, showSuggestions]);
-
     return (
         <div style={{ position: 'relative', width: '100%' }}>
-            <input 
-                type="text" 
-                placeholder={placeholder} 
-                value={value} 
-                onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }} 
-                style={inputStyle} 
-            />
+            <input type="text" placeholder={placeholder} value={value} onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }} style={inputStyle} />
             {suggestions.length > 0 && showSuggestions && (
                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', borderRadius: '12px', boxShadow: SHADOW, zIndex: 1000, overflow: 'hidden', marginTop: '-5px', border: '1px solid ' + COLORS.BORDER }}>
                     {suggestions.map((s, i) => (
-                        <div 
-                            key={i} 
-                            onClick={() => { onChange(s.properties.label); setShowSuggestions(false); }} 
-                            style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px', textAlign:'left', fontFamily:"'Inter', sans-serif" }}
-                            onMouseEnter={(e) => e.target.style.backgroundColor = COLORS.BG_LIGHT}
-                            onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
-                        >
-                            📍 {s.properties.label}
-                        </div>
+                        <div key={i} onClick={() => { onChange(s.properties.label); setShowSuggestions(false); }} style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px', textAlign:'left', fontFamily:"'Inter', sans-serif" }} onMouseEnter={(e) => e.target.style.backgroundColor = COLORS.BG_LIGHT} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>📍 {s.properties.label}</div>
                     ))}
                 </div>
             )}
@@ -131,60 +103,38 @@ const AddressInput = ({ placeholder, value, onChange }) => {
 function MapController({ center, bounds }) {
     const map = useMap();
     useEffect(() => {
-        if (bounds && bounds.length > 0) {
-            map.fitBounds(bounds, { padding: [50, 50] });
-        } else if (center) {
-            map.flyTo(center, 13, { duration: 1.5 });
-        }
+        if (bounds && bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
+        else if (center) map.flyTo(center, 13, { duration: 1.5 });
     }, [center, bounds, map]);
     return null;
 }
 
 const createCustomIcon = (index, total, status, isMyMission) => {
-    let bgColor = '#e0e0e0'; 
-    let textColor = COLORS.DARK;
-
+    let bgColor = '#e0e0e0'; let textColor = COLORS.DARK;
     if (isMyMission) {
-        if (status === 'done') {
-            bgColor = COLORS.PASTEL_GRAY; 
-            textColor = COLORS.GRAY_TEXT;
-        } else {
-            bgColor = COLORS.PASTEL_BLUE;
-            if (index === 0) bgColor = COLORS.PASTEL_GREEN;
-            if (index === total - 1) bgColor = COLORS.PASTEL_RED;
-        }
+        if (status === 'done') { bgColor = COLORS.PASTEL_GRAY; textColor = COLORS.GRAY_TEXT; }
+        else { bgColor = COLORS.PASTEL_BLUE; if (index === 0) bgColor = COLORS.PASTEL_GREEN; if (index === total - 1) bgColor = COLORS.PASTEL_RED; }
     }
-
-    return L.divIcon({
-        className: 'custom-marker',
-        html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`,
-        iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14]
-    });
+    return L.divIcon({ className: 'custom-marker', html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14] });
 };
 
 const getStepColor = (index, total, status) => {
-    if (status === 'done') return COLORS.PASTEL_GRAY;
+    if (status === 'done') return '#CFD8DC';
     if (index === 0) return COLORS.PASTEL_GREEN; 
     if (index === total - 1) return COLORS.PASTEL_RED; 
     return COLORS.PASTEL_BLUE; 
 };
 
 const renderClientName = (name, slot) => {
-    let iconSrc = "/icon-morning.svg"; 
-    if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
-    return (
-        <div style={{display: 'flex', alignItems: 'center'}}>
-            <img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} />
-            <span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span>
-        </div>
-    );
+    let iconSrc = "/icon-morning.svg"; if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
+    return (<div style={{display: 'flex', alignItems: 'center'}}><img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} /><span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span></div>);
 };
 
 // --- 4. APPLICATION ---
 function App() {
     const API_URL = "https://optiroute-wxaz.onrender.com";
-
-    // --- STATES ---
+    
+    // States
     const [token, setToken] = useState(localStorage.getItem('optiroute_token'));
     const [userRole, setUserRole] = useState(null);
     const [userId, setUserId] = useState(null);
@@ -233,29 +183,26 @@ function App() {
     const [unassignedList, setUnassignedList] = useState([]); 
     const [techToDelete, setTechToDelete] = useState(null); 
     const [isDeletingTech, setIsDeletingTech] = useState(false);
+    
+    // SIGNATURE STATE
+    const [missionToSign, setMissionToSign] = useState(null);
+    const sigCanvas = useRef({}); // Référence pour le canvas
 
     const isMobileView = screenWidth < 768;
 
-    // --- INIT ---
     useEffect(() => {
         const handleResize = () => setScreenWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
-        
         const initApp = async () => {
             if (token) {
                 try {
                     const decoded = jwtDecode(token);
-                    setUserRole(decoded.role);
-                    setUserId(decoded.id);
-                    setUserName(decoded.name);
+                    setUserRole(decoded.role); setUserId(decoded.id); setUserName(decoded.name);
                     if (decoded.role === 'tech') setSelectedTechId(decoded.id);
-                    
                     try {
                         const res = await axios.get(`${API_URL}/technicians`, { headers: { Authorization: `Bearer ${token}` } });
                         setTechnicians(res.data);
-                    } catch (err) {
-                        if(err.response && err.response.status === 401) handleLogout();
-                    }
+                    } catch (err) { if(err.response && err.response.status === 401) handleLogout(); }
                 } catch (e) { handleLogout(); }
             }
         };
@@ -268,7 +215,6 @@ function App() {
 
     const getAuthHeaders = () => ({ headers: { Authorization: `Bearer ${token}` } });
 
-    // --- ACTIONS ---
     const handleAuth = async (e) => {
         e.preventDefault();
         setAuthError(""); setAuthLoading(true);
@@ -278,28 +224,22 @@ function App() {
             const res = await axios.post(`${API_URL}${endpoint}`, payload);
             if (isLoginView) {
                 localStorage.setItem('optiroute_token', res.data.token);
-                const compName = res.data.name || '';
-                localStorage.setItem('optiroute_company', compName);
-                setToken(res.data.token);
-                setUserCompany(compName);
-            } else {
-                setToast({message: "Compte créé.", type: "success"}); setIsLoginView(true);
-            }
+                const compName = res.data.name || ''; localStorage.setItem('optiroute_company', compName);
+                setToken(res.data.token); setUserCompany(compName);
+            } else { setToast({message: "Compte créé.", type: "success"}); setIsLoginView(true); }
         } catch (err) { setAuthError(err.response?.data?.message || "Erreur."); } 
         finally { setAuthLoading(false); }
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('optiroute_token'); 
-        localStorage.removeItem('optiroute_company');
+        localStorage.removeItem('optiroute_token'); localStorage.removeItem('optiroute_company');
         setToken(null); setUserRole(null); setRoute([]); setPendingMissions([]);
     };
 
     const fetchTechnicians = async () => {
         try {
             const res = await axios.get(`${API_URL}/technicians`, getAuthHeaders());
-            setTechnicians(res.data);
-            return res.data;
+            setTechnicians(res.data); return res.data;
         } catch (e) { if(e.response?.status === 401) handleLogout(); return []; }
     };
 
@@ -312,13 +252,8 @@ function App() {
             setNewTechName(""); setNewTechAddress(""); setNewTechEmail(""); setNewTechPass("");
             const updatedList = await fetchTechnicians();
             const added = updatedList[updatedList.length - 1];
-            if (added) { 
-                setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); 
-                setMapBounds(null);
-                setSelectedTechId(added.id); 
-            }
-            setToast({ message: "Technicien ajouté", type: "success" });
-            setShowTeamModal(false);
+            if (added) { setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); setMapBounds(null); setSelectedTechId(added.id); }
+            setToast({ message: "Technicien ajouté", type: "success" }); setShowTeamModal(false);
         } catch (error) { alert("Erreur ajout"); }
         finally { setIsAddingTech(false); }
     };
@@ -328,8 +263,7 @@ function App() {
         setIsDeletingTech(true);
         try { 
             await axios.delete(`${API_URL}/technicians/${techToDelete}`, getAuthHeaders()); 
-            await fetchTechnicians();
-            setTechToDelete(null);
+            await fetchTechnicians(); setTechToDelete(null);
             if (selectedTechId === techToDelete) setSelectedTechId(null);
             setToast({ message: "Technicien supprimé", type: "success" });
         } catch (e) { alert("Erreur"); }
@@ -350,8 +284,7 @@ function App() {
                 setPendingMissions([...pendingMissions, { name: newName, time: duration, techId: selectedTechId }]);
                 setNewName(""); setNewAddress(""); setNewPhone(""); setNewComments("");
                 setToast({ message: "Mission assignée", type: "success" });
-            } 
-            else { alert(response.data.message); }
+            } else { alert(response.data.message); }
         } catch (error) { alert("Erreur réseau"); }
         finally { setIsAddingMission(false); }
     };
@@ -363,7 +296,6 @@ function App() {
             if (response.data.path && Array.isArray(response.data.route)) {
                 let myRoute = response.data.route;
                 if (userRole === 'tech') myRoute = myRoute.filter(step => step.technician_name === userName);
-                // Ajouter un champ 'status' local par défaut si pas renvoyé (pour éviter crash)
                 myRoute = myRoute.map(step => ({...step, status: step.status || 'assigned'}));
                 setRoute(myRoute); setRoutePath(response.data.path); setPendingMissions([]); 
                 if (response.data.path.length > 0) setMapBounds(response.data.path);
@@ -373,31 +305,44 @@ function App() {
         finally { setLoading(false); }
     };
 
-    // --- NOUVEAU : MISE A JOUR STATUT MISSION ---
-const handleStatusUpdate = async (missionId, newStatus) => {
-        if (!missionId) {
-            alert("Erreur : ID mission manquant. Rechargez la page.");
-            return;
+    // --- NOUVELLE LOGIQUE SIGNATURE ---
+    const triggerStatusUpdate = (missionId, newStatus) => {
+        if (newStatus === 'done') {
+            // Ouvrir la modale de signature au lieu de valider direct
+            setMissionToSign(missionId);
+        } else {
+            // Si c'est juste "Démarrer", on y va direct
+            updateStatusOnServer(missionId, newStatus, null);
         }
+    };
 
-        // 1. Mise à jour immédiate de l'affichage (Optimiste)
+    const confirmSignatureAndFinish = () => {
+        if (!sigCanvas.current.isEmpty()) {
+            const signatureData = sigCanvas.current.getTrimmedCanvas().toDataURL('image/png');
+            updateStatusOnServer(missionToSign, 'done', signatureData);
+            setMissionToSign(null);
+        } else {
+            alert("Veuillez signer avant de valider.");
+        }
+    };
+
+    const updateStatusOnServer = async (missionId, newStatus, signatureData) => {
+        if (!missionId) return;
+        
+        // Optimistic UI update
         setRoute(prevRoute => prevRoute.map(step => {
-            if (step.id === missionId) {
-                return { ...step, status: newStatus };
-            }
+            if (step.id === missionId) return { ...step, status: newStatus };
             return step;
         }));
 
         try {
-            // 2. Envoi au serveur
-            await axios.patch(`${API_URL}/missions/${missionId}/status`, { status: newStatus }, getAuthHeaders());
-            setToast({ message: newStatus === 'done' ? "Mission Terminée ! Bravo" : "Mission Démarrée", type: "success" });
+            await axios.patch(`${API_URL}/missions/${missionId}/status`, { status: newStatus, signature: signatureData }, getAuthHeaders());
+            setToast({ message: newStatus === 'done' ? "Mission Terminée & Signée" : "Mission Démarrée", type: "success" });
         } catch (error) {
-            alert("Erreur serveur. Annulation.");
-            // Si ça plante, on recharge la vraie liste
-            handleOptimize();
+            alert("Erreur serveur");
+            handleOptimize(); 
         }
-    };  
+    };
 
     const confirmResetMissions = async () => {
         setLoading(true);
@@ -409,7 +354,6 @@ const handleStatusUpdate = async (missionId, newStatus) => {
         finally { setLoading(false); }
     };
 
-    // --- VIEW ---
     if (!token) return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: COLORS.DARK, color: 'white', fontFamily: "'Inter', sans-serif" }}>
             <div style={{ background: 'white', padding: '50px', borderRadius: STANDARD_RADIUS, width: '90%', maxWidth: '400px', color: COLORS.DARK, textAlign: 'center', boxShadow: SHADOW }}>
@@ -433,6 +377,26 @@ const handleStatusUpdate = async (missionId, newStatus) => {
             
             {toast && <div style={{position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', backgroundColor: toast.type === 'success' ? COLORS.DARK : COLORS.BLUE, color: 'white', padding: '15px 30px', borderRadius: PILL_RADIUS, boxShadow: SHADOW, zIndex: 99999, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '14px', display: 'flex', alignItems: 'center'}}><img src="/logo-truck.svg" alt="" style={{width:'20px', height:'20px', marginRight:'15px', filter:'invert(1)'}}/>{toast.message}</div>}
 
+            {/* MODAL SIGNATURE */}
+            {missionToSign && (
+                <div style={modalOverlayStyle} onClick={() => setMissionToSign(null)}>
+                    <div style={modalContentStyle} onClick={e => e.stopPropagation()}>
+                        <h3 style={{...modalTitleStyle, fontSize:'18px'}}>SIGNATURE CLIENT</h3>
+                        <div style={{border: `2px dashed ${COLORS.BORDER}`, borderRadius: STANDARD_RADIUS, backgroundColor: '#f9f9f9', marginBottom: '20px'}}>
+                            <SignatureCanvas 
+                                ref={sigCanvas}
+                                penColor="black"
+                                canvasProps={{width: 300, height: 200, className: 'sigCanvas'}} 
+                            />
+                        </div>
+                        <div style={{display:'flex', gap:'10px'}}>
+                            <button onClick={() => sigCanvas.current.clear()} style={{...cancelButtonStyle, border: '1px solid #eee'}}>EFFACER</button>
+                            <button onClick={confirmSignatureAndFinish} style={{...submitButtonStyle, marginTop:0}}>VALIDER</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {techToDelete && <div style={{...modalOverlayStyle, zIndex: 10002}} onClick={() => !isDeletingTech && setTechToDelete(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/icon-trash.svg" alt="Del" style={{width:'40px', marginBottom:'15px'}} /><h3 style={{...modalTitleStyle, color: COLORS.DARK}}>SUPPRIMER ?</h3><div style={{display:'flex', gap:'10px'}}><button onClick={() => setTechToDelete(null)} style={{...cancelButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`, marginTop:0}}>NON</button><button onClick={executeDeleteTech} style={{...submitButtonStyle, marginTop:0, backgroundColor:COLORS.RED}}>{isDeletingTech ? "..." : "OUI"}</button></div></div></div>}
 
             {showTeamModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowTeamModal(false)}><div style={{...modalContentStyle, maxWidth:'450px', padding:'40px'}} onClick={e => e.stopPropagation()}><div style={{display:'flex', alignItems:'center', marginBottom:'20px', borderBottom:`2px solid ${COLORS.DARK}`, paddingBottom:'15px'}}><h3 style={{margin:0, fontFamily:"'Oswald', sans-serif", fontSize:'24px', textTransform:'uppercase'}}>MON ÉQUIPE</h3></div><div style={{maxHeight: '250px', overflowY: 'auto', marginBottom: '30px'}}>{technicians.map(t => (<div key={t.id} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'15px', marginBottom:'10px', border:`1px solid ${COLORS.BORDER}`, borderRadius:STANDARD_RADIUS, backgroundColor: COLORS.BG_LIGHT}}>
@@ -453,7 +417,6 @@ const handleStatusUpdate = async (missionId, newStatus) => {
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
                     <MapController center={mapCenter} bounds={mapBounds} />
                     {technicians.map(t => (<Marker key={`tech-${t.id}`} position={[parseFloat(t.start_lat), parseFloat(t.start_lng)]}><Popup><div style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase'}}>🏠 {t.name}</div></Popup></Marker>))}
-                    {/* MARQUEURS AVEC STATUT */}
                     {route.map((step, index) => (<Marker key={index} position={[step.lat, step.lng]} icon={createCustomIcon(index, route.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>))}
                     {routePath.length > 0 && <Polyline positions={routePath} color={COLORS.BLUE} weight={5} opacity={0.8} />}
                 </MapContainer>
@@ -480,7 +443,6 @@ const handleStatusUpdate = async (missionId, newStatus) => {
                         <button onClick={() => setShowTeamModal(true)} style={{background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '12px', color: COLORS.BLUE, fontFamily: "'Inter', sans-serif", fontWeight: '600', textDecoration: 'underline'}}>{userRole === 'admin' ? "GÉRER L'ÉQUIPE" : "VOIR L'ÉQUIPE"}</button>
                     </div>
                     
-                    {/* SELECTEUR HORS DU FORMULAIRE */}
                     {userRole === 'admin' && (
                         <div style={{marginBottom:'15px'}}>
                             <div style={{fontSize:'11px', fontWeight:'bold', color:COLORS.GRAY_TEXT, marginBottom:'5px'}}>AFFECTER À :</div>
@@ -501,13 +463,8 @@ const handleStatusUpdate = async (missionId, newStatus) => {
                     )}
 
                     <form onSubmit={handleAddMission} style={{opacity: (userRole === 'admin' && !selectedTechId) ? 0.5 : 1, pointerEvents: (userRole === 'admin' && !selectedTechId) ? 'none' : 'auto', transition: '0.3s'}}>
-                        
                         <input type="text" placeholder="CLIENT" value={newName} onChange={(e) => setNewName(e.target.value)} style={inputStyle} />
-                        
-                        {/* NOUVEAU : AUTO-COMPLÉTION ADRESSE */}
                         <AddressInput placeholder="ADRESSE" value={newAddress} onChange={setNewAddress} />
-                        
-                        {/* CHAMPS TÉLÉPHONE & COMMENTAIRE */}
                         <input type="text" placeholder="TÉLÉPHONE (Optionnel)" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} style={inputStyle} />
                         <input type="text" placeholder="COMMENTAIRE (Digicode, etc.)" value={newComments} onChange={(e) => setNewComments(e.target.value)} style={inputStyle} />
 
@@ -518,12 +475,7 @@ const handleStatusUpdate = async (missionId, newStatus) => {
                             </div>
                             <div style={{width: '90px', position:'relative'}}><input type="number" min="5" step="5" value={duration} onChange={(e) => setDuration(parseInt(e.target.value) || 30)} style={{...inputStyle, textAlign:'center', marginBottom:0, paddingRight:'25px'}} /><span style={{position:'absolute', right:'10px', top:'50%', transform:'translateY(-50%)', fontSize:'10px', color:COLORS.GRAY_TEXT, fontWeight:'bold'}}>MIN</span></div>
                         </div>
-                        
-                        {/* Aide Durée */}
-                        <div style={{textAlign:'right', fontSize:'11px', color:COLORS.GRAY_TEXT, fontStyle:'italic', marginBottom:'15px'}}>
-                            Temps estimé : <strong>{formatDuration(duration)}</strong>
-                        </div>
-
+                        <div style={{textAlign:'right', fontSize:'11px', color:COLORS.GRAY_TEXT, fontStyle:'italic', marginBottom:'15px'}}>Temps estimé : <strong>{formatDuration(duration)}</strong></div>
                         <button type="submit" disabled={isAddingMission} style={{...submitButtonStyle, opacity: isAddingMission ? 0.7 : 1}}>{isAddingMission ? "..." : "AJOUTER AU TRAJET"}</button>
                     </form>
                 </div>
@@ -550,9 +502,8 @@ const handleStatusUpdate = async (missionId, newStatus) => {
                                         <div style={{fontSize: '10px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif", textTransform:'uppercase'}}>{step.technician_name ? `🚛 ${step.technician_name} • ` : ''}📍 {step.distance_km} km</div>
                                         {step.comments && <div style={{fontSize:'11px', color:COLORS.GRAY_TEXT, marginTop:'4px', fontStyle:'italic'}}>📝 {step.comments}</div>}
                                         
-                                        {/* BOUTONS DE STATUT */}
-                                        {(step.status === 'assigned' || !step.status) && <button onClick={() => handleStatusUpdate(step.id || route[index].id, 'in_progress')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_GREEN, color:COLORS.DARK}}>DÉMARRER</button>}
-                                        {step.status === 'in_progress' && <button onClick={() => handleStatusUpdate(step.id || route[index].id, 'done')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_RED, color:COLORS.DARK}}>TERMINER</button>}
+                                        {(step.status === 'assigned' || !step.status) && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'in_progress')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_GREEN, color:COLORS.DARK}}>DÉMARRER</button>}
+                                        {step.status === 'in_progress' && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'done')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_RED, color:COLORS.DARK}}>TERMINER</button>}
                                         {step.status === 'done' && <div style={{marginTop:'10px', fontSize:'12px', color:COLORS.SUCCESS_TEXT, fontWeight:'bold', fontFamily:"'Inter', sans-serif"}}>✅ MISSION TERMINÉE</div>}
 
                                     </div>
