@@ -15,7 +15,7 @@ const corsOptions = {
         "https://optiroute-green.vercel.app", // Ton Front Vercel
         "http://localhost:3000"               // Ton Front Local
     ],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"], 
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
 };
