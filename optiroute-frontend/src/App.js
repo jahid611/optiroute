@@ -94,68 +94,124 @@ const formatDuration = (minutes) => {
 // --- NOUVEAU GÉNÉRATEUR AVEC TEMPLATE ---
 const generatePDF = async (mission, technicianName, companyName) => {
     try {
-        // 1. Charger le template depuis le dossier public
+        // 1. Charger le template
         const existingPdfBytes = await fetch('/template_rapport.pdf').then(res => res.arrayBuffer());
         
-        // 2. Charger le document PDF
+        // 2. Charger le document
         const pdfDoc = await PDFDocument.load(existingPdfBytes);
         const pages = pdfDoc.getPages();
-        const firstPage = pages[0]; // On écrit sur la 1ère page
-        const { width, height } = firstPage.getSize();
+        const firstPage = pages[0];
+        const { width, height } = firstPage.getSize(); // height est généralement ~842 pour du A4
+        
+        // Polices
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-        // 3. Écrire les textes (Ajuste les coordonnées x, y selon ton design)
-        // Exemple : x=50, y=height - 100 (L'origine 0,0 est en BAS à gauche en PDF)
+        // --- CALIBRAGE DES COORDONNÉES (Y part du bas) ---
         
-        // Date
-        firstPage.drawText(new Date().toLocaleDateString(), { x: 450, y: height - 80, size: 12, font: font });
+        // 1. Date (En haut à droite)
+        // Environ 130px depuis le haut
+        firstPage.drawText(new Date().toLocaleDateString(), { 
+            x: 450, 
+            y: height - 135, 
+            size: 11, 
+            font: font 
+        });
 
-        // Infos Client
-        firstPage.drawText(mission.client || "", { x: 150, y: height - 150, size: 12, font: fontBold });
-        firstPage.drawText(mission.address || "", { x: 150, y: height - 170, size: 10, font: font });
-        if(mission.phone) firstPage.drawText(mission.phone, { x: 150, y: height - 190, size: 10, font: font });
+        // 2. Ligne "Client" et "Adresse"
+        // Environ 230px depuis le haut
+        const row1_Y = height - 230;
+        
+        // Client (Gauche) - Juste après le label "Client:"
+        firstPage.drawText(mission.client || "", { 
+            x: 100, 
+            y: row1_Y, 
+            size: 11, 
+            font: fontBold 
+        });
 
-        // Infos Tech
-        firstPage.drawText(technicianName || "", { x: 150, y: height - 230, size: 12, font: font });
-        firstPage.drawText(companyName || "", { x: 150, y: height - 250, size: 10, font: font });
+        // Adresse (Droite) - Juste après le label "Adresse:"
+        // J'ajoute un retour à la ligne auto si l'adresse est longue
+        firstPage.drawText(mission.address || "", { 
+            x: 370, 
+            y: row1_Y, 
+            size: 10, 
+            font: font,
+            maxWidth: 200,
+            lineHeight: 12
+        });
 
-        // Commentaires
+        // 3. Ligne "Téléphone" et "Date" (s'il y a un champ date fixe en dessous)
+        // Environ 270px depuis le haut
+        const row2_Y = height - 270;
+        
+        if(mission.phone) {
+            firstPage.drawText(mission.phone, { 
+                x: 100, 
+                y: row2_Y, 
+                size: 11, 
+                font: font 
+            });
+        }
+
+        // 4. Ligne "Technicien" et "Statut"
+        // Environ 380px depuis le haut
+        const row3_Y = height - 380;
+
+        firstPage.drawText(technicianName || "", { 
+            x: 100, 
+            y: row3_Y, 
+            size: 11, 
+            font: font 
+        });
+
+        firstPage.drawText("VALIDÉ", { 
+            x: 370, 
+            y: row3_Y, 
+            size: 11, 
+            font: fontBold,
+            color: rgb(0, 0.5, 0) // Vert foncé
+        });
+
+        // 5. Notes
+        // Environ 460px depuis le haut
         if (mission.comments) {
             firstPage.drawText(mission.comments, { 
                 x: 50, 
-                y: height - 350, 
+                y: height - 460, 
                 size: 10, 
                 font: font,
-                maxWidth: 500 // Retour à la ligne auto
+                maxWidth: 500
             });
         }
 
-        // 4. Intégrer la signature (Image PNG)
+        // 6. Signature
+        // Environ 520px depuis le haut (Position de l'image)
         if (mission.signature) {
             const signatureImage = await pdfDoc.embedPng(mission.signature);
-            const sigDims = signatureImage.scale(0.5); // Ajuste la taille (0.5 = 50%)
+            const sigDims = signatureImage.scale(0.4); // On réduit un peu l'échelle
             
-            // Place la signature en bas de page (ajuste x et y)
             firstPage.drawImage(signatureImage, {
-                x: 400,
-                y: 100, 
-                width: 150,
-                height: 150 * (sigDims.height / sigDims.width),
+                x: 50, // Alignée à gauche sous "Signature du client"
+                y: height - 580, // On descend pour laisser la place à l'image
+                width: sigDims.width,
+                height: sigDims.height,
             });
+        } else {
+            firstPage.drawText("(Non signé)", { x: 50, y: height - 550, size: 10, font: font, color: rgb(0.5,0.5,0.5) });
         }
 
-        // 5. Sauvegarder et Télécharger
+        // Sauvegarde
         const pdfBytes = await pdfDoc.save();
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = `Rapport_${mission.client}.pdf`;
+        link.download = `Rapport_${mission.client.replace(/\s+/g, '_')}.pdf`;
         link.click();
 
     } catch (error) {
         console.error("Erreur PDF", error);
-        alert("Impossible de générer le PDF. Vérifiez que 'template_rapport.pdf' est bien dans le dossier public.");
+        alert("Erreur de génération PDF. Vérifiez que 'template_rapport.pdf' est bien dans le dossier public.");
     }
 };
 
