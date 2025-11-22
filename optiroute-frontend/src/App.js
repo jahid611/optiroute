@@ -5,6 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { jwtDecode } from 'jwt-decode'; 
 import SignatureCanvas from 'react-signature-canvas';
+import { Crisp } from "crisp-sdk-web";
 
 // --- FIX POUR VERCEL ---
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
@@ -254,6 +255,18 @@ const LandingPage = ({ onStart }) => (
 
 // --- 4. APPLICATION PRINCIPALE ---
 function App() {
+    // --- CONFIGURATION CRISP (CHAT) ---
+useEffect(() => {
+    // Remplace par ton VRAI ID récupéré sur Crisp
+    Crisp.configure("3a2abcb6-a8fd-4fc5-b856-a99c36e6ad0b");
+
+    // Optionnel : Si l'utilisateur est connecté, on envoie son email à Crisp
+    // Comme ça tu sais qui te parle !
+    if (token && authEmail) {
+        Crisp.user.setEmail(authEmail);
+        Crisp.user.setNickname(userName || authCompany);
+    }
+}, [token, authEmail, userName, authCompany]);
     const API_URL = "https://optiroute-wxaz.onrender.com";
 
     // States
