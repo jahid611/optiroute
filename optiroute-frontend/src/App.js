@@ -153,7 +153,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
 
         // 3. Ligne "Technicien" et "Statut"
         // Environ 380px depuis le haut
-        const row3_Y = height - 385;
+        const row3_Y = height - 405;
 
         firstPage.drawText(technicianName || "", { 
             x: 100, 
