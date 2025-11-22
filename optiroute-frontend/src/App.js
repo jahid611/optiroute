@@ -374,29 +374,30 @@ function App() {
     };
 
     // --- NOUVEAU : MISE A JOUR STATUT MISSION ---
-    const handleStatusUpdate = async (missionId, newStatus) => {
-        try {
-            await axios.patch(`${API_URL}/missions/${missionId}/status`, { status: newStatus }, getAuthHeaders());
-            
-            // Mise à jour locale optimiste
-            setRoute(prevRoute => prevRoute.map(step => {
-                // L'ID de l'étape dans VROOM est souvent lié à l'ID de la mission
-                // Ici, 'step.id' dans VROOM correspond à 'mission.id' dans notre BDD si on a bien mappé
-                // NOTE: VROOM renvoie parfois des ids internes. 
-                // On va supposer que l'API optimize renvoie bien l'ID de mission original, sinon il faudra le mapper dans le backend.
-                // Dans notre backend optimize.js, on n'a pas renvoyé 'id' explicite dans formattedRoutes.
-                // CORRECTION TEMPORAIRE : On va recharger toute la route pour être sûr
-                return step;
-            }));
-            
-            // Recharger pour avoir l'état propre
-            handleOptimize();
-            
-            setToast({ message: "Statut mis à jour !", type: "success" });
-        } catch (error) {
-            alert("Erreur lors de la mise à jour");
+const handleStatusUpdate = async (missionId, newStatus) => {
+        if (!missionId) {
+            alert("Erreur : ID mission manquant. Rechargez la page.");
+            return;
         }
-    };
+
+        // 1. Mise à jour immédiate de l'affichage (Optimiste)
+        setRoute(prevRoute => prevRoute.map(step => {
+            if (step.id === missionId) {
+                return { ...step, status: newStatus };
+            }
+            return step;
+        }));
+
+        try {
+            // 2. Envoi au serveur
+            await axios.patch(`${API_URL}/missions/${missionId}/status`, { status: newStatus }, getAuthHeaders());
+            setToast({ message: newStatus === 'done' ? "Mission Terminée ! Bravo" : "Mission Démarrée", type: "success" });
+        } catch (error) {
+            alert("Erreur serveur. Annulation.");
+            // Si ça plante, on recharge la vraie liste
+            handleOptimize();
+        }
+    };  
 
     const confirmResetMissions = async () => {
         setLoading(true);

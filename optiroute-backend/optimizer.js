@@ -17,7 +17,9 @@ async function optimizeRoute(userId) {
     const [techs] = await db.query('SELECT * FROM technicians WHERE user_id = ?', [userId]);
     if (techs.length === 0) throw new Error("Aucun technicien configuré.");
 
-    const [missions] = await db.query("SELECT * FROM missions WHERE status IN ('pending', 'assigned') AND user_id = ?", [userId]);
+    const [missions] = await db.query("SELECT * FROM missions WHERE status IN ('pending', 'assigned', 'in_progress', 'done') AND user_id = ?", [userId]);
+    // Note: J'ai ajouté 'in_progress' et 'done' dans le SELECT pour qu'elles restent affichées même terminées
+    
     if (missions.length === 0) return { message: "Aucune mission.", route: [], path: [], unassigned: [] };
 
     const jobs = missions.map(m => ({
@@ -65,12 +67,16 @@ async function optimizeRoute(userId) {
                     if (step.type === 'job') {
                         const m = missions.find(mis => mis.id === step.id);
                         
-                        await db.query(
-                            'UPDATE missions SET technician_id=?, route_order=?, status=? WHERE id=? AND user_id=?',
-                            [assignedTechId, order, 'assigned', step.id, userId]
-                        );
+                        // On ne met à jour l'ordre que si ce n'est pas déjà fini
+                        if (m.status !== 'done') {
+                            await db.query(
+                                'UPDATE missions SET technician_id=?, route_order=?, status=? WHERE id=? AND user_id=?',
+                                [assignedTechId, order, m.status === 'pending' ? 'assigned' : m.status, step.id, userId]
+                            );
+                        }
                         
                         formattedRoute.push({
+                            id: m.id, // <--- C'EST CETTE LIGNE QUI MANQUAIT CRUELLEMENT !
                             step: order,
                             client: m.client_name,
                             time_slot: m.time_slot,
@@ -79,9 +85,9 @@ async function optimizeRoute(userId) {
                             lng: parseFloat(m.lng),
                             distance_km: (step.distance / 1000).toFixed(1),
                             technician_name: techName,
-                            // --- AJOUT DES NOUVEAUX CHAMPS ---
                             phone: m.phone,
-                            comments: m.comments
+                            comments: m.comments,
+                            status: m.status // On renvoie aussi le statut actuel
                         });
                         order++;
                     }
