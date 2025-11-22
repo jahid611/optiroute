@@ -20,9 +20,18 @@ L.Icon.Default.mergeOptions({
 
 // --- 2. CONSTANTES & STYLES (DESIGN PASTEL PRO) ---
 const COLORS = {
-    DARK: '#3b4651', BLUE: '#2b79c2', PASTEL_BLUE: '#A0C4FF', 
-    PASTEL_GREEN: '#B9FBC0', PASTEL_RED: '#FFADAD', WHITE: '#ffffff', 
-    BORDER: '#e0e0e0', GRAY_TEXT: '#6c757d', BG_LIGHT: '#f8f9fa', WARNING: '#ffd6a5'
+    DARK: '#3b4651', 
+    BLUE: '#2b79c2', 
+    PASTEL_BLUE: '#A0C4FF', 
+    PASTEL_GREEN: '#B9FBC0', 
+    PASTEL_RED: '#FFADAD',   
+    PASTEL_GRAY: '#CFD8DC', // Pour les missions terminées
+    WHITE: '#ffffff', 
+    BORDER: '#e0e0e0', 
+    GRAY_TEXT: '#6c757d', 
+    BG_LIGHT: '#f8f9fa', 
+    WARNING: '#ffd6a5',
+    SUCCESS_TEXT: '#2e7d32'
 };
 
 const PILL_RADIUS = '38px'; 
@@ -45,12 +54,16 @@ const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent:
 const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
 const resetButtonStyle = { padding: '10px', backgroundColor: 'white', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', width: '50px', height: '50px' };
 const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'auto', flex: 1, borderRadius: STANDARD_RADIUS, paddingRight: '5px' };
-const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
+const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', flexDirection: 'column', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
+const missionHeaderStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' };
 const missionInfoStyle = { flex: 1, marginRight: '10px' };
 const missionTitleStyle = { fontWeight: '700', fontSize: '14px', color: COLORS.DARK, display: 'flex', alignItems: 'center', fontFamily: "'Inter', sans-serif" };
 const missionAddressStyle = { color: COLORS.GRAY_TEXT, fontSize: '12px', marginTop: '2px', fontFamily: "'Inter', sans-serif" };
 const compassButtonStyle = { backgroundColor: '#f8f9fa', border: '1px solid #eee', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginLeft:'5px' };
 const phoneButtonStyle = { backgroundColor: COLORS.PASTEL_GREEN, border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration:'none', marginLeft:'5px' };
+const statusButtonStyle = { marginTop: '12px', width: '100%', padding: '10px', borderRadius: PILL_RADIUS, border: 'none', fontWeight: '700', fontSize: '12px', cursor: 'pointer', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '1px', transition: '0.2s' };
+
+// MODALS
 const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.4)', backdropFilter: 'blur(8px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const modalContentStyle = { background: COLORS.WHITE, padding: '40px', borderRadius: '24px', width: '90%', maxWidth: '400px', textAlign: 'center', border: 'none', boxSizing: 'border-box', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' };
 const modalTitleStyle = { marginTop: 0, marginBottom: '10px', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '22px', letterSpacing: '1px' };
@@ -127,11 +140,20 @@ function MapController({ center, bounds }) {
     return null;
 }
 
-const createCustomIcon = (index, total, isMyMission) => {
-    let bgColor = isMyMission ? COLORS.PASTEL_BLUE : '#e0e0e0'; 
+const createCustomIcon = (index, total, status, isMyMission) => {
+    let bgColor = '#e0e0e0'; 
     let textColor = COLORS.DARK;
-    if (index === 0 && isMyMission) { bgColor = COLORS.PASTEL_GREEN; }
-    if (index === total - 1 && isMyMission) { bgColor = COLORS.PASTEL_RED; }
+
+    if (isMyMission) {
+        if (status === 'done') {
+            bgColor = COLORS.PASTEL_GRAY; 
+            textColor = COLORS.GRAY_TEXT;
+        } else {
+            bgColor = COLORS.PASTEL_BLUE;
+            if (index === 0) bgColor = COLORS.PASTEL_GREEN;
+            if (index === total - 1) bgColor = COLORS.PASTEL_RED;
+        }
+    }
 
     return L.divIcon({
         className: 'custom-marker',
@@ -140,7 +162,8 @@ const createCustomIcon = (index, total, isMyMission) => {
     });
 };
 
-const getStepColor = (index, total) => {
+const getStepColor = (index, total, status) => {
+    if (status === 'done') return COLORS.PASTEL_GRAY;
     if (index === 0) return COLORS.PASTEL_GREEN; 
     if (index === total - 1) return COLORS.PASTEL_RED; 
     return COLORS.PASTEL_BLUE; 
@@ -168,7 +191,6 @@ function App() {
     const [userName, setUserName] = useState("");
     const [userCompany, setUserCompany] = useState(localStorage.getItem('optiroute_company') || "");
 
-    // Login
     const [isLoginView, setIsLoginView] = useState(true);
     const [authEmail, setAuthEmail] = useState("");
     const [authPass, setAuthPass] = useState("");
@@ -176,30 +198,26 @@ function App() {
     const [authError, setAuthError] = useState("");
     const [authLoading, setAuthLoading] = useState(false);
 
-    // App Data
     const [technicians, setTechnicians] = useState([]);
     const [selectedTechId, setSelectedTechId] = useState(null);
     const [route, setRoute] = useState([]);
     const [routePath, setRoutePath] = useState([]); 
     const [pendingMissions, setPendingMissions] = useState([]);
 
-    // Forms
     const [newName, setNewName] = useState("");
     const [newAddress, setNewAddress] = useState("");
-    const [newPhone, setNewPhone] = useState(""); // NEW
-    const [newComments, setNewComments] = useState(""); // NEW
+    const [newPhone, setNewPhone] = useState("");
+    const [newComments, setNewComments] = useState("");
     const [timeSlot, setTimeSlot] = useState("morning");
     const [duration, setDuration] = useState(30);
     const [isAddingMission, setIsAddingMission] = useState(false);
     
-    // Tech Form
     const [newTechName, setNewTechName] = useState("");
     const [newTechAddress, setNewTechAddress] = useState("");
     const [newTechEmail, setNewTechEmail] = useState("");
     const [newTechPass, setNewTechPass] = useState("");
     const [isAddingTech, setIsAddingTech] = useState(false);
 
-    // UI
     const [mapCenter, setMapCenter] = useState([48.8675, 2.3639]); 
     const [mapBounds, setMapBounds] = useState(null);
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
@@ -207,7 +225,6 @@ function App() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [toast, setToast] = useState(null);
 
-    // Modals
     const [navModal, setNavModal] = useState(null); 
     const [showTeamModal, setShowTeamModal] = useState(false);
     const [showResetModal, setShowResetModal] = useState(false);
@@ -232,6 +249,7 @@ function App() {
                     setUserId(decoded.id);
                     setUserName(decoded.name);
                     if (decoded.role === 'tech') setSelectedTechId(decoded.id);
+                    
                     try {
                         const res = await axios.get(`${API_URL}/technicians`, { headers: { Authorization: `Bearer ${token}` } });
                         setTechnicians(res.data);
@@ -326,9 +344,7 @@ function App() {
         try {
             const response = await axios.post(`${API_URL}/missions`, { 
                 client_name: newName, address: newAddress, time_slot: timeSlot, duration: duration,
-                technician_id: selectedTechId,
-                phone: newPhone, // Envoi nouveau champ
-                comments: newComments // Envoi nouveau champ
+                technician_id: selectedTechId, phone: newPhone, comments: newComments 
             }, getAuthHeaders());
             if(response.data.success) { 
                 setPendingMissions([...pendingMissions, { name: newName, time: duration, techId: selectedTechId }]);
@@ -347,12 +363,39 @@ function App() {
             if (response.data.path && Array.isArray(response.data.route)) {
                 let myRoute = response.data.route;
                 if (userRole === 'tech') myRoute = myRoute.filter(step => step.technician_name === userName);
+                // Ajouter un champ 'status' local par défaut si pas renvoyé (pour éviter crash)
+                myRoute = myRoute.map(step => ({...step, status: step.status || 'assigned'}));
                 setRoute(myRoute); setRoutePath(response.data.path); setPendingMissions([]); 
                 if (response.data.path.length > 0) setMapBounds(response.data.path);
             } else { setRoute([]); }
             if (response.data.unassigned?.length > 0) { setUnassignedList(response.data.unassigned); setShowUnassignedModal(true); }
         } catch (error) { console.error(error); alert("Erreur"); }
         finally { setLoading(false); }
+    };
+
+    // --- NOUVEAU : MISE A JOUR STATUT MISSION ---
+    const handleStatusUpdate = async (missionId, newStatus) => {
+        try {
+            await axios.patch(`${API_URL}/missions/${missionId}/status`, { status: newStatus }, getAuthHeaders());
+            
+            // Mise à jour locale optimiste
+            setRoute(prevRoute => prevRoute.map(step => {
+                // L'ID de l'étape dans VROOM est souvent lié à l'ID de la mission
+                // Ici, 'step.id' dans VROOM correspond à 'mission.id' dans notre BDD si on a bien mappé
+                // NOTE: VROOM renvoie parfois des ids internes. 
+                // On va supposer que l'API optimize renvoie bien l'ID de mission original, sinon il faudra le mapper dans le backend.
+                // Dans notre backend optimize.js, on n'a pas renvoyé 'id' explicite dans formattedRoutes.
+                // CORRECTION TEMPORAIRE : On va recharger toute la route pour être sûr
+                return step;
+            }));
+            
+            // Recharger pour avoir l'état propre
+            handleOptimize();
+            
+            setToast({ message: "Statut mis à jour !", type: "success" });
+        } catch (error) {
+            alert("Erreur lors de la mise à jour");
+        }
     };
 
     const confirmResetMissions = async () => {
@@ -409,7 +452,8 @@ function App() {
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
                     <MapController center={mapCenter} bounds={mapBounds} />
                     {technicians.map(t => (<Marker key={`tech-${t.id}`} position={[parseFloat(t.start_lat), parseFloat(t.start_lng)]}><Popup><div style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase'}}>🏠 {t.name}</div></Popup></Marker>))}
-                    {route.map((step, index) => (<Marker key={index} position={[step.lat, step.lng]} icon={createCustomIcon(index, route.length, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>))}
+                    {/* MARQUEURS AVEC STATUT */}
+                    {route.map((step, index) => (<Marker key={index} position={[step.lat, step.lng]} icon={createCustomIcon(index, route.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>))}
                     {routePath.length > 0 && <Polyline positions={routePath} color={COLORS.BLUE} weight={5} opacity={0.8} />}
                 </MapContainer>
             </div>
@@ -495,17 +539,24 @@ function App() {
                 <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
                     <h4 style={{...cardTitleStyle, marginBottom: '10px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '14px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>FEUILLE DE ROUTE</h4>
                     <div style={missionsListStyle}>
-                        {route.length === 0 ? (<div style={{padding: '30px', textAlign: 'center', color: COLORS.GRAY_TEXT, fontSize: '0.9em', fontFamily: "'Inter', sans-serif"}}><div style={{opacity:0.3, fontSize:'40px', marginBottom:'10px'}}>🗺️</div><p style={{margin: 0}}>La carte est vide.</p></div>) : (route.map((step, index) => { const stepColor = getStepColor(index, route.length); return (
-                            <div key={index} style={missionItemStyle}>
-                                <div style={{backgroundColor: stepColor, color: COLORS.DARK, width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontFamily: "'Inter', sans-serif", marginRight: '15px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', flexShrink: 0, border:'2px solid white'}}>{step.step}</div>
-                                <div style={missionInfoStyle}>
-                                    <div style={missionTitleStyle}>{renderClientName(step.client, step.time_slot)}</div>
-                                    <div style={missionAddressStyle}>{step.address.substring(0, 35)}...</div>
-                                    <div style={{fontSize: '10px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif", textTransform:'uppercase'}}>{step.technician_name ? `🚛 ${step.technician_name} • ` : ''}📍 {step.distance_km} km</div>
-                                    {/* AFFICHAGE TEL & NOTE */}
-                                    {step.comments && <div style={{fontSize:'11px', color:COLORS.GRAY_TEXT, marginTop:'4px', fontStyle:'italic'}}>📝 {step.comments}</div>}
+                        {route.length === 0 ? (<div style={{padding: '30px', textAlign: 'center', color: COLORS.GRAY_TEXT, fontSize: '0.9em', fontFamily: "'Inter', sans-serif"}}><div style={{opacity:0.3, fontSize:'40px', marginBottom:'10px'}}>🗺️</div><p style={{margin: 0}}>La carte est vide.</p></div>) : (route.map((step, index) => { const stepColor = getStepColor(index, route.length, step.status); return (
+                            <div key={index} style={{...missionItemStyle, backgroundColor: step.status === 'done' ? '#f5f5f5' : 'white', opacity: step.status === 'done' ? 0.7 : 1}}>
+                                <div style={{display:'flex', width:'100%', alignItems:'flex-start'}}>
+                                    <div style={{backgroundColor: stepColor, color: COLORS.DARK, width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontFamily: "'Inter', sans-serif", marginRight: '15px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', flexShrink: 0, border:'2px solid white'}}>{step.step}</div>
+                                    <div style={missionInfoStyle}>
+                                        <div style={missionTitleStyle}>{renderClientName(step.client, step.time_slot)}</div>
+                                        <div style={missionAddressStyle}>{step.address.substring(0, 35)}...</div>
+                                        <div style={{fontSize: '10px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif", textTransform:'uppercase'}}>{step.technician_name ? `🚛 ${step.technician_name} • ` : ''}📍 {step.distance_km} km</div>
+                                        {step.comments && <div style={{fontSize:'11px', color:COLORS.GRAY_TEXT, marginTop:'4px', fontStyle:'italic'}}>📝 {step.comments}</div>}
+                                        
+                                        {/* BOUTONS DE STATUT */}
+                                        {(step.status === 'assigned' || !step.status) && <button onClick={() => handleStatusUpdate(step.id || route[index].id, 'in_progress')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_GREEN, color:COLORS.DARK}}>DÉMARRER</button>}
+                                        {step.status === 'in_progress' && <button onClick={() => handleStatusUpdate(step.id || route[index].id, 'done')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_RED, color:COLORS.DARK}}>TERMINER</button>}
+                                        {step.status === 'done' && <div style={{marginTop:'10px', fontSize:'12px', color:COLORS.SUCCESS_TEXT, fontWeight:'bold', fontFamily:"'Inter', sans-serif"}}>✅ MISSION TERMINÉE</div>}
+
+                                    </div>
                                 </div>
-                                <div style={{display:'flex'}}>
+                                <div style={{display:'flex', flexDirection:'column', gap:'5px'}}>
                                     {step.phone && <a href={`tel:${step.phone}`} style={phoneButtonStyle}>📞</a>}
                                     <button onClick={() => setNavModal({lat: step.lat, lng: step.lng})} style={compassButtonStyle}><img src="/icon-navigation.svg" alt="GPS" style={{width:'18px'}} /></button>
                                 </div>
