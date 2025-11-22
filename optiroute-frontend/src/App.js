@@ -6,6 +6,7 @@ import L from 'leaflet';
 import { jwtDecode } from 'jwt-decode'; 
 import SignatureCanvas from 'react-signature-canvas';
 import { jsPDF } from "jspdf";
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
 // --- FIX POUR VERCEL ---
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
@@ -90,56 +91,72 @@ const formatDuration = (minutes) => {
 };
 
 // --- GÉNÉRATEUR DE PDF PRO ---
-const generatePDF = (mission, technicianName, companyName) => {
-    const doc = new jsPDF();
-    
-    // Header
-    doc.setFillColor(43, 121, 194); 
-    doc.rect(0, 0, 210, 20, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text(`RAPPORT D'INTERVENTION - ${companyName.toUpperCase()}`, 10, 13);
+// --- NOUVEAU GÉNÉRATEUR AVEC TEMPLATE ---
+const generatePDF = async (mission, technicianName, companyName) => {
+    try {
+        // 1. Charger le template depuis le dossier public
+        const existingPdfBytes = await fetch('/template_rapport.pdf').then(res => res.arrayBuffer());
+        
+        // 2. Charger le document PDF
+        const pdfDoc = await PDFDocument.load(existingPdfBytes);
+        const pages = pdfDoc.getPages();
+        const firstPage = pages[0]; // On écrit sur la 1ère page
+        const { width, height } = firstPage.getSize();
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+        const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    // Infos Mission
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-    
-    let y = 40;
-    doc.text(`CLIENT : ${mission.client}`, 10, y); y+=10;
-    doc.text(`ADRESSE : ${mission.address}`, 10, y); y+=10;
-    if(mission.phone) { doc.text(`TÉLÉPHONE : ${mission.phone}`, 10, y); y+=10; }
-    doc.text(`TECHNICIEN : ${technicianName}`, 10, y); y+=10;
-    
-    const date = new Date().toLocaleDateString();
-    doc.text(`DATE : ${date}`, 10, y); y+=10;
-    doc.text(`STATUT : VALIDÉ & TERMINÉ ✅`, 10, y); y+=20;
+        // 3. Écrire les textes (Ajuste les coordonnées x, y selon ton design)
+        // Exemple : x=50, y=height - 100 (L'origine 0,0 est en BAS à gauche en PDF)
+        
+        // Date
+        firstPage.drawText(new Date().toLocaleDateString(), { x: 450, y: height - 80, size: 12, font: font });
 
-    if(mission.comments) {
-        doc.setFont("helvetica", "italic");
-        doc.text(`Notes : ${mission.comments}`, 10, y);
-        y+=20;
+        // Infos Client
+        firstPage.drawText(mission.client || "", { x: 150, y: height - 150, size: 12, font: fontBold });
+        firstPage.drawText(mission.address || "", { x: 150, y: height - 170, size: 10, font: font });
+        if(mission.phone) firstPage.drawText(mission.phone, { x: 150, y: height - 190, size: 10, font: font });
+
+        // Infos Tech
+        firstPage.drawText(technicianName || "", { x: 150, y: height - 230, size: 12, font: font });
+        firstPage.drawText(companyName || "", { x: 150, y: height - 250, size: 10, font: font });
+
+        // Commentaires
+        if (mission.comments) {
+            firstPage.drawText(mission.comments, { 
+                x: 50, 
+                y: height - 350, 
+                size: 10, 
+                font: font,
+                maxWidth: 500 // Retour à la ligne auto
+            });
+        }
+
+        // 4. Intégrer la signature (Image PNG)
+        if (mission.signature) {
+            const signatureImage = await pdfDoc.embedPng(mission.signature);
+            const sigDims = signatureImage.scale(0.5); // Ajuste la taille (0.5 = 50%)
+            
+            // Place la signature en bas de page (ajuste x et y)
+            firstPage.drawImage(signatureImage, {
+                x: 400,
+                y: 100, 
+                width: 150,
+                height: 150 * (sigDims.height / sigDims.width),
+            });
+        }
+
+        // 5. Sauvegarder et Télécharger
+        const pdfBytes = await pdfDoc.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `Rapport_${mission.client}.pdf`;
+        link.click();
+
+    } catch (error) {
+        console.error("Erreur PDF", error);
+        alert("Impossible de générer le PDF. Vérifiez que 'template_rapport.pdf' est bien dans le dossier public.");
     }
-
-    // Signature
-    doc.setFont("helvetica", "bold");
-    doc.text("SIGNATURE DU CLIENT :", 10, y);
-    y+=10;
-    
-    if (mission.signature) {
-        doc.addImage(mission.signature, 'PNG', 10, y, 60, 30);
-    } else {
-        doc.setFont("helvetica", "italic");
-        doc.text("(Non signé)", 10, y+10);
-    }
-
-    // Footer
-    doc.setFontSize(8);
-    doc.setTextColor(150, 150, 150);
-    doc.text("Généré automatiquement par OptiRoute Pro", 10, 280);
-
-    doc.save(`Rapport_${mission.client.replace(/\s+/g, '_')}.pdf`);
 };
 
 const AddressInput = ({ placeholder, value, onChange }) => {
