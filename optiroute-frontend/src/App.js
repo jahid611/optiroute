@@ -19,11 +19,18 @@ L.Icon.Default.mergeOptions({
     shadowUrl: shadowUrl,
 });
 
-// --- 2. CONSTANTES & STYLES (DESIGN PASTEL PRO) ---
+// --- 2. CONSTANTES & STYLES ---
 const COLORS = {
-    DARK: '#3b4651', BLUE: '#2b79c2', PASTEL_BLUE: '#A0C4FF', 
-    PASTEL_GREEN: '#B9FBC0', PASTEL_RED: '#FFADAD', WHITE: '#ffffff', 
-    BORDER: '#e0e0e0', GRAY_TEXT: '#6c757d', BG_LIGHT: '#f8f9fa', WARNING: '#ffd6a5',
+    DARK: '#3b4651', 
+    BLUE: '#2b79c2', 
+    PASTEL_BLUE: '#A0C4FF', 
+    PASTEL_GREEN: '#B9FBC0', 
+    PASTEL_RED: '#FFADAD',   
+    WHITE: '#ffffff', 
+    BORDER: '#e0e0e0', 
+    GRAY_TEXT: '#6c757d', 
+    BG_LIGHT: '#f8f9fa', 
+    WARNING: '#ffd6a5',
     SUCCESS_TEXT: '#2e7d32'
 };
 
@@ -31,37 +38,18 @@ const PILL_RADIUS = '38px';
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 
-// --- STYLES LANDING PAGE (NOUVEAU) ---
-const landingContainerStyle = {
-    minHeight: '100vh', backgroundColor: COLORS.BG_LIGHT, fontFamily: "'Inter', sans-serif", color: COLORS.DARK, overflowX: 'hidden'
+// --- SVG ICONS (Bleu & Gris Uniquement) ---
+const Icons = {
+    User: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
+    Map: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
+    Check: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
+    Truck: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>,
+    Edit: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>,
+    Help: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
+    Close: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={COLORS.DARK} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
 };
-const navStyle = {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px',
-    backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER
-};
-const heroSectionStyle = {
-    padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center'
-};
-const heroTitleStyle = {
-    fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(40px, 6vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px'
-};
-const heroSubtitleStyle = {
-    fontSize: '18px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6'
-};
-const ctaButtonStyle = {
-    padding: '18px 40px', fontSize: '16px', fontWeight: '700', color: COLORS.WHITE, backgroundColor: COLORS.BLUE,
-    border: 'none', borderRadius: PILL_RADIUS, cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", letterSpacing: '1px',
-    boxShadow: '0 10px 25px rgba(43, 121, 194, 0.4)', transition: 'transform 0.2s'
-};
-const featuresGridStyle = {
-    display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', padding: '60px 10%', maxWidth: '1400px', margin: '0 auto'
-};
-const featureCardStyle = (color) => ({
-    backgroundColor: COLORS.WHITE, padding: '40px', borderRadius: '24px', border: `1px solid ${COLORS.BORDER}`,
-    boxShadow: SHADOW, position: 'relative', overflow: 'hidden'
-});
 
-// Styles App (Existants)
+// Styles CSS-in-JS
 const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', minHeight: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: COLORS.BG_LIGHT, overflow: isMobile ? 'auto' : 'hidden' });
 const mapContainerStyle = (isMobile) => ({ flex: isMobile ? 'none' : 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: '1px solid ' + COLORS.BORDER, zIndex: 0 });
 const panelContainerStyle = (isMobile) => ({ width: isMobile ? '100%' : '450px', height: isMobile ? 'auto' : '100%', minHeight: isMobile ? '60vh' : '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: '30px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', order: isMobile ? 2 : 1, zIndex: 1000, borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none', boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)' });
@@ -92,6 +80,20 @@ const modalTitleStyle = { marginTop: 0, marginBottom: '10px', color: COLORS.DARK
 const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', padding: '15px', backgroundColor: '#fff', color: COLORS.DARK, textDecoration: 'none', borderRadius: STANDARD_RADIUS, border: '1px solid #eee', fontWeight: '700', fontSize: '14px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px', boxSizing: 'border-box', boxShadow:'0 2px 5px rgba(0,0,0,0.02)' };
 const gpsIconStyle = { width: '24px', height: '24px', objectFit: 'contain', marginRight: '15px' };
 const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', border: 'none', background: 'transparent', color: COLORS.GRAY_TEXT, fontWeight: '600', cursor: 'pointer', borderRadius: PILL_RADIUS, fontFamily: "'Inter', sans-serif", fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' };
+
+// Styles pour le tutoriel
+const tutorialContainerStyle = {
+    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: COLORS.BG_LIGHT, zIndex: 20000, overflowY: 'auto', padding: '40px 20px'
+};
+const tutorialHeaderStyle = {
+    maxWidth: '800px', margin: '0 auto 40px', textAlign: 'center'
+};
+const tutorialSectionStyle = {
+    maxWidth: '800px', margin: '0 auto 30px', backgroundColor: 'white', padding: '30px', borderRadius: '20px', boxShadow: SHADOW
+};
+const stepNumberStyle = {
+    display: 'inline-block', backgroundColor: COLORS.BLUE, color: 'white', width: '25px', height: '25px', borderRadius: '50%', textAlign: 'center', lineHeight: '25px', marginRight: '10px', fontWeight: 'bold', fontSize: '14px'
+};
 
 // --- 3. COMPOSANTS UTILITAIRES ---
 const formatDuration = (minutes) => {
@@ -161,59 +163,96 @@ const renderClientName = (name, slot) => {
     return (<div style={{display: 'flex', alignItems: 'center'}}><img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} /><span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span></div>);
 };
 
-// --- 4. LANDING PAGE (NOUVEAU) ---
+// --- NOUVEAU : PAGE TUTORIEL COMPLÈTE ---
+const TutorialPage = ({ onClose }) => (
+    <div style={tutorialContainerStyle}>
+        <div style={tutorialHeaderStyle}>
+            <img src="/logo-truck.svg" alt="Logo" style={{height:'60px', marginBottom:'20px'}} />
+            <h1 style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase', color:COLORS.DARK, fontSize:'36px'}}>Guide d'Utilisation Complet</h1>
+            <p style={{color:COLORS.GRAY_TEXT, maxWidth:'600px', margin:'0 auto'}}>Maîtrisez OptiRoute Pro en 5 minutes. Tout ce que vous devez savoir pour optimiser vos tournées.</p>
+        </div>
+
+        <div style={tutorialSectionStyle}>
+            <div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}>
+                <Icons.User />
+                <h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>1. RÔLE ADMINISTRATEUR (PATRON)</h2>
+            </div>
+            <p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}>
+                L'administrateur est le chef d'orchestre. Il possède tous les droits pour gérer l'entreprise.<br/><br/>
+                <strong><span style={stepNumberStyle}>A</span> Gérer l'Équipe :</strong> Cliquez sur "GÉRER L'ÉQUIPE" pour ajouter des techniciens. Renseignez leur adresse de départ précise (Dépôt ou Domicile), c'est le point de départ de l'IA.<br/>
+                <strong><span style={stepNumberStyle}>B</span> Créer des Missions :</strong> Sélectionnez d'abord un technicien dans la liste "AFFECTER À". Le formulaire s'active. Renseignez le client, l'adresse (avec auto-complétion), et les détails (Digicode, Tél).<br/>
+                <strong><span style={stepNumberStyle}>C</span> Optimiser :</strong> Une fois toutes les missions ajoutées dans le panier "EN ATTENTE", cliquez sur le CAMION BLEU. L'IA va calculer le meilleur ordre de passage.
+            </p>
+        </div>
+
+        <div style={tutorialSectionStyle}>
+            <div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}>
+                <Icons.Truck />
+                <h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>2. RÔLE TECHNICIEN (TERRAIN)</h2>
+            </div>
+            <p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}>
+                Le technicien accède à une interface simplifiée, pensée pour le mobile.<br/><br/>
+                <strong><span style={stepNumberStyle}>A</span> Connexion :</strong> Utilisez les identifiants fournis par l'administrateur.<br/>
+                <strong><span style={stepNumberStyle}>B</span> Navigation :</strong> Sur la feuille de route, cliquez sur la boussole <Icons.Map/> pour ouvrir Waze ou Google Maps automatiquement vers le client.<br/>
+                <strong><span style={stepNumberStyle}>C</span> Contact :</strong> Cliquez sur le téléphone vert <span style={{color:COLORS.PASTEL_GREEN}}>📞</span> pour appeler le client en un clic.<br/>
+                <strong><span style={stepNumberStyle}>D</span> Validation :</strong> 
+                <ul style={{paddingLeft:'20px', marginTop:'5px'}}>
+                    <li>Cliquez sur "DÉMARRER" quand vous partez vers le client (Passe en vert).</li>
+                    <li>Cliquez sur "TERMINER" une fois le travail fait.</li>
+                    <li>Faites signer le client sur l'écran. La mission passe en "VALIDÉ" et devient grise.</li>
+                </ul>
+            </p>
+        </div>
+
+        <div style={tutorialSectionStyle}>
+            <div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}>
+                <Icons.Check />
+                <h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>3. ASTUCES & RACCOURCIS</h2>
+            </div>
+            <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px'}}>
+                <div style={{backgroundColor:COLORS.BG_LIGHT, padding:'15px', borderRadius:'10px'}}>
+                    <h4 style={{margin:'0 0 5px 0', color:COLORS.BLUE}}>Auto-focus Carte</h4>
+                    <p style={{fontSize:'12px', color:COLORS.GRAY_TEXT, margin:0}}>Cliquez sur le nom d'un technicien dans la liste pour que la carte zoome instantanément sur sa position.</p>
+                </div>
+                <div style={{backgroundColor:COLORS.BG_LIGHT, padding:'15px', borderRadius:'10px'}}>
+                    <h4 style={{margin:'0 0 5px 0', color:COLORS.BLUE}}>Mode Slider</h4>
+                    <p style={{fontSize:'12px', color:COLORS.GRAY_TEXT, margin:0}}>Utilisez la flèche ➡️ en haut à droite pour basculer entre le formulaire d'ajout et la feuille de route.</p>
+                </div>
+            </div>
+        </div>
+
+        <div style={{textAlign:'center'}}>
+            <button onClick={onClose} style={{...submitButtonStyle, width:'auto', padding:'15px 50px', fontSize:'16px'}}>JE SUIS PRÊT 🚀</button>
+        </div>
+    </div>
+);
+
 const LandingPage = ({ onStart }) => (
-    <div style={landingContainerStyle}>
-        {/* Navbar */}
-        <nav style={navStyle}>
+    <div style={{minHeight: '100vh', backgroundColor: COLORS.BG_LIGHT, fontFamily: "'Inter', sans-serif", color: COLORS.DARK, overflowX: 'hidden'}}>
+        <nav style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER}}>
             <div style={{display:'flex', alignItems:'center'}}>
                 <img src="/logo-truck.svg" alt="Logo" style={{height:'40px', marginRight:'15px'}} />
                 <span style={{fontFamily:"'Oswald', sans-serif", fontSize:'24px', fontWeight:'bold', letterSpacing:'1px'}}>OPTIROUTE <span style={proTagStyle}>PRO</span></span>
             </div>
             <button onClick={onStart} style={{...submitButtonStyle, width:'auto', padding:'10px 25px', fontSize:'12px', boxShadow:'none'}}>ACCÈS CLIENT</button>
         </nav>
-
-        {/* Hero */}
-        <section style={heroSectionStyle}>
+        <section style={{padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
             <span style={{color: COLORS.BLUE, fontWeight:'bold', letterSpacing:'2px', fontSize:'14px', marginBottom:'10px', display:'block'}}>LA SOLUTION B2B ULTIME</span>
-            <h1 style={heroTitleStyle}>OPTIMISEZ VOS TOURNÉES<br/>EN UN CLIC</h1>
-            <p style={heroSubtitleStyle}>
+            <h1 style={{fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(40px, 6vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px'}}>OPTIMISEZ VOS TOURNÉES<br/>EN UN CLIC</h1>
+            <p style={{fontSize: '18px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6'}}>
                 Fini les feuilles volantes. Offrez à vos techniciens et livreurs l'outil qu'ils méritent.
                 Planification IA, suivi GPS en temps réel et signatures clients digitalisées.
             </p>
-            <button onClick={onStart} style={ctaButtonStyle}>COMMENCER GRATUITEMENT</button>
-            <div style={{marginTop:'50px'}}>
-                <img src="/logo-truck.svg" alt="Truck" style={{width:'200px', opacity:0.1}} />
-            </div>
+            <button onClick={onStart} style={{padding: '18px 40px', fontSize: '16px', fontWeight: '700', color: COLORS.WHITE, backgroundColor: COLORS.BLUE, border: 'none', borderRadius: PILL_RADIUS, cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", letterSpacing: '1px', boxShadow: '0 10px 25px rgba(43, 121, 194, 0.4)', transition: 'transform 0.2s'}}>COMMENCER GRATUITEMENT</button>
+            <div style={{marginTop:'50px'}}><img src="/logo-truck.svg" alt="Truck" style={{width:'200px', opacity:0.1}} /></div>
         </section>
-
-        {/* Features Grid */}
-        <section style={featuresGridStyle}>
-            <div style={featureCardStyle(COLORS.PASTEL_BLUE)}>
-                <div style={{fontSize:'40px', marginBottom:'20px'}}>🧠</div>
-                <h3 style={{fontFamily:"'Oswald', sans-serif", fontSize:'20px', marginBottom:'10px'}}>INTELLIGENCE ARTIFICIELLE</h3>
-                <p style={{color:COLORS.GRAY_TEXT, lineHeight:'1.5'}}>Notre algorithme VROOM calcule le trajet le plus rapide en prenant en compte les créneaux horaires et le trafic.</p>
-            </div>
-            <div style={featureCardStyle(COLORS.PASTEL_GREEN)}>
-                <div style={{fontSize:'40px', marginBottom:'20px'}}>📱</div>
-                <h3 style={{fontFamily:"'Oswald', sans-serif", fontSize:'20px', marginBottom:'10px'}}>APPLICATION TERRAIN</h3>
-                <p style={{color:COLORS.GRAY_TEXT, lineHeight:'1.5'}}>Vos équipes accèdent à leur feuille de route sur mobile, lancent le GPS (Waze/Maps) et valident les étapes.</p>
-            </div>
-            <div style={featureCardStyle(COLORS.PASTEL_RED)}>
-                <div style={{fontSize:'40px', marginBottom:'20px'}}>✍️</div>
-                <h3 style={{fontFamily:"'Oswald', sans-serif", fontSize:'20px', marginBottom:'10px'}}>PREUVE DE PASSAGE</h3>
-                <p style={{color:COLORS.GRAY_TEXT, lineHeight:'1.5'}}>Signature électronique et photos horodatées pour certifier chaque intervention auprès de vos clients.</p>
-            </div>
-        </section>
-        
-        {/* Footer */}
         <footer style={{textAlign:'center', padding:'40px', color:COLORS.GRAY_TEXT, fontSize:'12px', borderTop:'1px solid '+COLORS.BORDER}}>
             © 2024 OptiRoute Pro. Designed for excellence.
         </footer>
     </div>
 );
 
-// --- 5. APPLICATION PRINCIPALE ---
+// --- 4. APPLICATION PRINCIPALE ---
 function App() {
     const API_URL = "https://optiroute-wxaz.onrender.com";
 
@@ -224,11 +263,10 @@ function App() {
     const [userName, setUserName] = useState("");
     const [userCompany, setUserCompany] = useState(localStorage.getItem('optiroute_company') || "");
     
-    // STATE LANDING PAGE
-    const [showLanding, setShowLanding] = useState(!token); // Si pas de token, on montre la landing
+    const [showLanding, setShowLanding] = useState(!token);
+    const [showTutorial, setShowTutorial] = useState(false); // NOUVEAU STATE TUTORIEL
 
     const [activeTab, setActiveTab] = useState(0);
-
     const [isLoginView, setIsLoginView] = useState(true);
     const [authEmail, setAuthEmail] = useState("");
     const [authPass, setAuthPass] = useState("");
@@ -282,7 +320,7 @@ function App() {
     const handleLogout = () => {
         localStorage.removeItem('optiroute_token'); localStorage.removeItem('optiroute_company');
         setToken(null); setUserRole(null); setRoute([]); setPendingMissions([]);
-        setShowLanding(true); // Retour à l'accueil après déco
+        setShowLanding(true);
     };
 
     const fetchTechnicians = async () => {
@@ -298,7 +336,7 @@ function App() {
         window.addEventListener('resize', handleResize);
         const initApp = async () => {
             if (token) {
-                setShowLanding(false); // Si token, on cache la landing direct
+                setShowLanding(false);
                 try {
                     const decoded = jwtDecode(token);
                     setUserRole(decoded.role); setUserId(decoded.id); setUserName(decoded.name);
@@ -329,7 +367,7 @@ function App() {
                 localStorage.setItem('optiroute_token', res.data.token);
                 const compName = res.data.name || ''; localStorage.setItem('optiroute_company', compName);
                 setToken(res.data.token); setUserCompany(compName);
-                setShowLanding(false); // Masquer landing après login
+                setShowLanding(false);
             } else { setToast({message: "Compte créé.", type: "success"}); setIsLoginView(true); }
         } catch (err) { setAuthError(err.response?.data?.message || "Erreur."); } 
         finally { setAuthLoading(false); }
@@ -436,17 +474,18 @@ function App() {
         finally { setLoading(false); }
     };
 
-    // --- CONDITIONAL RENDERING : LANDING PAGE vs APP ---
+    // --- RENDER ---
+    if (showTutorial) {
+        return <TutorialPage onClose={() => setShowTutorial(false)} />;
+    }
+
     if (showLanding && !token) {
         return <LandingPage onStart={() => setShowLanding(false)} />;
     }
 
-    // --- LOGIN VIEW ---
     if (!token) return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: COLORS.DARK, color: 'white', fontFamily: "'Inter', sans-serif" }}>
-            {/* Bouton retour accueil */}
             <button onClick={() => setShowLanding(true)} style={{position:'absolute', top:'20px', left:'20px', background:'transparent', border:'1px solid white', color:'white', padding:'10px 20px', borderRadius:'30px', cursor:'pointer', fontWeight:'bold'}}>← ACCUEIL</button>
-            
             <div style={{ background: 'white', padding: '50px', borderRadius: STANDARD_RADIUS, width: '90%', maxWidth: '400px', color: COLORS.DARK, textAlign: 'center', boxShadow: SHADOW }}>
                 <img src="/logo-truck.svg" alt="OptiRoute" style={{ height: '60px', marginBottom: '30px' }} />
                 <h2 style={{ margin: '0 0 30px 0', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize:'24px' }}>{isLoginView ? "Connexion" : "Compte Entreprise"}</h2>
@@ -462,7 +501,6 @@ function App() {
         </div>
     );
 
-    // --- MAIN APP VIEW ---
     return (
         <div style={rootContainerStyle(isMobileView)}>
             <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap'); .leaflet-control-attribution { display: none !important; } .leaflet-div-icon { background: transparent; border: none; }`}</style>
@@ -477,7 +515,7 @@ function App() {
 
             {showResetModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowResetModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/icon-trash.svg" alt="!" style={{width:'40px', marginBottom:'15px'}}/ ><h3 style={modalTitleStyle}>VIDER ?</h3><div style={{display:'flex', gap:'10px'}}><button onClick={()=>setShowResetModal(false)} style={{...cancelButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`, marginTop:0}}>ANNULER</button><button onClick={confirmResetMissions} style={{...submitButtonStyle, marginTop:0, backgroundColor:COLORS.DARK}}>{loading ? "..." : "CONFIRMER"}</button></div></div></div>}
 
-            {navModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setNavModal(null)}><div style={{modalContentStyle}} onClick={e => e.stopPropagation()}><h3 style={modalTitleStyle}>NAVIGATION</h3><div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}><a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/waze.png" alt="W" style={gpsIconStyle}/>Waze</a><a href={`http://googleusercontent.com/maps.google.com/?q=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/google.png" alt="G" style={gpsIconStyle}/>Google Maps</a></div><button onClick={() => setNavModal(null)} style={cancelButtonStyle}>FERMER</button></div></div>}
+            {navModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setNavModal(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={modalTitleStyle}>NAVIGATION</h3><div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}><a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/waze.png" alt="W" style={gpsIconStyle}/>Waze</a><a href={`http://googleusercontent.com/maps.google.com/?q=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/google.png" alt="G" style={gpsIconStyle}/>Google Maps</a></div><button onClick={() => setNavModal(null)} style={cancelButtonStyle}>FERMER</button></div></div>}
             {showEmptyModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowEmptyModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} /><h3 style={modalTitleStyle}>OPTIROUTE</h3><button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button></div></div>}
             {showUnassignedModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowUnassignedModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3><div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>{unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}</div><button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button></div></div>}
 
@@ -503,14 +541,18 @@ function App() {
                             </div>
                         </div>
                         
+                        {/* NAVIGATION & HELP */}
                         <div style={{display:'flex', alignItems:'center'}}>
                             {activeTab === 0 && <div onClick={() => setActiveTab(1)} style={navArrowStyle}>➡️</div>}
                             {activeTab === 1 && <div onClick={() => setActiveTab(0)} style={{...navArrowStyle, transform:'rotate(180deg)'}}>➡️</div>}
+                            {/* Bouton Aide */}
+                            <div onClick={() => setShowTutorial(true)} style={{cursor:'pointer', marginLeft:'10px'}}><Icons.Help/></div>
                             <button onClick={handleLogout} style={{background: 'transparent', border: 'none', color: COLORS.RED, cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration:'underline', fontFamily:"'Inter', sans-serif", marginLeft:'15px'}}>DÉCO</button>
                         </div>
                     </div>
                 </div>
 
+                {/* SLIDER CONTENT */}
                 {activeTab === 0 && (
                 <>
                     <div style={cardStyle}>
@@ -582,15 +624,9 @@ function App() {
                                             <div style={missionAddressStyle}>{step.address.substring(0, 35)}...</div>
                                             <div style={{fontSize: '10px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif", textTransform:'uppercase'}}>{step.technician_name ? `🚛 ${step.technician_name} • ` : ''}📍 {step.distance_km} km</div>
                                             {step.comments && <div style={{fontSize:'11px', color:COLORS.GRAY_TEXT, marginTop:'4px', fontStyle:'italic'}}>📝 {step.comments}</div>}
-                                            
                                             {(step.status === 'assigned' || !step.status) && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'in_progress')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_GREEN, color:COLORS.DARK}}>DÉMARRER</button>}
                                             {step.status === 'in_progress' && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'done')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_RED, color:COLORS.DARK}}>TERMINER</button>}
-                                            {step.status === 'done' && (
-                                                <div style={{marginTop:'10px'}}>
-                                                    <div style={{fontSize:'11px', color:COLORS.SUCCESS_TEXT, fontWeight:'bold', fontFamily:"'Inter', sans-serif"}}>✅ MISSION TERMINÉE</div>
-                                                    {step.signature && <div style={{marginTop:'5px', border:'1px solid #eee', padding:'2px', background:'white', width:'fit-content'}}><img src={step.signature} alt="Sign" style={{height:'30px'}} /></div>}
-                                                </div>
-                                            )}
+                                            {step.status === 'done' && (<div style={{marginTop:'10px'}}><div style={{fontSize:'11px', color:COLORS.SUCCESS_TEXT, fontWeight:'bold', fontFamily:"'Inter', sans-serif"}}>✅ MISSION TERMINÉE</div>{step.signature && <div style={{marginTop:'5px', border:'1px solid #eee', padding:'2px', background:'white', width:'fit-content'}}><img src={step.signature} alt="Sign" style={{height:'30px'}} /></div>}</div>)}
                                         </div>
                                     </div>
                                     <div style={{display:'flex', flexDirection:'column', gap:'5px'}}>
