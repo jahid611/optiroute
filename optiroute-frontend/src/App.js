@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react'; // Ajout useRef
+import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css'; 
 import L from 'leaflet';
 import { jwtDecode } from 'jwt-decode'; 
-import SignatureCanvas from 'react-signature-canvas'; // <--- NOUVEAU
+import SignatureCanvas from 'react-signature-canvas';
 
 // --- FIX POUR VERCEL ---
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
@@ -19,11 +19,18 @@ L.Icon.Default.mergeOptions({
     shadowUrl: shadowUrl,
 });
 
-// --- 2. CONSTANTES & STYLES ---
+// --- 2. CONSTANTES & STYLES (DESIGN PASTEL PRO) ---
 const COLORS = {
-    DARK: '#3b4651', BLUE: '#2b79c2', PASTEL_BLUE: '#A0C4FF', 
-    PASTEL_GREEN: '#B9FBC0', PASTEL_RED: '#FFADAD', WHITE: '#ffffff', 
-    BORDER: '#e0e0e0', GRAY_TEXT: '#6c757d', BG_LIGHT: '#f8f9fa', WARNING: '#ffd6a5',
+    DARK: '#3b4651', 
+    BLUE: '#2b79c2', 
+    PASTEL_BLUE: '#A0C4FF', 
+    PASTEL_GREEN: '#B9FBC0', 
+    PASTEL_RED: '#FFADAD',   
+    WHITE: '#ffffff', 
+    BORDER: '#e0e0e0', 
+    GRAY_TEXT: '#6c757d', 
+    BG_LIGHT: '#f8f9fa', 
+    WARNING: '#ffd6a5',
     SUCCESS_TEXT: '#2e7d32'
 };
 
@@ -31,7 +38,7 @@ const PILL_RADIUS = '38px';
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 
-// Styles
+// Styles CSS-in-JS
 const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: isMobile ? 'auto' : '100vh', minHeight: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: COLORS.BG_LIGHT, overflow: isMobile ? 'auto' : 'hidden' });
 const mapContainerStyle = (isMobile) => ({ flex: isMobile ? 'none' : 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: '1px solid ' + COLORS.BORDER, zIndex: 0 });
 const panelContainerStyle = (isMobile) => ({ width: isMobile ? '100%' : '450px', height: isMobile ? 'auto' : '100%', minHeight: isMobile ? '60vh' : '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: '30px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', order: isMobile ? 2 : 1, zIndex: 1000, borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none', boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)' });
@@ -63,6 +70,7 @@ const gpsIconStyle = { width: '24px', height: '24px', objectFit: 'contain', marg
 const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', border: 'none', background: 'transparent', color: COLORS.GRAY_TEXT, fontWeight: '600', cursor: 'pointer', borderRadius: PILL_RADIUS, fontFamily: "'Inter', sans-serif", fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' };
 
 // --- 3. COMPOSANTS UTILITAIRES ---
+
 const formatDuration = (minutes) => {
     if (!minutes) return "";
     const h = Math.floor(minutes / 60);
@@ -74,25 +82,43 @@ const formatDuration = (minutes) => {
 const AddressInput = ({ placeholder, value, onChange }) => {
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
+
     useEffect(() => {
-        const delay = setTimeout(async () => {
+        const delayDebounceFn = setTimeout(async () => {
             if (value.length > 3 && showSuggestions) {
                 try {
                     const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${value}&limit=5`);
                     const data = await response.json();
                     setSuggestions(data.features);
-                } catch (e) {}
-            } else { setSuggestions([]); }
+                } catch (e) { console.error(e); }
+            } else {
+                setSuggestions([]);
+            }
         }, 300);
-        return () => clearTimeout(delay);
+        return () => clearTimeout(delayDebounceFn);
     }, [value, showSuggestions]);
+
     return (
         <div style={{ position: 'relative', width: '100%' }}>
-            <input type="text" placeholder={placeholder} value={value} onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }} style={inputStyle} />
+            <input 
+                type="text" 
+                placeholder={placeholder} 
+                value={value} 
+                onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }} 
+                style={inputStyle} 
+            />
             {suggestions.length > 0 && showSuggestions && (
                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', borderRadius: '12px', boxShadow: SHADOW, zIndex: 1000, overflow: 'hidden', marginTop: '-5px', border: '1px solid ' + COLORS.BORDER }}>
                     {suggestions.map((s, i) => (
-                        <div key={i} onClick={() => { onChange(s.properties.label); setShowSuggestions(false); }} style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px', textAlign:'left', fontFamily:"'Inter', sans-serif" }} onMouseEnter={(e) => e.target.style.backgroundColor = COLORS.BG_LIGHT} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>📍 {s.properties.label}</div>
+                        <div 
+                            key={i} 
+                            onClick={() => { onChange(s.properties.label); setShowSuggestions(false); }} 
+                            style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px', textAlign:'left', fontFamily:"'Inter', sans-serif" }}
+                            onMouseEnter={(e) => e.target.style.backgroundColor = COLORS.BG_LIGHT}
+                            onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                        >
+                            📍 {s.properties.label}
+                        </div>
                     ))}
                 </div>
             )}
@@ -103,44 +129,60 @@ const AddressInput = ({ placeholder, value, onChange }) => {
 function MapController({ center, bounds }) {
     const map = useMap();
     useEffect(() => {
-        if (bounds && bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
-        else if (center) map.flyTo(center, 13, { duration: 1.5 });
+        if (bounds && bounds.length > 0) {
+            map.fitBounds(bounds, { padding: [50, 50] });
+        } else if (center) {
+            map.flyTo(center, 13, { duration: 1.5 });
+        }
     }, [center, bounds, map]);
     return null;
 }
 
 const createCustomIcon = (index, total, status, isMyMission) => {
-    let bgColor = '#e0e0e0'; let textColor = COLORS.DARK;
+    let bgColor = '#e0e0e0'; 
+    let textColor = COLORS.DARK;
     if (isMyMission) {
-        if (status === 'done') { bgColor = COLORS.PASTEL_GRAY; textColor = COLORS.GRAY_TEXT; }
+        if (status === 'done') { bgColor = COLORS.PASTEL_RED; textColor = COLORS.GRAY_TEXT; } // Terminé = Rouge/Grisé
         else { bgColor = COLORS.PASTEL_BLUE; if (index === 0) bgColor = COLORS.PASTEL_GREEN; if (index === total - 1) bgColor = COLORS.PASTEL_RED; }
     }
-    return L.divIcon({ className: 'custom-marker', html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14] });
+
+    return L.divIcon({
+        className: 'custom-marker',
+        html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`,
+        iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14]
+    });
 };
 
 const getStepColor = (index, total, status) => {
-    if (status === 'done') return '#CFD8DC';
+    if (status === 'done') return COLORS.PASTEL_RED; // Terminé en rouge/rosé
     if (index === 0) return COLORS.PASTEL_GREEN; 
     if (index === total - 1) return COLORS.PASTEL_RED; 
     return COLORS.PASTEL_BLUE; 
 };
 
 const renderClientName = (name, slot) => {
-    let iconSrc = "/icon-morning.svg"; if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
-    return (<div style={{display: 'flex', alignItems: 'center'}}><img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} /><span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span></div>);
+    let iconSrc = "/icon-morning.svg"; 
+    if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
+    return (
+        <div style={{display: 'flex', alignItems: 'center'}}>
+            <img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} />
+            <span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span>
+        </div>
+    );
 };
 
 // --- 4. APPLICATION ---
 function App() {
     const API_URL = "https://optiroute-wxaz.onrender.com";
-    
-    // States
+
+    // --- STATES ---
     const [token, setToken] = useState(localStorage.getItem('optiroute_token'));
     const [userRole, setUserRole] = useState(null);
     const [userId, setUserId] = useState(null);
     const [userName, setUserName] = useState("");
     const [userCompany, setUserCompany] = useState(localStorage.getItem('optiroute_company') || "");
 
+    // Login
     const [isLoginView, setIsLoginView] = useState(true);
     const [authEmail, setAuthEmail] = useState("");
     const [authPass, setAuthPass] = useState("");
@@ -148,12 +190,14 @@ function App() {
     const [authError, setAuthError] = useState("");
     const [authLoading, setAuthLoading] = useState(false);
 
+    // App Data
     const [technicians, setTechnicians] = useState([]);
     const [selectedTechId, setSelectedTechId] = useState(null);
     const [route, setRoute] = useState([]);
     const [routePath, setRoutePath] = useState([]); 
     const [pendingMissions, setPendingMissions] = useState([]);
 
+    // Forms
     const [newName, setNewName] = useState("");
     const [newAddress, setNewAddress] = useState("");
     const [newPhone, setNewPhone] = useState("");
@@ -162,12 +206,14 @@ function App() {
     const [duration, setDuration] = useState(30);
     const [isAddingMission, setIsAddingMission] = useState(false);
     
+    // Tech Form
     const [newTechName, setNewTechName] = useState("");
     const [newTechAddress, setNewTechAddress] = useState("");
     const [newTechEmail, setNewTechEmail] = useState("");
     const [newTechPass, setNewTechPass] = useState("");
     const [isAddingTech, setIsAddingTech] = useState(false);
 
+    // UI
     const [mapCenter, setMapCenter] = useState([48.8675, 2.3639]); 
     const [mapBounds, setMapBounds] = useState(null);
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
@@ -175,6 +221,7 @@ function App() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [toast, setToast] = useState(null);
 
+    // Modals
     const [navModal, setNavModal] = useState(null); 
     const [showTeamModal, setShowTeamModal] = useState(false);
     const [showResetModal, setShowResetModal] = useState(false);
@@ -184,25 +231,33 @@ function App() {
     const [techToDelete, setTechToDelete] = useState(null); 
     const [isDeletingTech, setIsDeletingTech] = useState(false);
     
-    // SIGNATURE STATE
+    // SIGNATURE STATE (CORRECTION DU REF)
     const [missionToSign, setMissionToSign] = useState(null);
-    const sigCanvas = useRef({}); // Référence pour le canvas
+    const sigCanvas = useRef(null); // <-- IMPORTANT: Initialisé à null
 
     const isMobileView = screenWidth < 768;
 
+    // --- INIT ---
     useEffect(() => {
         const handleResize = () => setScreenWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
+        
         const initApp = async () => {
             if (token) {
                 try {
                     const decoded = jwtDecode(token);
-                    setUserRole(decoded.role); setUserId(decoded.id); setUserName(decoded.name);
+                    setUserRole(decoded.role);
+                    setUserId(decoded.id);
+                    setUserName(decoded.name);
+                    
                     if (decoded.role === 'tech') setSelectedTechId(decoded.id);
+                    
                     try {
                         const res = await axios.get(`${API_URL}/technicians`, { headers: { Authorization: `Bearer ${token}` } });
                         setTechnicians(res.data);
-                    } catch (err) { if(err.response && err.response.status === 401) handleLogout(); }
+                    } catch (err) {
+                        if(err.response && err.response.status === 401) handleLogout();
+                    }
                 } catch (e) { handleLogout(); }
             }
         };
@@ -215,6 +270,7 @@ function App() {
 
     const getAuthHeaders = () => ({ headers: { Authorization: `Bearer ${token}` } });
 
+    // --- ACTIONS ---
     const handleAuth = async (e) => {
         e.preventDefault();
         setAuthError(""); setAuthLoading(true);
@@ -224,22 +280,28 @@ function App() {
             const res = await axios.post(`${API_URL}${endpoint}`, payload);
             if (isLoginView) {
                 localStorage.setItem('optiroute_token', res.data.token);
-                const compName = res.data.name || ''; localStorage.setItem('optiroute_company', compName);
-                setToken(res.data.token); setUserCompany(compName);
-            } else { setToast({message: "Compte créé.", type: "success"}); setIsLoginView(true); }
+                const compName = res.data.name || '';
+                localStorage.setItem('optiroute_company', compName);
+                setToken(res.data.token);
+                setUserCompany(compName);
+            } else {
+                setToast({message: "Compte créé.", type: "success"}); setIsLoginView(true);
+            }
         } catch (err) { setAuthError(err.response?.data?.message || "Erreur."); } 
         finally { setAuthLoading(false); }
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('optiroute_token'); localStorage.removeItem('optiroute_company');
+        localStorage.removeItem('optiroute_token'); 
+        localStorage.removeItem('optiroute_company');
         setToken(null); setUserRole(null); setRoute([]); setPendingMissions([]);
     };
 
     const fetchTechnicians = async () => {
         try {
             const res = await axios.get(`${API_URL}/technicians`, getAuthHeaders());
-            setTechnicians(res.data); return res.data;
+            setTechnicians(res.data);
+            return res.data;
         } catch (e) { if(e.response?.status === 401) handleLogout(); return []; }
     };
 
@@ -252,8 +314,13 @@ function App() {
             setNewTechName(""); setNewTechAddress(""); setNewTechEmail(""); setNewTechPass("");
             const updatedList = await fetchTechnicians();
             const added = updatedList[updatedList.length - 1];
-            if (added) { setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); setMapBounds(null); setSelectedTechId(added.id); }
-            setToast({ message: "Technicien ajouté", type: "success" }); setShowTeamModal(false);
+            if (added) { 
+                setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); 
+                setMapBounds(null);
+                setSelectedTechId(added.id); 
+            }
+            setToast({ message: "Technicien ajouté", type: "success" });
+            setShowTeamModal(false);
         } catch (error) { alert("Erreur ajout"); }
         finally { setIsAddingTech(false); }
     };
@@ -263,7 +330,8 @@ function App() {
         setIsDeletingTech(true);
         try { 
             await axios.delete(`${API_URL}/technicians/${techToDelete}`, getAuthHeaders()); 
-            await fetchTechnicians(); setTechToDelete(null);
+            await fetchTechnicians();
+            setTechToDelete(null);
             if (selectedTechId === techToDelete) setSelectedTechId(null);
             setToast({ message: "Technicien supprimé", type: "success" });
         } catch (e) { alert("Erreur"); }
@@ -284,7 +352,8 @@ function App() {
                 setPendingMissions([...pendingMissions, { name: newName, time: duration, techId: selectedTechId }]);
                 setNewName(""); setNewAddress(""); setNewPhone(""); setNewComments("");
                 setToast({ message: "Mission assignée", type: "success" });
-            } else { alert(response.data.message); }
+            } 
+            else { alert(response.data.message); }
         } catch (error) { alert("Erreur réseau"); }
         finally { setIsAddingMission(false); }
     };
@@ -305,19 +374,18 @@ function App() {
         finally { setLoading(false); }
     };
 
-    // --- NOUVELLE LOGIQUE SIGNATURE ---
+    // --- NOUVELLE LOGIQUE SIGNATURE SÉCURISÉE ---
     const triggerStatusUpdate = (missionId, newStatus) => {
         if (newStatus === 'done') {
-            // Ouvrir la modale de signature au lieu de valider direct
-            setMissionToSign(missionId);
+            setMissionToSign(missionId); // Ouvre le modal
         } else {
-            // Si c'est juste "Démarrer", on y va direct
             updateStatusOnServer(missionId, newStatus, null);
         }
     };
 
     const confirmSignatureAndFinish = () => {
-        if (!sigCanvas.current.isEmpty()) {
+        // Sécurité : on vérifie si le canvas est prêt et non vide
+        if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
             const signatureData = sigCanvas.current.getTrimmedCanvas().toDataURL('image/png');
             updateStatusOnServer(missionToSign, 'done', signatureData);
             setMissionToSign(null);
@@ -329,7 +397,6 @@ function App() {
     const updateStatusOnServer = async (missionId, newStatus, signatureData) => {
         if (!missionId) return;
         
-        // Optimistic UI update
         setRoute(prevRoute => prevRoute.map(step => {
             if (step.id === missionId) return { ...step, status: newStatus };
             return step;
@@ -354,6 +421,7 @@ function App() {
         finally { setLoading(false); }
     };
 
+    // --- VIEW ---
     if (!token) return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: COLORS.DARK, color: 'white', fontFamily: "'Inter', sans-serif" }}>
             <div style={{ background: 'white', padding: '50px', borderRadius: STANDARD_RADIUS, width: '90%', maxWidth: '400px', color: COLORS.DARK, textAlign: 'center', boxShadow: SHADOW }}>
@@ -390,7 +458,7 @@ function App() {
                             />
                         </div>
                         <div style={{display:'flex', gap:'10px'}}>
-                            <button onClick={() => sigCanvas.current.clear()} style={{...cancelButtonStyle, border: '1px solid #eee'}}>EFFACER</button>
+                            <button onClick={() => { if(sigCanvas.current) sigCanvas.current.clear(); }} style={{...cancelButtonStyle, border: '1px solid #eee'}}>EFFACER</button>
                             <button onClick={confirmSignatureAndFinish} style={{...submitButtonStyle, marginTop:0}}>VALIDER</button>
                         </div>
                     </div>
@@ -417,6 +485,7 @@ function App() {
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
                     <MapController center={mapCenter} bounds={mapBounds} />
                     {technicians.map(t => (<Marker key={`tech-${t.id}`} position={[parseFloat(t.start_lat), parseFloat(t.start_lng)]}><Popup><div style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase'}}>🏠 {t.name}</div></Popup></Marker>))}
+                    {/* MARQUEURS AVEC STATUT */}
                     {route.map((step, index) => (<Marker key={index} position={[step.lat, step.lng]} icon={createCustomIcon(index, route.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>))}
                     {routePath.length > 0 && <Polyline positions={routePath} color={COLORS.BLUE} weight={5} opacity={0.8} />}
                 </MapContainer>
@@ -443,6 +512,7 @@ function App() {
                         <button onClick={() => setShowTeamModal(true)} style={{background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '12px', color: COLORS.BLUE, fontFamily: "'Inter', sans-serif", fontWeight: '600', textDecoration: 'underline'}}>{userRole === 'admin' ? "GÉRER L'ÉQUIPE" : "VOIR L'ÉQUIPE"}</button>
                     </div>
                     
+                    {/* SELECTEUR HORS DU FORMULAIRE */}
                     {userRole === 'admin' && (
                         <div style={{marginBottom:'15px'}}>
                             <div style={{fontSize:'11px', fontWeight:'bold', color:COLORS.GRAY_TEXT, marginBottom:'5px'}}>AFFECTER À :</div>
@@ -463,8 +533,13 @@ function App() {
                     )}
 
                     <form onSubmit={handleAddMission} style={{opacity: (userRole === 'admin' && !selectedTechId) ? 0.5 : 1, pointerEvents: (userRole === 'admin' && !selectedTechId) ? 'none' : 'auto', transition: '0.3s'}}>
+                        
                         <input type="text" placeholder="CLIENT" value={newName} onChange={(e) => setNewName(e.target.value)} style={inputStyle} />
+                        
+                        {/* NOUVEAU : AUTO-COMPLÉTION ADRESSE */}
                         <AddressInput placeholder="ADRESSE" value={newAddress} onChange={setNewAddress} />
+                        
+                        {/* CHAMPS TÉLÉPHONE & COMMENTAIRE */}
                         <input type="text" placeholder="TÉLÉPHONE (Optionnel)" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} style={inputStyle} />
                         <input type="text" placeholder="COMMENTAIRE (Digicode, etc.)" value={newComments} onChange={(e) => setNewComments(e.target.value)} style={inputStyle} />
 
@@ -475,7 +550,12 @@ function App() {
                             </div>
                             <div style={{width: '90px', position:'relative'}}><input type="number" min="5" step="5" value={duration} onChange={(e) => setDuration(parseInt(e.target.value) || 30)} style={{...inputStyle, textAlign:'center', marginBottom:0, paddingRight:'25px'}} /><span style={{position:'absolute', right:'10px', top:'50%', transform:'translateY(-50%)', fontSize:'10px', color:COLORS.GRAY_TEXT, fontWeight:'bold'}}>MIN</span></div>
                         </div>
-                        <div style={{textAlign:'right', fontSize:'11px', color:COLORS.GRAY_TEXT, fontStyle:'italic', marginBottom:'15px'}}>Temps estimé : <strong>{formatDuration(duration)}</strong></div>
+                        
+                        {/* Aide Durée */}
+                        <div style={{textAlign:'right', fontSize:'11px', color:COLORS.GRAY_TEXT, fontStyle:'italic', marginBottom:'15px'}}>
+                            Temps estimé : <strong>{formatDuration(duration)}</strong>
+                        </div>
+
                         <button type="submit" disabled={isAddingMission} style={{...submitButtonStyle, opacity: isAddingMission ? 0.7 : 1}}>{isAddingMission ? "..." : "AJOUTER AU TRAJET"}</button>
                     </form>
                 </div>
