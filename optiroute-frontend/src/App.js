@@ -110,7 +110,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
 
         // 1. Ligne "Client" et "Adresse"
         // Environ 230px depuis le haut
-        const row1_Y = height - 250;
+        const row1_Y = height - 252;
         
         // Client (Gauche)
         firstPage.drawText(mission.client || "", { 
@@ -132,7 +132,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
 
         // 2. Ligne "Téléphone" et "Date"
         // Environ 270px depuis le haut
-        const row2_Y = height - 310;
+        const row2_Y = height - 315;
         
         if(mission.phone) {
             firstPage.drawText(mission.phone, { 
@@ -145,7 +145,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
 
         // Date (Droite) - DÉPLACÉE ICI
         firstPage.drawText(new Date().toLocaleDateString(), { 
-            x: 370, 
+            x: 355, 
             y: row2_Y, 
             size: 11, 
             font: font 
@@ -153,7 +153,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
 
         // 3. Ligne "Technicien" et "Statut"
         // Environ 380px depuis le haut
-        const row3_Y = height - 410;
+        const row3_Y = height - 400;
 
         firstPage.drawText(technicianName || "", { 
             x: 100, 
@@ -175,7 +175,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
         if (mission.comments) {
             firstPage.drawText(mission.comments, { 
                 x: 75, 
-                y: height - 470, 
+                y: height - 465, 
                 size: 10, 
                 font: font,
                 maxWidth: 500
