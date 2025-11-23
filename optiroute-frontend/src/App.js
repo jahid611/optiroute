@@ -7,6 +7,7 @@ import { jwtDecode } from 'jwt-decode';
 import SignatureCanvas from 'react-signature-canvas';
 import { jsPDF } from "jspdf";
 import { Crisp } from "crisp-sdk-web";
+import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 
 // --- FIX POUR VERCEL ---
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
