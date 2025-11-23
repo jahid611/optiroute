@@ -5,7 +5,7 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { jwtDecode } from 'jwt-decode'; 
 import SignatureCanvas from 'react-signature-canvas';
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'; // <--- Import Important pour le nouveau PDF
+import { jsPDF } from "jspdf";
 import { Crisp } from "crisp-sdk-web";
 
 // --- FIX POUR VERCEL ---
@@ -33,7 +33,7 @@ const PILL_RADIUS = '38px';
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 
-// Styles Principaux
+// Styles
 const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: COLORS.BG_LIGHT, overflow: 'hidden' });
 const mapContainerStyle = (isMobile) => ({ flex: 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: '1px solid ' + COLORS.BORDER, zIndex: 0 });
 const panelContainerStyle = (isMobile) => ({ width: isMobile ? '100%' : '450px', height: isMobile ? 'auto' : '100%', minHeight: isMobile ? '60vh' : '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: '30px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', order: isMobile ? 2 : 1, zIndex: 1000, borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none', boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)' });
@@ -66,7 +66,7 @@ const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', pad
 const gpsIconStyle = { width: '24px', height: '24px', objectFit: 'contain', marginRight: '15px' };
 const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', border: 'none', background: 'transparent', color: COLORS.GRAY_TEXT, fontWeight: '600', cursor: 'pointer', borderRadius: PILL_RADIUS, fontFamily: "'Inter', sans-serif", fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' };
 
-// --- STYLES TUTORIEL & LANDING (MANQUANTS CORRIGÉS) ---
+// --- STYLES TUTORIEL & LANDING ---
 const landingContainerStyle = { minHeight: '100vh', backgroundColor: COLORS.BG_LIGHT, fontFamily: "'Inter', sans-serif", color: COLORS.DARK, overflowX: 'hidden' };
 const navStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER };
 const heroSectionStyle = { padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' };
@@ -80,7 +80,6 @@ const tutorialHeaderStyle = { maxWidth: '800px', margin: '0 auto 40px', textAlig
 const tutorialSectionStyle = { maxWidth: '800px', margin: '0 auto 30px', backgroundColor: 'white', padding: '30px', borderRadius: '20px', boxShadow: SHADOW };
 const stepNumberStyle = { display: 'inline-block', backgroundColor: COLORS.BLUE, color: 'white', width: '25px', height: '25px', borderRadius: '50%', textAlign: 'center', lineHeight: '25px', marginRight: '10px', fontWeight: 'bold', fontSize: '14px' };
 
-
 // --- 3. COMPOSANTS UTILITAIRES ---
 const formatDuration = (minutes) => {
     if (!minutes) return "";
@@ -90,125 +89,57 @@ const formatDuration = (minutes) => {
     return `${m} min`;
 };
 
-// --- GÉNÉRATEUR DE PDF PRO (CORRIGÉ & CALIBRÉ) ---
+// --- GÉNÉRATEUR DE PDF PRO ---
 const generatePDF = async (mission, technicianName, companyName) => {
     try {
-        // 1. Charger le template
         const existingPdfBytes = await fetch('/template_rapport.pdf').then(res => res.arrayBuffer());
-        
-        // 2. Charger le document
         const pdfDoc = await PDFDocument.load(existingPdfBytes);
         const pages = pdfDoc.getPages();
         const firstPage = pages[0];
-        const { width, height } = firstPage.getSize(); // height est généralement ~842 pour du A4
+        const { width, height } = firstPage.getSize(); 
         
-        // Polices
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-        // --- CALIBRAGE DES COORDONNÉES (Y part du bas) ---
+        // --- CALIBRAGE ---
+        // 1. Client & Adresse
+        const row1_Y = height - 230;
+        firstPage.drawText(mission.client || "", { x: 100, y: row1_Y, size: 11, font: fontBold });
+        firstPage.drawText(mission.address || "", { x: 370, y: row1_Y, size: 10, font: font, maxWidth: 200, lineHeight: 12 });
 
-        // 1. Ligne "Client" et "Adresse"
-        // Environ 230px depuis le haut
-        const row1_Y = height - 252;
-        
-        // Client (Gauche)
-        firstPage.drawText(mission.client || "", { 
-            x: 100, 
-            y: row1_Y, 
-            size: 11, 
-            font: fontBold 
-        });
+        // 2. Tel & Date
+        const row2_Y = height - 270;
+        if(mission.phone) firstPage.drawText(mission.phone, { x: 100, y: row2_Y, size: 11, font: font });
+        firstPage.drawText(new Date().toLocaleDateString(), { x: 370, y: row2_Y, size: 11, font: font });
 
-        // Adresse (Droite)
-        firstPage.drawText(mission.address || "", { 
-            x: 370, 
-            y: row1_Y, 
-            size: 10, 
-            font: font,
-            maxWidth: 200,
-            lineHeight: 12
-        });
-
-        // 2. Ligne "Téléphone" et "Date"
-        // Environ 270px depuis le haut
-        const row2_Y = height - 315;
-        
-        if(mission.phone) {
-            firstPage.drawText(mission.phone, { 
-                x: 100, 
-                y: row2_Y, 
-                size: 11, 
-                font: font 
-            });
-        }
-
-        // Date (Droite) - DÉPLACÉE ICI
-        firstPage.drawText(new Date().toLocaleDateString(), { 
-            x: 355, 
-            y: row2_Y, 
-            size: 11, 
-            font: font 
-        });
-
-        // 3. Ligne "Technicien" et "Statut"
-        // Environ 380px depuis le haut
-        const row3_Y = height - 405;
-
-        firstPage.drawText(technicianName || "", { 
-            x: 100, 
-            y: row3_Y, 
-            size: 11, 
-            font: font 
-        });
-
-        firstPage.drawText("VALIDÉ", { 
-            x: 370, 
-            y: row3_Y, 
-            size: 11, 
-            font: fontBold,
-            color: rgb(0, 0.5, 0) // Vert foncé
-        });
+        // 3. Technicien & Statut
+        const row3_Y = height - 380;
+        firstPage.drawText(technicianName || "", { x: 100, y: row3_Y, size: 11, font: font });
+        firstPage.drawText("VALIDÉ", { x: 370, y: row3_Y, size: 11, font: fontBold, color: rgb(0, 0.5, 0) });
 
         // 4. Notes
-        // Environ 460px depuis le haut
         if (mission.comments) {
-            firstPage.drawText(mission.comments, { 
-                x: 75, 
-                y: height - 465, 
-                size: 10, 
-                font: font,
-                maxWidth: 500
-            });
+            firstPage.drawText(mission.comments, { x: 50, y: height - 460, size: 10, font: font, maxWidth: 500 });
         }
 
         // 5. Signature
-        // Environ 520px depuis le haut (Position de l'image)
         if (mission.signature) {
             const signatureImage = await pdfDoc.embedPng(mission.signature);
-            const sigDims = signatureImage.scale(0.4); // On réduit un peu l'échelle
-            
-            firstPage.drawImage(signatureImage, {
-                x: 50, // Alignée à gauche sous "Signature du client"
-                y: height - 580, // On descend pour laisser la place à l'image
-                width: sigDims.width,
-                height: sigDims.height,
-            });
+            const sigDims = signatureImage.scale(0.4); 
+            firstPage.drawImage(signatureImage, { x: 50, y: height - 580, width: sigDims.width, height: sigDims.height });
         } else {
             firstPage.drawText("(Non signé)", { x: 50, y: height - 550, size: 10, font: font, color: rgb(0.5,0.5,0.5) });
         }
 
-        // Sauvegarde
         const pdfBytes = await pdfDoc.save();
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
         link.download = `Rapport_${mission.client.replace(/\s+/g, '_')}.pdf`;
         link.click();
-
     } catch (error) {
         console.error("Erreur PDF", error);
-        alert("Erreur de génération PDF. Vérifiez que 'template_rapport.pdf' est bien dans le dossier public.");
+        alert("Erreur de génération PDF. Vérifiez 'template_rapport.pdf'.");
     }
 };
 
@@ -224,34 +155,18 @@ const AddressInput = ({ placeholder, value, onChange }) => {
                     const data = await response.json();
                     setSuggestions(data.features);
                 } catch (e) { console.error(e); }
-            } else {
-                setSuggestions([]);
-            }
+            } else { setSuggestions([]); }
         }, 300);
         return () => clearTimeout(delayDebounceFn);
     }, [value, showSuggestions]);
 
     return (
         <div style={{ position: 'relative', width: '100%' }}>
-            <input 
-                type="text" 
-                placeholder={placeholder} 
-                value={value} 
-                onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }} 
-                style={inputStyle} 
-            />
+            <input type="text" placeholder={placeholder} value={value} onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }} style={inputStyle} />
             {suggestions.length > 0 && showSuggestions && (
                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', borderRadius: '12px', boxShadow: SHADOW, zIndex: 1000, overflow: 'hidden', marginTop: '-5px', border: '1px solid ' + COLORS.BORDER }}>
                     {suggestions.map((s, i) => (
-                        <div 
-                            key={i} 
-                            onClick={() => { onChange(s.properties.label); setShowSuggestions(false); }} 
-                            style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px', textAlign:'left', fontFamily:"'Inter', sans-serif" }}
-                            onMouseEnter={(e) => e.target.style.backgroundColor = COLORS.BG_LIGHT}
-                            onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
-                        >
-                            📍 {s.properties.label}
-                        </div>
+                        <div key={i} onClick={() => { onChange(s.properties.label); setShowSuggestions(false); }} style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px', textAlign:'left', fontFamily:"'Inter', sans-serif" }} onMouseEnter={(e) => e.target.style.backgroundColor = COLORS.BG_LIGHT} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>📍 {s.properties.label}</div>
                     ))}
                 </div>
             )}
@@ -262,33 +177,19 @@ const AddressInput = ({ placeholder, value, onChange }) => {
 function MapController({ center, bounds }) {
     const map = useMap();
     useEffect(() => {
-        if (bounds && bounds.length > 0) {
-            map.fitBounds(bounds, { padding: [50, 50] });
-        } else if (center) {
-            map.flyTo(center, 13, { duration: 1.5 });
-        }
+        if (bounds && bounds.length > 0) { map.fitBounds(bounds, { padding: [50, 50] }); } 
+        else if (center) { map.flyTo(center, 13, { duration: 1.5 }); }
     }, [center, bounds, map]);
     return null;
 }
 
 const createCustomIcon = (index, total, status, isMyMission) => {
-    let bgColor = '#e0e0e0'; 
-    let textColor = COLORS.DARK;
+    let bgColor = '#e0e0e0'; let textColor = COLORS.DARK;
     if (isMyMission) {
-        if (status === 'done') { 
-            bgColor = COLORS.PASTEL_RED; 
-            textColor = COLORS.GRAY_TEXT; 
-        } else { 
-            bgColor = COLORS.PASTEL_BLUE; 
-            if (index === 0) bgColor = COLORS.PASTEL_GREEN; 
-            if (index === total - 1) bgColor = COLORS.PASTEL_RED; 
-        }
+        if (status === 'done') { bgColor = COLORS.PASTEL_RED; textColor = COLORS.GRAY_TEXT; } 
+        else { bgColor = COLORS.PASTEL_BLUE; if (index === 0) bgColor = COLORS.PASTEL_GREEN; if (index === total - 1) bgColor = COLORS.PASTEL_RED; }
     }
-    return L.divIcon({
-        className: 'custom-marker',
-        html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`,
-        iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14]
-    });
+    return L.divIcon({ className: 'custom-marker', html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14] });
 };
 
 const getStepColor = (index, total, status) => {
@@ -299,14 +200,8 @@ const getStepColor = (index, total, status) => {
 };
 
 const renderClientName = (name, slot) => {
-    let iconSrc = "/icon-morning.svg"; 
-    if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
-    return (
-        <div style={{display: 'flex', alignItems: 'center'}}>
-            <img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} />
-            <span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span>
-        </div>
-    );
+    let iconSrc = "/icon-morning.svg"; if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
+    return (<div style={{display: 'flex', alignItems: 'center'}}><img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} /><span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span></div>);
 };
 
 // --- 4. SVG ICONS ---
@@ -360,7 +255,6 @@ const LandingPage = ({ onStart }) => (
 function App() {
     const API_URL = "https://optiroute-wxaz.onrender.com";
 
-    // States
     const [token, setToken] = useState(localStorage.getItem('optiroute_token'));
     const [userRole, setUserRole] = useState(null);
     const [userId, setUserId] = useState(null);
@@ -439,13 +333,8 @@ function App() {
         const handleResize = () => setScreenWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
         
-        // 👇 AJOUTE CETTE LIGNE ICI 👇
+        // 👇 CRISP CONFIG 👇
         Crisp.configure("3a2abcb6-a8fd-4fc5-b856-a99c36e6ad0b");
-        
-        try {
-            // eslint-disable-next-line
-            if (window.$crisp) window.$crisp.push(["do", "chat:show"]); 
-        } catch(e) {}
 
         const initApp = async () => {
             if (token) {
@@ -628,7 +517,7 @@ function App() {
 
             {showResetModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowResetModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/icon-trash.svg" alt="!" style={{width:'40px', marginBottom:'15px'}}/ ><h3 style={modalTitleStyle}>VIDER ?</h3><div style={{display:'flex', gap:'10px'}}><button onClick={()=>setShowResetModal(false)} style={{...cancelButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`, marginTop:0}}>ANNULER</button><button onClick={confirmResetMissions} style={{...submitButtonStyle, marginTop:0, backgroundColor:COLORS.DARK}}>{loading ? "..." : "CONFIRMER"}</button></div></div></div>}
 
-            {navModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setNavModal(null)}><div style={{modalContentStyle}} onClick={e => e.stopPropagation()}><h3 style={modalTitleStyle}>NAVIGATION</h3><div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}><a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/waze.png" alt="W" style={gpsIconStyle}/>Waze</a><a href={`http://googleusercontent.com/maps.google.com/?q=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/google.png" alt="G" style={gpsIconStyle}/>Google Maps</a></div><button onClick={() => setNavModal(null)} style={cancelButtonStyle}>FERMER</button></div></div>}
+            {navModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setNavModal(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={modalTitleStyle}>NAVIGATION</h3><div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}><a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/waze.png" alt="W" style={gpsIconStyle}/>Waze</a><a href={`http://googleusercontent.com/maps.google.com/?q=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/google.png" alt="G" style={gpsIconStyle}/>Google Maps</a></div><button onClick={() => setNavModal(null)} style={cancelButtonStyle}>FERMER</button></div></div>}
             {showEmptyModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowEmptyModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} /><h3 style={modalTitleStyle}>OPTIROUTE</h3><button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button></div></div>}
             {showUnassignedModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowUnassignedModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3><div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>{unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}</div><button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button></div></div>}
 
@@ -656,8 +545,8 @@ function App() {
                         
                         {/* NAVIGATION & HELP */}
                         <div style={{display:'flex', alignItems:'center'}}>
-                            {activeTab === 0 && <div onClick={() => setActiveTab(1)} style={navArrowStyle}>➡️</div>}
-                            {activeTab === 1 && <div onClick={() => setActiveTab(0)} style={{...navArrowStyle, transform:'rotate(180deg)'}}>➡️</div>}
+                            {activeTab === 0 && <div onClick={() => setActiveTab(1)} style={navArrowStyle}><img src="/arrow.svg" alt="Go" style={{width:'14px', height:'14px'}} /></div>}
+                            {activeTab === 1 && <div onClick={() => setActiveTab(0)} style={{...navArrowStyle, transform:'rotate(180deg)'}}><img src="/arrow.svg" alt="Back" style={{width:'14px', height:'14px'}} /></div>}
                             {/* Bouton Tuto */}
                             <div onClick={() => setShowTutorial(true)} style={{cursor:'pointer', marginLeft:'10px'}}><Icons.Help/></div>
                             <button onClick={handleLogout} style={{background: 'transparent', border: 'none', color: COLORS.RED, cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration:'underline', fontFamily:"'Inter', sans-serif", marginLeft:'15px'}}>DÉCO</button>
