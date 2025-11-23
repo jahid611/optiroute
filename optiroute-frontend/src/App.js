@@ -21,7 +21,7 @@ L.Icon.Default.mergeOptions({
     shadowUrl: shadowUrl,
 });
 
-// --- 2. CONSTANTES & STYLES (TON DESIGN ORIGINAL) ---
+// --- 2. CONSTANTES & STYLES ---
 const COLORS = {
     DARK: '#3b4651', BLUE: '#2b79c2', PASTEL_BLUE: '#A0C4FF',
     PASTEL_GREEN: '#B9FBC0', PASTEL_RED: '#FFADAD', WHITE: '#ffffff',
@@ -29,33 +29,62 @@ const COLORS = {
     SUCCESS_TEXT: '#2e7d32'
 };
 
-const PILL_RADIUS = '38px'; // Ton arrondi original
+const PILL_RADIUS = '38px';
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 
-// Styles Restaurés
-const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: COLORS.BG_LIGHT, overflow: 'hidden' });
-const mapContainerStyle = (isMobile) => ({ flex: isMobile ? 'none' : 1, height: isMobile ? '35vh' : '100%', order: isMobile ? 1 : 2, borderLeft: '1px solid ' + COLORS.BORDER, zIndex: 0 });
+// --- STYLES LAYOUT CORRIGÉS POUR SCROLL ET FULL MAP ---
 
-// Ajout du paddingBottom pour le footer mobile
-const panelContainerStyle = (isMobile) => ({ 
+// Conteneur principal
+const rootContainerStyle = (isMobile) => ({ 
+    display: 'flex', 
+    flexDirection: isMobile ? 'column' : 'row', 
+    height: '100vh', 
+    width: '100vw',
+    fontFamily: "'Inter', sans-serif", 
+    backgroundColor: COLORS.BG_LIGHT, 
+    overflow: 'hidden' 
+});
+
+// Carte : Prend toute la place si Mode Carte (Tab 3), sinon 35%
+const mapContainerStyle = (isMobile, isFullMap) => ({ 
+    flex: isMobile ? 'none' : 1, 
+    // Si mobile et mode carte (3) : 100% moins le footer (70px). Sinon 35%.
+    height: isMobile ? (isFullMap ? 'calc(100vh - 70px)' : '35vh') : '100%', 
+    width: '100%',
+    order: isMobile ? 1 : 2, 
+    borderLeft: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, 
+    zIndex: 0,
+    transition: 'height 0.3s ease' 
+});
+
+// Panneau blanc : Caché si Mode Carte (Tab 3)
+const panelContainerStyle = (isMobile, isFullMap) => ({ 
+    display: (isMobile && isFullMap) ? 'none' : 'flex', // CACHÉ EN MODE CARTE
     width: isMobile ? '100%' : '450px', 
-    height: isMobile ? '65vh' : '100%', // Calcul pour mobile
-    backgroundColor: 'rgba(255, 255, 255, 0.9)', 
+    height: isMobile ? '65vh' : '100%', 
+    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
     backdropFilter: 'blur(20px)', 
     WebkitBackdropFilter: 'blur(20px)', 
-    padding: '30px', 
-    paddingBottom: isMobile ? '80px' : '30px', // ESPACE POUR LE FOOTER
-    boxSizing: 'border-box', 
-    display: 'flex', 
     flexDirection: 'column', 
     order: isMobile ? 2 : 1, 
     zIndex: 1000, 
     borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none', 
-    boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)' 
+    boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)',
+    boxSizing: 'border-box'
 });
 
-const panelHeaderStyle = { marginBottom: '25px', paddingBottom: '20px', borderBottom: '2px solid ' + COLORS.DARK };
+// Contenu qui scroll (CORRECTION DU BUG SCROLL)
+const scrollableContentStyle = (isMobile) => ({
+    padding: '30px',
+    overflowY: 'auto',
+    flex: 1,
+    // Padding GÉANT en bas sur mobile pour que le bouton "Optimiser" remonte au dessus du footer
+    paddingBottom: isMobile ? '150px' : '30px', 
+    WebkitOverflowScrolling: 'touch'
+});
+
+const panelHeaderStyle = { marginBottom: '0px', padding: '25px 30px', borderBottom: '2px solid ' + COLORS.DARK };
 const proTagStyle = { fontSize: '0.4em', backgroundColor: COLORS.BLUE, color: COLORS.WHITE, padding: '3px 6px', verticalAlign: 'top', marginLeft: '8px', fontFamily: "'Inter', sans-serif", fontWeight: '700', borderRadius: '4px' };
 const cardStyle = { marginBottom: '25px' };
 const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK };
@@ -66,7 +95,7 @@ const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', 
 const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%' };
 const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
 const resetButtonStyle = { padding: '10px', backgroundColor: 'white', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', width: '50px', height: '50px' };
-const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'auto', flex: 1, borderRadius: STANDARD_RADIUS, paddingRight: '5px' };
+const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'visible', flex: 1, borderRadius: STANDARD_RADIUS, paddingRight: '5px' };
 const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
 const missionInfoStyle = { flex: 1, marginRight: '10px' };
 const missionTitleStyle = { fontWeight: '700', fontSize: '14px', color: COLORS.DARK, display: 'flex', alignItems: 'center', fontFamily: "'Inter', sans-serif" };
@@ -85,7 +114,7 @@ const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', pad
 const gpsIconStyle = { width: '24px', height: '24px', objectFit: 'contain', marginRight: '15px' };
 const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', border: 'none', background: 'transparent', color: COLORS.GRAY_TEXT, fontWeight: '600', cursor: 'pointer', borderRadius: PILL_RADIUS, fontFamily: "'Inter', sans-serif", fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' };
 
-// NOUVEAU : Footer Mobile (Design intégré)
+// Footer Mobile
 const mobileNavStyle = {
     position: 'fixed', bottom: 0, left: 0, width: '100%', height: '70px',
     backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(10px)',
@@ -99,7 +128,7 @@ const mobileNavItemStyle = (isActive) => ({
     background: 'none', border: 'none', cursor: 'pointer', width: '60px', fontFamily: "'Inter', sans-serif"
 });
 
-// Landing & Tuto (Tes styles)
+// Landing & Tuto
 const landingContainerStyle = { minHeight: '100vh', backgroundColor: COLORS.BG_LIGHT, fontFamily: "'Inter', sans-serif", color: COLORS.DARK, overflowX: 'hidden' };
 const navStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER };
 const heroSectionStyle = { padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' };
@@ -112,7 +141,7 @@ const tutorialHeaderStyle = { maxWidth: '800px', margin: '0 auto 40px', textAlig
 const tutorialSectionStyle = { maxWidth: '800px', margin: '0 auto 30px', backgroundColor: 'white', padding: '30px', borderRadius: '20px', boxShadow: SHADOW };
 const stepNumberStyle = { display: 'inline-block', backgroundColor: COLORS.BLUE, color: 'white', width: '25px', height: '25px', borderRadius: '50%', textAlign: 'center', lineHeight: '25px', marginRight: '10px', fontWeight: 'bold', fontSize: '14px' };
 
-// --- 4. ICONS (Tes SVGs) ---
+// --- 4. ICONS ---
 const Icons = {
     User: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
     Truck: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>,
@@ -121,7 +150,9 @@ const Icons = {
     Check: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
     History: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>,
     LogOut: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>,
-    List: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+    List: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>,
+    // Icone CARTE SEULE
+    FullMap: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 9 3"></polygon><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
 };
 
 // --- 3. COMPOSANTS UTILITAIRES ---
@@ -284,18 +315,17 @@ function App() {
     const [userName, setUserName] = useState("");
     const [userCompany, setUserCompany] = useState(localStorage.getItem('optiroute_company') || "");
     
-    // --- FIX BUG : VARIABLES LOGIN RESTAURÉES ---
+    // Auth States
     const [authEmail, setAuthEmail] = useState("");
     const [authPass, setAuthPass] = useState("");
     const [authCompany, setAuthCompany] = useState("");
     const [authError, setAuthError] = useState("");
     const [authLoading, setAuthLoading] = useState(false);
-    // --------------------------------------------
 
     const [showLanding, setShowLanding] = useState(!token);
     const [showTutorial, setShowTutorial] = useState(false);
 
-    const [activeTab, setActiveTab] = useState(0);
+    const [activeTab, setActiveTab] = useState(0); // 0=Add, 1=List, 2=History, 3=FullMap
     const [isLoginView, setIsLoginView] = useState(true);
 
     const [technicians, setTechnicians] = useState([]);
@@ -511,7 +541,7 @@ function App() {
 
     // Map Memoized (Performance)
     const MapSection = useMemo(() => (
-        <div style={mapContainerStyle(isMobileView)}>
+        <div style={mapContainerStyle(isMobileView, activeTab === 3)}>
             <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                 <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
                 <MapController center={mapCenter} bounds={mapBounds} />
@@ -520,13 +550,14 @@ function App() {
                 {routePath.length > 0 && <Polyline positions={routePath} color={COLORS.BLUE} weight={5} opacity={0.8} />}
             </MapContainer>
         </div>
-    ), [mapCenter, mapBounds, route, routePath, technicians, userRole, userName, isMobileView]);
+    ), [mapCenter, mapBounds, route, routePath, technicians, userRole, userName, isMobileView, activeTab]);
 
     // Footer Mobile
     const MobileFooter = () => (
         <div style={mobileNavStyle}>
             <button onClick={() => setActiveTab(0)} style={mobileNavItemStyle(activeTab === 0)}><Icons.User color={activeTab === 0 ? COLORS.BLUE : COLORS.GRAY_TEXT}/><span style={{marginTop:'4px'}}>Saisie</span></button>
-            <button onClick={() => setActiveTab(1)} style={mobileNavItemStyle(activeTab === 1)}><Icons.Map color={activeTab === 1 ? COLORS.BLUE : COLORS.GRAY_TEXT}/><span style={{marginTop:'4px'}}>Route</span></button>
+            <button onClick={() => setActiveTab(1)} style={mobileNavItemStyle(activeTab === 1)}><Icons.List color={activeTab === 1 ? COLORS.BLUE : COLORS.GRAY_TEXT}/><span style={{marginTop:'4px'}}>Liste</span></button>
+            <button onClick={() => setActiveTab(3)} style={mobileNavItemStyle(activeTab === 3)}><Icons.FullMap color={activeTab === 3 ? COLORS.BLUE : COLORS.GRAY_TEXT}/><span style={{marginTop:'4px'}}>Carte</span></button>
             <button onClick={() => { fetchHistory(); setActiveTab(2); }} style={mobileNavItemStyle(activeTab === 2)}><Icons.History color={activeTab === 2 ? COLORS.BLUE : COLORS.GRAY_TEXT}/><span style={{marginTop:'4px'}}>Hist.</span></button>
             <button onClick={handleLogout} style={mobileNavItemStyle(false)}><Icons.LogOut color={COLORS.PASTEL_RED}/><span style={{marginTop:'4px'}}>Déco</span></button>
         </div>
@@ -558,7 +589,7 @@ function App() {
         <div style={rootContainerStyle(isMobileView)}>
             <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap'); .leaflet-control-attribution { display: none !important; } .leaflet-div-icon { background: transparent; border: none; }`}</style>
             
-            {toast && <div style={{position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', backgroundColor: toast.type === 'success' ? COLORS.DARK : COLORS.BLUE, color: 'white', padding: '15px 30px', borderRadius: PILL_RADIUS, boxShadow: SHADOW, zIndex: 99999, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '14px', display: 'flex', alignItems: 'center'}}><img src="/logo-truck.svg" alt="" style={{width:'20px', height:'20px', marginRight:'15px', filter:'invert(1)'}}/>{toast.message}</div>}
+            {toast && <div style={{position: 'fixed', bottom: '90px', left: '50%', transform: 'translateX(-50%)', backgroundColor: toast.type === 'success' ? COLORS.DARK : COLORS.BLUE, color: 'white', padding: '15px 30px', borderRadius: PILL_RADIUS, boxShadow: SHADOW, zIndex: 99999, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '14px', display: 'flex', alignItems: 'center'}}><img src="/logo-truck.svg" alt="" style={{width:'20px', height:'20px', marginRight:'15px', filter:'invert(1)'}}/>{toast.message}</div>}
 
             {missionToSign && <div style={modalOverlayStyle} onClick={() => setMissionToSign(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, fontSize:'18px'}}>SIGNATURE CLIENT</h3><div style={{border: `2px dashed ${COLORS.BORDER}`, borderRadius: STANDARD_RADIUS, backgroundColor: '#f9f9f9', marginBottom: '20px'}}><SignatureCanvas ref={sigCanvas} penColor="black" canvasProps={{width: 300, height: 200, className: 'sigCanvas'}} /></div><div style={{display:'flex', gap:'10px'}}><button onClick={() => { if(sigCanvas.current) sigCanvas.current.clear(); }} style={{...cancelButtonStyle, border: '1px solid #eee'}}>EFFACER</button><button onClick={confirmSignatureAndFinish} style={{...submitButtonStyle, marginTop:0}}>VALIDER</button></div></div></div>}
 
@@ -580,7 +611,7 @@ function App() {
             {/* Rendu Optimisé de la Carte */}
             {MapSection}
 
-            <div style={panelContainerStyle(isMobileView)}>
+            <div style={panelContainerStyle(isMobileView, activeTab === 3)}>
                 <div style={panelHeaderStyle}>
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width:'100%'}}>
                         <div style={{display:'flex', alignItems:'center'}}><img src="/logo-truck.svg" alt="Logo" style={{height: '36px', marginRight: '15px'}} />
@@ -609,7 +640,7 @@ function App() {
 
                 {/* TAB 0: SAISIE */}
                 {activeTab === 0 && (
-                <>
+                <div style={scrollableContentStyle(isMobileView)}>
                     <div style={cardStyle}>
                         <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
                             <div style={{display: 'flex', alignItems: 'center'}}><img src="/icon-plus.svg" alt="+" style={{width:'16px', marginRight:'8px'}} /><h4 style={{margin:0, color: COLORS.DARK, fontSize: '14px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '1px'}}>NOUVELLE MISSION</h4></div>
@@ -663,7 +694,7 @@ function App() {
                             {userRole === 'admin' && (<button onClick={()=>setShowResetModal(true)} style={resetButtonStyle}><img src="/icon-trash.svg" alt="Reset" style={{width:'28px', opacity:0.6}} /></button>)}
                         </div>
                     </div>
-                </>
+                </div>
                 )}
 
                 {/* TAB 1: ROUTE */}
