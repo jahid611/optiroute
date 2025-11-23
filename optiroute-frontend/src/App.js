@@ -32,14 +32,13 @@ const COLORS = {
 const PILL_RADIUS = '38px'; 
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
-const NAV_HEIGHT = '70px'; // Hauteur barre navigation mobile
 
-// --- STYLES CSS-IN-JS ---
+// --- STYLES CORRIGÉS (MOBILE FIRST) ---
 
 const rootContainerStyle = (isMobile) => ({ 
     display: 'flex', 
     flexDirection: isMobile ? 'column' : 'row', 
-    position: 'fixed', 
+    position: 'fixed', // Force le plein écran sur mobile
     top: 0, left: 0, right: 0, bottom: 0,
     fontFamily: "'Inter', sans-serif", 
     backgroundColor: COLORS.BG_LIGHT, 
@@ -47,47 +46,55 @@ const rootContainerStyle = (isMobile) => ({
     zIndex: 1
 });
 
-const mapContainerStyle = (isMobile, showMap) => ({ 
-    flex: 1, 
-    height: isMobile ? '100%' : '100%', 
+// FIX MAP : Toujours rendue, jamais en display:none, position absolute sur mobile
+const mapContainerStyle = (isMobile) => ({ 
+    height: '100%', 
     width: '100%',
-    order: isMobile ? 1 : 2, 
-    borderLeft: '1px solid ' + COLORS.BORDER, 
-    zIndex: 0,
-    position: isMobile ? 'absolute' : 'relative',
-    top: 0, left: 0, right: 0, 
-    // IMPORTANT : On laisse de la place pour la nav bar en bas sur mobile
-    bottom: isMobile ? NAV_HEIGHT : 0, 
-    display: (isMobile && !showMap) ? 'none' : 'block'
+    ...(isMobile ? {
+        position: 'absolute', // En fond d'écran sur mobile
+        top: 0, left: 0, right: 0, bottom: '60px', // S'arrête avant la navbar
+        zIndex: 0
+    } : {
+        flex: 1, 
+        order: 2, 
+        borderLeft: '1px solid ' + COLORS.BORDER, 
+        position: 'relative',
+        zIndex: 0
+    })
 });
 
+// FIX PANEL : Superposé sur mobile
 const panelContainerStyle = (isMobile, showPanel) => ({ 
-    width: isMobile ? '100%' : '450px', 
-    height: isMobile ? '100%' : '100%', 
-    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-    backdropFilter: 'blur(20px)', 
-    padding: isMobile ? '20px 20px 20px 20px' : '30px', 
-    boxSizing: 'border-box', 
-    display: (isMobile && !showPanel) ? 'none' : 'flex', 
-    flexDirection: 'column', 
-    order: isMobile ? 2 : 1, 
-    zIndex: 1000, 
-    borderTop: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, 
-    boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)',
-    overflowY: 'auto', 
-    WebkitOverflowScrolling: 'touch',
-    // IMPORTANT : Panel au dessus de la map mais s'arrête avant la nav bar
-    position: isMobile ? 'absolute' : 'relative',
-    top: 0, left: 0, right: 0, 
-    bottom: isMobile ? NAV_HEIGHT : 0
+    ...(isMobile ? {
+        position: 'absolute', // Par dessus la map
+        top: 0, left: 0, right: 0, bottom: '60px',
+        backgroundColor: COLORS.BG_LIGHT,
+        zIndex: 10, // Au dessus de la map (z=0)
+        display: showPanel ? 'flex' : 'none', // On cache le panel, pas la map
+        flexDirection: 'column',
+        padding: '20px',
+        overflowY: 'hidden' // Scroll interne géré par les listes
+    } : {
+        width: '450px', 
+        height: '100%', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        order: 1, 
+        zIndex: 1000, 
+        backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+        backdropFilter: 'blur(20px)', 
+        padding: '30px', 
+        boxSizing: 'border-box', 
+        borderTop: 'none', 
+        boxShadow: '5px 0 30px rgba(0,0,0,0.05)'
+    })
 });
 
 const mobileBottomNavStyle = {
-    position: 'fixed', bottom: 0, left: 0, right: 0, height: NAV_HEIGHT,
-    backgroundColor: COLORS.WHITE, borderTop: '1px solid ' + COLORS.BORDER,
+    position: 'fixed', bottom: 0, left: 0, right: 0, height: '60px',
+    backgroundColor: COLORS.WHITE, borderTop: '1px solid '+COLORS.BORDER,
     display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-    zIndex: 99999, paddingBottom: '10px',
-    boxShadow: '0 -2px 10px rgba(0,0,0,0.05)'
+    zIndex: 20000, paddingBottom: 'safe-area-inset-bottom'
 };
 
 const mobileNavItemStyle = (isActive) => ({
@@ -96,18 +103,18 @@ const mobileNavItemStyle = (isActive) => ({
     cursor: 'pointer', flex: 1, height: '100%', borderTop: isActive ? '3px solid '+COLORS.BLUE : '3px solid transparent'
 });
 
-const panelHeaderStyle = { marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid ' + COLORS.DARK };
+const panelHeaderStyle = { marginBottom: '25px', paddingBottom: '20px', borderBottom: '2px solid ' + COLORS.DARK };
 const proTagStyle = { fontSize: '0.4em', backgroundColor: COLORS.BLUE, color: COLORS.WHITE, padding: '3px 6px', verticalAlign: 'top', marginLeft: '8px', fontFamily: "'Inter', sans-serif", fontWeight: '700', borderRadius: '4px' };
-const cardStyle = { marginBottom: '25px', flexShrink: 0 }; 
+const cardStyle = { marginBottom: '25px', flex: 1, display:'flex', flexDirection:'column', overflow:'hidden' }; 
 const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK };
-const inputStyle = { width: '100%', padding: '16px', marginBottom: '12px', borderRadius: PILL_RADIUS, border: '1px solid #eee', backgroundColor: '#f9f9f9', fontSize: '16px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', transition: '0.2s' };
+const inputStyle = { width: '100%', padding: '16px 20px', marginBottom: '10px', borderRadius: PILL_RADIUS, border: '1px solid transparent', backgroundColor: COLORS.WHITE, fontSize: '16px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }; // Font 16px pour éviter zoom iOS
 const dropdownItemStyle = { padding: '12px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, fontWeight: '600', transition: 'background 0.2s' };
 const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
 const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px', marginTop: 'auto' };
 const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%' };
 const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
 const resetButtonStyle = { padding: '10px', backgroundColor: 'white', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', width: '50px', height: '50px' };
-const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'visible' }; 
+const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'auto', flex: 1, borderRadius: STANDARD_RADIUS, paddingRight: '5px' };
 const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
 const missionInfoStyle = { flex: 1, marginRight: '10px' };
 const missionTitleStyle = { fontWeight: '700', fontSize: '14px', color: COLORS.DARK, display: 'flex', alignItems: 'center', fontFamily: "'Inter', sans-serif" };
@@ -127,14 +134,14 @@ const gpsIconStyle = { width: '24px', height: '24px', objectFit: 'contain', marg
 const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', border: 'none', background: 'transparent', color: COLORS.GRAY_TEXT, fontWeight: '600', cursor: 'pointer', borderRadius: PILL_RADIUS, fontFamily: "'Inter', sans-serif", fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' };
 
 // Styles Landing & Tuto
-const landingContainerStyle = { minHeight: '100vh', backgroundColor: COLORS.BG_LIGHT, fontFamily: "'Inter', sans-serif", color: COLORS.DARK, overflowX: 'hidden', display:'flex', flexDirection:'column' };
+const landingContainerStyle = { minHeight: '100vh', backgroundColor: COLORS.BG_LIGHT, fontFamily: "'Inter', sans-serif", color: COLORS.DARK, overflowX: 'hidden' };
 const navStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER };
 const heroSectionStyle = { padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' };
-const heroTitleStyle = { fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(30px, 5vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px' };
-const heroSubtitleStyle = { fontSize: '16px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6' };
+const heroTitleStyle = { fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(40px, 6vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px' };
+const heroSubtitleStyle = { fontSize: '18px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6' };
 const ctaButtonStyle = { padding: '18px 40px', fontSize: '16px', fontWeight: '700', color: COLORS.WHITE, backgroundColor: COLORS.BLUE, border: 'none', borderRadius: PILL_RADIUS, cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", letterSpacing: '1px', boxShadow: '0 10px 25px rgba(43, 121, 194, 0.4)', transition: 'transform 0.2s' };
-const featuresGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '30px', padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' };
-const featureCardStyle = (color) => ({ backgroundColor: COLORS.WHITE, padding: '30px', borderRadius: '24px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, position: 'relative', overflow: 'hidden' });
+const featuresGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', padding: '60px 10%', maxWidth: '1400px', margin: '0 auto' };
+const featureCardStyle = (color) => ({ backgroundColor: COLORS.WHITE, padding: '40px', borderRadius: '24px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, position: 'relative', overflow: 'hidden' });
 const tutorialContainerStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: COLORS.BG_LIGHT, zIndex: 20000, overflowY: 'auto', padding: '40px 20px' };
 const tutorialHeaderStyle = { maxWidth: '800px', margin: '0 auto 40px', textAlign: 'center' };
 const tutorialSectionStyle = { maxWidth: '800px', margin: '0 auto 30px', backgroundColor: 'white', padding: '30px', borderRadius: '20px', boxShadow: SHADOW };
@@ -144,16 +151,14 @@ const stepNumberStyle = { display: 'inline-block', backgroundColor: COLORS.BLUE,
 const Icons = {
     User: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
     Truck: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>,
-    Help: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
-    Map: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
+    Help: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
+    Map: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
     Check: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
     History: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>,
     List: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
 };
 
 // --- 3. COMPOSANTS UTILITAIRES ---
-const isValidCoord = (n) => !isNaN(n) && n !== null && n !== undefined;
-
 const formatDuration = (minutes) => {
     if (!minutes) return "";
     const h = Math.floor(minutes / 60);
@@ -260,9 +265,8 @@ function MapController({ center, bounds }) {
     const map = useMap();
     useEffect(() => {
         if (bounds && bounds.length > 0) {
-            const validBounds = bounds.filter(p => p && isValidCoord(p[0]) && isValidCoord(p[1]));
-            if(validBounds.length > 0) map.fitBounds(validBounds, { padding: [50, 50] });
-        } else if (center && isValidCoord(center[0]) && isValidCoord(center[1])) {
+            map.fitBounds(bounds, { padding: [50, 50] });
+        } else if (center) {
             map.flyTo(center, 13, { duration: 1.5 });
         }
     }, [center, bounds, map]);
@@ -312,11 +316,37 @@ const TutorialPage = ({ onClose }) => (
     <div style={tutorialContainerStyle}>
         <div style={tutorialHeaderStyle}>
             <img src="/logo-truck.svg" alt="Logo" style={{height:'60px', marginBottom:'20px'}} />
-            <h1 style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase', color:COLORS.DARK, fontSize:'36px'}}>Guide d'Utilisation</h1>
+            <h1 style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase', color:COLORS.DARK, fontSize:'36px'}}>Guide d'Utilisation Complet</h1>
+            <p style={{color:COLORS.GRAY_TEXT, maxWidth:'600px', margin:'0 auto'}}>Maîtrisez OptiRoute Pro en 5 minutes.</p>
         </div>
-        <div style={tutorialSectionStyle}><div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}><Icons.User /><h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>1. RÔLE ADMINISTRATEUR</h2></div><p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}>Gérez votre équipe, assignez, optimisez.</p></div>
-        <div style={tutorialSectionStyle}><div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}><Icons.Truck /><h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>2. RÔLE TECHNICIEN</h2></div><p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}>Naviguez, validez, signez.</p></div>
-        <div style={{textAlign:'center'}}><button onClick={onClose} style={{...submitButtonStyle, width:'auto', padding:'15px 50px', fontSize:'16px'}}>FERMER LE GUIDE</button></div>
+
+        <div style={tutorialSectionStyle}>
+            <div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}>
+                <Icons.User />
+                <h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>1. RÔLE ADMINISTRATEUR (PATRON)</h2>
+            </div>
+            <p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}>
+                <strong><span style={stepNumberStyle}>A</span> Gérer l'Équipe :</strong> Cliquez sur "GÉRER L'ÉQUIPE" pour ajouter des techniciens.<br/>
+                <strong><span style={stepNumberStyle}>B</span> Créer des Missions :</strong> Sélectionnez d'abord un technicien dans la liste. Le formulaire s'active. Renseignez l'adresse (auto-complétion).<br/>
+                <strong><span style={stepNumberStyle}>C</span> Optimiser :</strong> Cliquez sur le CAMION pour calculer le meilleur trajet.
+            </p>
+        </div>
+
+        <div style={tutorialSectionStyle}>
+            <div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}>
+                <Icons.Truck />
+                <h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>2. RÔLE TECHNICIEN</h2>
+            </div>
+            <p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}>
+                <strong><span style={stepNumberStyle}>A</span> Connexion :</strong> Identifiants fournis par l'admin.<br/>
+                <strong><span style={stepNumberStyle}>B</span> Navigation :</strong> Cliquez sur la boussole pour GPS.<br/>
+                <strong><span style={stepNumberStyle}>C</span> Validation :</strong> "DÉMARRER" puis "TERMINER & SIGNER".
+            </p>
+        </div>
+
+        <div style={{textAlign:'center'}}>
+            <button onClick={onClose} style={{...submitButtonStyle, width:'auto', padding:'15px 50px', fontSize:'16px'}}>FERMER LE GUIDE</button>
+        </div>
     </div>
 );
 
@@ -357,7 +387,9 @@ function App() {
     const [showLanding, setShowLanding] = useState(!token);
     const [showTutorial, setShowTutorial] = useState(false);
 
+    // TABS : 0=Saisie/Map (Mobile split), 1=Liste, 2=Historique
     const [activeTab, setActiveTab] = useState(0);
+    // MOBILE : 0=Map, 1=Liste/Saisie, 2=Historique
     const [mobileTab, setMobileTab] = useState(1);
 
     const [isLoginView, setIsLoginView] = useState(true);
@@ -432,24 +464,30 @@ function App() {
             
             if(res.data && res.data.length > 0) {
                 const mappedRoute = res.data.map(m => ({
-                    id: m.id, step: m.route_order, client: m.client_name, time_slot: m.time_slot, address: m.address, lat: parseFloat(m.lat), lng: parseFloat(m.lng), technician_name: m.technician_name, phone: m.phone, comments: m.comments, status: m.status, signature: m.signature, distance_km: "0" 
+                    id: m.id,
+                    step: m.route_order,
+                    client: m.client_name,
+                    time_slot: m.time_slot,
+                    address: m.address,
+                    lat: parseFloat(m.lat),
+                    lng: parseFloat(m.lng),
+                    technician_name: m.technician_name,
+                    phone: m.phone,
+                    comments: m.comments,
+                    status: m.status,
+                    signature: m.signature,
+                    distance_km: "0" 
                 }));
                 setRoute(mappedRoute);
-                setActiveTab(1); setMobileTab(0); // MOBILE: On ne force pas la map pour éviter confusion
+                setActiveTab(1);
                 
                 if (savedPath) {
-                    try {
-                        const parsedPath = JSON.parse(savedPath);
-                        if(Array.isArray(parsedPath) && parsedPath.length > 0 && isValidCoord(parsedPath[0][0])) {
-                            setRoutePath(parsedPath);
-                            setMapBounds(parsedPath);
-                        }
-                    } catch(e) { localStorage.removeItem('saved_route_path'); }
+                    const parsedPath = JSON.parse(savedPath);
+                    setRoutePath(parsedPath);
+                    setMapBounds(parsedPath);
                 } else if (mappedRoute.length > 0) {
-                     const points = mappedRoute
-                        .filter(p => isValidCoord(p.lat) && isValidCoord(p.lng))
-                        .map(p => [p.lat, p.lng]);
-                     if(points.length > 0) setMapBounds(points);
+                     const points = mappedRoute.map(p => [p.lat, p.lng]);
+                     setMapBounds(points);
                 }
             }
         } catch (e) {}
@@ -462,6 +500,7 @@ function App() {
         } catch (e) { console.error("Erreur history"); }
     };
 
+    // INIT APP
     useEffect(() => {
         const handleResize = () => setScreenWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
@@ -476,8 +515,10 @@ function App() {
                     const decoded = jwtDecode(token);
                     setUserRole(decoded.role); setUserId(decoded.id); setUserName(decoded.name);
                     if (decoded.role === 'tech') setSelectedTechId(decoded.id);
+                    
                     await fetchTechnicians();
-                    await fetchCurrentTrip();
+                    await fetchCurrentTrip(); // CHARGEMENT PERSISTANT
+                    
                 } catch (e) { handleLogout(); }
             }
         };
@@ -514,15 +555,11 @@ function App() {
             const updatedList = await fetchTechnicians();
             const added = updatedList[updatedList.length - 1];
             if (added) { 
-                const lat = parseFloat(added.start_lat);
-                const lng = parseFloat(added.start_lng);
-                if(isValidCoord(lat) && isValidCoord(lng)) {
-                    setMapCenter([lat, lng]); 
-                    setMapBounds(null);
-                }
+                setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); 
+                setMapBounds(null);
                 setSelectedTechId(added.id); 
             }
-            setToast({ message: "Technicien ajouté", type: "success" }); setShowTeamModal(false); setMobileTab(0);
+            setToast({ message: "Technicien ajouté", type: "success" }); setShowTeamModal(false);
         } catch (error) { alert("Erreur ajout"); }
         finally { setIsAddingTech(false); }
     };
@@ -564,12 +601,12 @@ function App() {
                 if (userRole === 'tech') myRoute = myRoute.filter(step => step.technician_name === userName);
                 myRoute = myRoute.map(step => ({...step, status: step.status || 'assigned'}));
                 setRoute(myRoute); setRoutePath(response.data.path); setPendingMissions([]); 
+                
+                // SAUVEGARDE LOCALE DU TRACE
                 localStorage.setItem('saved_route_path', JSON.stringify(response.data.path));
-                if (response.data.path.length > 0) {
-                     const validPoints = response.data.path.filter(p => isValidCoord(p[0]) && isValidCoord(p[1]));
-                     if(validPoints.length > 0) setMapBounds(validPoints);
-                }
-                setActiveTab(1); setMobileTab(0); 
+                
+                if (response.data.path.length > 0) setMapBounds(response.data.path);
+                setActiveTab(1); setMobileTab(1); 
             } else { setRoute([]); }
             if (response.data.unassigned?.length > 0) { setUnassignedList(response.data.unassigned); setShowUnassignedModal(true); }
         } catch (error) { console.error(error); alert("Erreur"); }
@@ -615,9 +652,15 @@ function App() {
         finally { setLoading(false); }
     };
 
-    // --- RENDER ---
-    if (showTutorial) return <TutorialPage onClose={() => setShowTutorial(false)} />;
-    if (showLanding && !token) return <LandingPage onStart={() => setShowLanding(false)} />;
+    // --- CONDITIONAL RENDERING ---
+    if (showTutorial) {
+        return <TutorialPage onClose={() => setShowTutorial(false)} />;
+    }
+
+    if (showLanding && !token) {
+        return <LandingPage onStart={() => setShowLanding(false)} />;
+    }
+
     if (!token) return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: COLORS.DARK, color: 'white', fontFamily: "'Inter', sans-serif" }}>
             <button onClick={() => setShowLanding(true)} style={{position:'absolute', top:'20px', left:'20px', background:'transparent', border:'1px solid white', color:'white', padding:'10px 20px', borderRadius:'30px', cursor:'pointer', fontWeight:'bold'}}>← ACCUEIL</button>
@@ -646,7 +689,12 @@ function App() {
 
             {techToDelete && <div style={{...modalOverlayStyle, zIndex: 10002}} onClick={() => !isDeletingTech && setTechToDelete(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/icon-trash.svg" alt="Del" style={{width:'40px', marginBottom:'15px'}} /><h3 style={{...modalTitleStyle, color: COLORS.DARK}}>SUPPRIMER ?</h3><div style={{display:'flex', gap:'10px'}}><button onClick={() => setTechToDelete(null)} style={{...cancelButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`, marginTop:0}}>NON</button><button onClick={executeDeleteTech} style={{...submitButtonStyle, marginTop:0, backgroundColor:COLORS.RED}}>{isDeletingTech ? "..." : "OUI"}</button></div></div></div>}
 
-            {showTeamModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowTeamModal(false)}><div style={{...modalContentStyle, maxWidth:'450px', padding:'40px'}} onClick={e => e.stopPropagation()}><div style={{display:'flex', alignItems:'center', marginBottom:'20px', borderBottom:`2px solid ${COLORS.DARK}`, paddingBottom:'15px'}}><h3 style={{margin:0, fontFamily:"'Oswald', sans-serif", fontSize:'24px', textTransform:'uppercase'}}>MON ÉQUIPE</h3></div><div style={{maxHeight: '250px', overflowY: 'auto', marginBottom: '30px'}}>{technicians.map(t => (<div key={t.id} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'15px', marginBottom:'10px', border:`1px solid ${COLORS.BORDER}`, borderRadius:STANDARD_RADIUS, backgroundColor: COLORS.BG_LIGHT}}><div style={{display:'flex', alignItems:'center'}}><div style={{width:'35px', height:'35px', borderRadius:'50%', backgroundColor:COLORS.BLUE, color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', marginRight:'15px', fontSize:'14px'}}>{t.name.charAt(0)}</div><div><div style={{fontWeight:'700', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", fontSize:'16px'}}>{t.name}</div><div style={{fontSize:'12px', color: COLORS.GRAY_TEXT}}>{t.email}</div></div></div>{userRole === 'admin' && (<button onClick={() => setTechToDelete(t.id)} style={{background:'transparent', border:'none', cursor:'pointer', opacity:0.6}}><img src="/icon-trash.svg" alt="Del" style={{width:'20px'}} /></button>)}</div>))}</div>{userRole === 'admin' && (<form onSubmit={handleAddTech}><input type="text" placeholder="Nom" value={newTechName} onChange={(e) => setNewTechName(e.target.value)} style={inputStyle} /><AddressInput placeholder="Adresse (Départ)" value={newTechAddress} onChange={setNewTechAddress} /><input type="email" placeholder="Email" value={newTechEmail} onChange={(e) => setNewTechEmail(e.target.value)} style={inputStyle} /><input type="password" placeholder="Mot de passe" value={newTechPass} onChange={(e) => setNewTechPass(e.target.value)} style={inputStyle} /><button type="submit" disabled={isAddingTech} style={{...submitButtonStyle, marginTop: '10px'}}>{isAddingTech ? "..." : "CRÉER LE COMPTE"}</button></form>)}<button onClick={() => setShowTeamModal(false)} style={{...cancelButtonStyle, border:'none', marginTop:'10px'}}>FERMER</button></div></div>}
+            {showTeamModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowTeamModal(false)}><div style={{...modalContentStyle, maxWidth:'450px', padding:'40px'}} onClick={e => e.stopPropagation()}><div style={{display:'flex', alignItems:'center', marginBottom:'20px', borderBottom:`2px solid ${COLORS.DARK}`, paddingBottom:'15px'}}><h3 style={{margin:0, fontFamily:"'Oswald', sans-serif", fontSize:'24px', textTransform:'uppercase'}}>MON ÉQUIPE</h3></div><div style={{maxHeight: '250px', overflowY: 'auto', marginBottom: '30px'}}>{technicians.map(t => (<div key={t.id} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'15px', marginBottom:'10px', border:`1px solid ${COLORS.BORDER}`, borderRadius:STANDARD_RADIUS, backgroundColor: COLORS.BG_LIGHT}}>
+                <div style={{display:'flex', alignItems:'center'}}>
+                    <div style={{width:'35px', height:'35px', borderRadius:'50%', backgroundColor:COLORS.BLUE, color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', marginRight:'15px', fontSize:'14px'}}>{t.name.charAt(0)}</div>
+                    <div><div style={{fontWeight:'700', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", fontSize:'16px'}}>{t.name}</div><div style={{fontSize:'12px', color: COLORS.GRAY_TEXT}}>{t.email}</div></div>
+                </div>
+                {userRole === 'admin' && (<button onClick={() => setTechToDelete(t.id)} style={{background:'transparent', border:'none', cursor:'pointer', opacity:0.6}}><img src="/icon-trash.svg" alt="Del" style={{width:'20px'}} /></button>)}</div>))}</div>{userRole === 'admin' && (<form onSubmit={handleAddTech}><input type="text" placeholder="Nom" value={newTechName} onChange={(e) => setNewTechName(e.target.value)} style={inputStyle} /><AddressInput placeholder="Adresse (Départ)" value={newTechAddress} onChange={setNewTechAddress} /><input type="email" placeholder="Email" value={newTechEmail} onChange={(e) => setNewTechEmail(e.target.value)} style={inputStyle} /><input type="password" placeholder="Mot de passe" value={newTechPass} onChange={(e) => setNewTechPass(e.target.value)} style={inputStyle} /><button type="submit" disabled={isAddingTech} style={{...submitButtonStyle, marginTop: '10px'}}>{isAddingTech ? "..." : "CRÉER LE COMPTE"}</button></form>)}<button onClick={() => setShowTeamModal(false)} style={{...cancelButtonStyle, border:'none', marginTop:'10px'}}>FERMER</button></div></div>}
 
             {showResetModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowResetModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/icon-trash.svg" alt="!" style={{width:'40px', marginBottom:'15px'}}/ ><h3 style={modalTitleStyle}>VIDER ?</h3><div style={{display:'flex', gap:'10px'}}><button onClick={()=>setShowResetModal(false)} style={{...cancelButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`, marginTop:0}}>ANNULER</button><button onClick={confirmResetMissions} style={{...submitButtonStyle, marginTop:0, backgroundColor:COLORS.DARK}}>{loading ? "..." : "CONFIRMER"}</button></div></div></div>}
 
@@ -654,27 +702,12 @@ function App() {
             {showEmptyModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowEmptyModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} /><h3 style={modalTitleStyle}>OPTIROUTE</h3><button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button></div></div>}
             {showUnassignedModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowUnassignedModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3><div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>{unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}</div><button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button></div></div>}
 
-            {/* LAYOUT RESPONSIVE */}
             <div style={mapContainerStyle(isMobileView, mobileTab === 0)}>
                 <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
                     <MapController center={mapCenter} bounds={mapBounds} />
-                    {technicians.map(t => {
-                        const lat = parseFloat(t.start_lat);
-                        const lng = parseFloat(t.start_lng);
-                        if(isValidCoord(lat) && isValidCoord(lng)) {
-                            return (<Marker key={`tech-${t.id}`} position={[lat, lng]}><Popup><div style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase'}}>🏠 {t.name}</div></Popup></Marker>);
-                        }
-                        return null;
-                    })}
-                    {route.map((step, index) => {
-                        const lat = parseFloat(step.lat);
-                        const lng = parseFloat(step.lng);
-                        if(isValidCoord(lat) && isValidCoord(lng)) {
-                            return (<Marker key={index} position={[lat, lng]} icon={createCustomIcon(index, route.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>);
-                        }
-                        return null;
-                    })}
+                    {technicians.map(t => (<Marker key={`tech-${t.id}`} position={[parseFloat(t.start_lat), parseFloat(t.start_lng)]}><Popup><div style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase'}}>🏠 {t.name}</div></Popup></Marker>))}
+                    {route.map((step, index) => (<Marker key={index} position={[step.lat, step.lng]} icon={createCustomIcon(index, route.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>))}
                     {routePath.length > 0 && <Polyline positions={routePath} color={COLORS.BLUE} weight={5} opacity={0.8} />}
                 </MapContainer>
             </div>
@@ -702,13 +735,16 @@ function App() {
                             <button onClick={handleLogout} style={{background: 'transparent', border: 'none', color: COLORS.RED, cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration:'underline', fontFamily:"'Inter', sans-serif", marginLeft:'15px'}}>DÉCO</button>
                         </div>
                         )}
+                        {/* Mobile Header only needs Logout as Nav is bottom */}
                         {isMobileView && (
                              <button onClick={handleLogout} style={{background: 'transparent', border: 'none', color: COLORS.RED, cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration:'underline', fontFamily:"'Inter', sans-serif"}}>DÉCO</button>
                         )}
                     </div>
                 </div>
 
-                {/* TAB 0: SAISIE */}
+                {/* CONTENT (Switched by activeTab for Desktop, or mobileTab for Mobile) */}
+                
+                {/* VIEW 0: SAISIE & OPTIMISATION */}
                 {((!isMobileView && activeTab === 0) || (isMobileView && mobileTab === 1)) && (
                 <>
                     <div style={cardStyle}>
@@ -717,29 +753,12 @@ function App() {
                             <button onClick={() => setShowTeamModal(true)} style={{background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '12px', color: COLORS.BLUE, fontFamily: "'Inter', sans-serif", fontWeight: '600', textDecoration: 'underline'}}>{userRole === 'admin' ? "GÉRER L'ÉQUIPE" : "VOIR L'ÉQUIPE"}</button>
                         </div>
                         
-                        {/* SELECTEUR HORS DU FORMULAIRE */}
                         {userRole === 'admin' && (
                             <div style={{marginBottom:'15px'}}>
                                 <div style={{fontSize:'11px', fontWeight:'bold', color:COLORS.GRAY_TEXT, marginBottom:'5px'}}>AFFECTER À :</div>
                                 <div style={{display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'5px'}}>
                                     {technicians.map(t => (
-                                        <div key={t.id} onClick={() => {
-                                            setSelectedTechId(t.id);
-                                            const lat = parseFloat(t.start_lat);
-                                            const lng = parseFloat(t.start_lng);
-                                            if(isValidCoord(lat) && isValidCoord(lng)) {
-                                                setMapCenter([lat, lng]);
-                                                setMapBounds(null);
-                                            }
-                                        }} style={{
-                                            padding:'8px 15px', borderRadius:PILL_RADIUS, cursor:'pointer', fontSize:'12px', fontWeight:'bold', whiteSpace:'nowrap',
-                                            backgroundColor: selectedTechId === t.id ? COLORS.DARK : COLORS.WHITE,
-                                            color: selectedTechId === t.id ? COLORS.WHITE : COLORS.DARK,
-                                            border: '1px solid ' + (selectedTechId === t.id ? COLORS.DARK : COLORS.BORDER),
-                                            transition: '0.2s'
-                                        }}>
-                                            {t.name}
-                                        </div>
+                                        <div key={t.id} onClick={() => { setSelectedTechId(t.id); setMapCenter([parseFloat(t.start_lat), parseFloat(t.start_lng)]); setMapBounds(null); }} style={{ padding:'8px 15px', borderRadius:PILL_RADIUS, cursor:'pointer', fontSize:'12px', fontWeight:'bold', whiteSpace:'nowrap', backgroundColor: selectedTechId === t.id ? COLORS.DARK : COLORS.WHITE, color: selectedTechId === t.id ? COLORS.WHITE : COLORS.DARK, border: '1px solid ' + (selectedTechId === t.id ? COLORS.DARK : COLORS.BORDER), transition: '0.2s' }}>{t.name}</div>
                                     ))}
                                 </div>
                                 {!selectedTechId && <div style={{fontSize:'11px', color:COLORS.RED, marginTop:'5px'}}>* Sélectionnez un technicien</div>}
@@ -816,7 +835,7 @@ function App() {
                     </div>
                 )}
 
-                {/* TAB 2: HISTORIQUE */}
+                {/* VIEW 2: HISTORIQUE (Desktop: Tab 2, Mobile: Tab 2) */}
                 {((!isMobileView && activeTab === 2) || (isMobileView && mobileTab === 2)) && (
                     <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', height:'100%'}}>
                         <h4 style={{...cardTitleStyle, marginBottom: '15px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '16px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>HISTORIQUE DES TRAJETS</h4>
