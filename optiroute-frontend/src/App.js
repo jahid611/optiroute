@@ -21,7 +21,7 @@ L.Icon.Default.mergeOptions({
     shadowUrl: shadowUrl,
 });
 
-// --- 2. CONSTANTES ---
+// --- 2. CONSTANTES & STYLES ---
 const COLORS = {
     DARK: '#3b4651', BLUE: '#2b79c2', PASTEL_BLUE: '#A0C4FF', 
     PASTEL_GREEN: '#B9FBC0', PASTEL_RED: '#FFADAD', WHITE: '#ffffff', 
@@ -33,13 +33,12 @@ const PILL_RADIUS = '38px';
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 
-// --- 3. STYLES (DÉFINIS EN PREMIER POUR ÉVITER LES ERREURS) ---
+// --- STYLES CORRIGÉS (MOBILE FIRST) ---
 
-// FIX CRITIQUE MOBILE : On utilise 'fixed' et 'inset: 0' pour forcer le plein écran
 const rootContainerStyle = (isMobile) => ({ 
     display: 'flex', 
     flexDirection: isMobile ? 'column' : 'row', 
-    position: 'fixed', // Force le plein écran
+    position: 'fixed', // Force le plein écran sur mobile
     top: 0, left: 0, right: 0, bottom: 0,
     fontFamily: "'Inter', sans-serif", 
     backgroundColor: COLORS.BG_LIGHT, 
@@ -47,37 +46,55 @@ const rootContainerStyle = (isMobile) => ({
     zIndex: 1
 });
 
+// FIX MAP : Toujours rendue, jamais en display:none, position absolute sur mobile
 const mapContainerStyle = (isMobile) => ({ 
-    flex: 1, 
-    height: isMobile ? '100%' : '100%', 
-    order: isMobile ? 1 : 2, 
-    borderLeft: '1px solid ' + COLORS.BORDER, 
-    zIndex: 0,
-    position: 'relative'
+    height: '100%', 
+    width: '100%',
+    ...(isMobile ? {
+        position: 'absolute', // En fond d'écran sur mobile
+        top: 0, left: 0, right: 0, bottom: '60px', // S'arrête avant la navbar
+        zIndex: 0
+    } : {
+        flex: 1, 
+        order: 2, 
+        borderLeft: '1px solid ' + COLORS.BORDER, 
+        position: 'relative',
+        zIndex: 0
+    })
 });
 
-const panelContainerStyle = (isMobile) => ({ 
-    width: isMobile ? '100%' : '450px', 
-    height: isMobile ? '100%' : '100%', 
-    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-    backdropFilter: 'blur(20px)', 
-    padding: isMobile ? '20px 20px 80px 20px' : '30px', 
-    boxSizing: 'border-box', 
-    display: 'flex', 
-    flexDirection: 'column', 
-    order: isMobile ? 2 : 1, 
-    zIndex: 1000, 
-    borderTop: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, 
-    boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)',
-    overflowY: 'hidden' 
+// FIX PANEL : Superposé sur mobile
+const panelContainerStyle = (isMobile, showPanel) => ({ 
+    ...(isMobile ? {
+        position: 'absolute', // Par dessus la map
+        top: 0, left: 0, right: 0, bottom: '60px',
+        backgroundColor: COLORS.BG_LIGHT,
+        zIndex: 10, // Au dessus de la map (z=0)
+        display: showPanel ? 'flex' : 'none', // On cache le panel, pas la map
+        flexDirection: 'column',
+        padding: '20px',
+        overflowY: 'hidden' // Scroll interne géré par les listes
+    } : {
+        width: '450px', 
+        height: '100%', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        order: 1, 
+        zIndex: 1000, 
+        backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+        backdropFilter: 'blur(20px)', 
+        padding: '30px', 
+        boxSizing: 'border-box', 
+        borderTop: 'none', 
+        boxShadow: '5px 0 30px rgba(0,0,0,0.05)'
+    })
 });
 
-// Navigation Mobile
 const mobileBottomNavStyle = {
-    position: 'fixed', bottom: 0, left: 0, right: 0, height: '70px',
+    position: 'fixed', bottom: 0, left: 0, right: 0, height: '60px',
     backgroundColor: COLORS.WHITE, borderTop: '1px solid '+COLORS.BORDER,
     display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-    zIndex: 20000, paddingBottom: '15px' 
+    zIndex: 20000, paddingBottom: 'safe-area-inset-bottom'
 };
 
 const mobileNavItemStyle = (isActive) => ({
@@ -93,7 +110,7 @@ const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK };
 const inputStyle = { width: '100%', padding: '16px 20px', marginBottom: '10px', borderRadius: PILL_RADIUS, border: '1px solid transparent', backgroundColor: COLORS.WHITE, fontSize: '16px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }; // Font 16px pour éviter zoom iOS
 const dropdownItemStyle = { padding: '12px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, fontWeight: '600', transition: 'background 0.2s' };
 const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
-const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 'auto', paddingBottom:'10px' };
+const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px', marginTop: 'auto' };
 const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%' };
 const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
 const resetButtonStyle = { padding: '10px', backgroundColor: 'white', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', width: '50px', height: '50px' };
@@ -109,29 +126,28 @@ const navArrowStyle = { cursor: 'pointer', padding: '10px', background: COLORS.B
 const pdfButtonStyle = { marginTop:'10px', padding:'8px 15px', fontSize:'11px', borderRadius:'20px', border:'1px solid #ddd', background:'white', cursor:'pointer', display:'flex', alignItems:'center', fontWeight:'bold', color:COLORS.DARK, fontFamily:"'Inter', sans-serif", width: '100%', justifyContent: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' };
 const tripCardStyle = { backgroundColor: COLORS.WHITE, padding: '20px', borderRadius: STANDARD_RADIUS, marginBottom: '15px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, cursor: 'pointer' };
 
-// Modales
-const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.6)', backdropFilter: 'blur(5px)', zIndex: 20000, display: 'flex', alignItems: 'center', justifyContent: 'center' };
+const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.4)', backdropFilter: 'blur(8px)', zIndex: 20001, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const modalContentStyle = { background: COLORS.WHITE, padding: '40px', borderRadius: '24px', width: '90%', maxWidth: '400px', textAlign: 'center', border: 'none', boxSizing: 'border-box', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' };
-const modalTitleStyle = { marginTop: 0, marginBottom: '15px', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '20px', letterSpacing: '1px' };
-const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', padding: '15px', backgroundColor: '#f8f9fa', color: COLORS.DARK, textDecoration: 'none', borderRadius: STANDARD_RADIUS, border: '1px solid #eee', fontWeight: '700', fontSize: '14px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px', boxSizing: 'border-box' };
+const modalTitleStyle = { marginTop: 0, marginBottom: '10px', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '22px', letterSpacing: '1px' };
+const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', padding: '15px', backgroundColor: '#fff', color: COLORS.DARK, textDecoration: 'none', borderRadius: STANDARD_RADIUS, border: '1px solid #eee', fontWeight: '700', fontSize: '14px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px', boxSizing: 'border-box', boxShadow:'0 2px 5px rgba(0,0,0,0.02)' };
 const gpsIconStyle = { width: '24px', height: '24px', objectFit: 'contain', marginRight: '15px' };
 const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', border: 'none', background: 'transparent', color: COLORS.GRAY_TEXT, fontWeight: '600', cursor: 'pointer', borderRadius: PILL_RADIUS, fontFamily: "'Inter', sans-serif", fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' };
 
 // Styles Landing & Tuto
-const landingContainerStyle = { minHeight: '100vh', backgroundColor: COLORS.BG_LIGHT, fontFamily: "'Inter', sans-serif", color: COLORS.DARK, overflowX: 'hidden', display:'flex', flexDirection:'column' };
+const landingContainerStyle = { minHeight: '100vh', backgroundColor: COLORS.BG_LIGHT, fontFamily: "'Inter', sans-serif", color: COLORS.DARK, overflowX: 'hidden' };
 const navStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER };
 const heroSectionStyle = { padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' };
-const heroTitleStyle = { fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(30px, 5vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px' };
-const heroSubtitleStyle = { fontSize: '16px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6' };
+const heroTitleStyle = { fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(40px, 6vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px' };
+const heroSubtitleStyle = { fontSize: '18px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6' };
 const ctaButtonStyle = { padding: '18px 40px', fontSize: '16px', fontWeight: '700', color: COLORS.WHITE, backgroundColor: COLORS.BLUE, border: 'none', borderRadius: PILL_RADIUS, cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", letterSpacing: '1px', boxShadow: '0 10px 25px rgba(43, 121, 194, 0.4)', transition: 'transform 0.2s' };
-const featuresGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '30px', padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' };
-const featureCardStyle = (color) => ({ backgroundColor: COLORS.WHITE, padding: '30px', borderRadius: '24px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, position: 'relative', overflow: 'hidden' });
+const featuresGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', padding: '60px 10%', maxWidth: '1400px', margin: '0 auto' };
+const featureCardStyle = (color) => ({ backgroundColor: COLORS.WHITE, padding: '40px', borderRadius: '24px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, position: 'relative', overflow: 'hidden' });
 const tutorialContainerStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: COLORS.BG_LIGHT, zIndex: 20000, overflowY: 'auto', padding: '40px 20px' };
 const tutorialHeaderStyle = { maxWidth: '800px', margin: '0 auto 40px', textAlign: 'center' };
 const tutorialSectionStyle = { maxWidth: '800px', margin: '0 auto 30px', backgroundColor: 'white', padding: '30px', borderRadius: '20px', boxShadow: SHADOW };
 const stepNumberStyle = { display: 'inline-block', backgroundColor: COLORS.BLUE, color: 'white', width: '25px', height: '25px', borderRadius: '50%', textAlign: 'center', lineHeight: '25px', marginRight: '10px', fontWeight: 'bold', fontSize: '14px' };
 
-// --- 4. ICONS ---
+// --- 4. SVG ICONS ---
 const Icons = {
     User: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
     Truck: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>,
@@ -303,9 +319,34 @@ const TutorialPage = ({ onClose }) => (
             <h1 style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase', color:COLORS.DARK, fontSize:'36px'}}>Guide d'Utilisation Complet</h1>
             <p style={{color:COLORS.GRAY_TEXT, maxWidth:'600px', margin:'0 auto'}}>Maîtrisez OptiRoute Pro en 5 minutes.</p>
         </div>
-        <div style={tutorialSectionStyle}><div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}><Icons.User /><h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>1. RÔLE ADMINISTRATEUR (PATRON)</h2></div><p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}><strong><span style={stepNumberStyle}>A</span> Gérer l'Équipe :</strong> Cliquez sur "GÉRER L'ÉQUIPE" pour ajouter des techniciens.<br/><strong><span style={stepNumberStyle}>B</span> Créer des Missions :</strong> Sélectionnez d'abord un technicien dans la liste. Le formulaire s'active. Renseignez l'adresse (auto-complétion).<br/><strong><span style={stepNumberStyle}>C</span> Optimiser :</strong> Cliquez sur le CAMION pour calculer le meilleur trajet.</p></div>
-        <div style={tutorialSectionStyle}><div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}><Icons.Truck /><h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>2. RÔLE TECHNICIEN</h2></div><p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}><strong><span style={stepNumberStyle}>A</span> Connexion :</strong> Identifiants fournis par l'admin.<br/><strong><span style={stepNumberStyle}>B</span> Navigation :</strong> Cliquez sur la boussole pour GPS.<br/><strong><span style={stepNumberStyle}>C</span> Validation :</strong> "DÉMARRER" puis "TERMINER & SIGNER".</p></div>
-        <div style={{textAlign:'center'}}><button onClick={onClose} style={{...submitButtonStyle, width:'auto', padding:'15px 50px', fontSize:'16px'}}>FERMER LE GUIDE</button></div>
+
+        <div style={tutorialSectionStyle}>
+            <div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}>
+                <Icons.User />
+                <h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>1. RÔLE ADMINISTRATEUR (PATRON)</h2>
+            </div>
+            <p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}>
+                <strong><span style={stepNumberStyle}>A</span> Gérer l'Équipe :</strong> Cliquez sur "GÉRER L'ÉQUIPE" pour ajouter des techniciens.<br/>
+                <strong><span style={stepNumberStyle}>B</span> Créer des Missions :</strong> Sélectionnez d'abord un technicien dans la liste. Le formulaire s'active. Renseignez l'adresse (auto-complétion).<br/>
+                <strong><span style={stepNumberStyle}>C</span> Optimiser :</strong> Cliquez sur le CAMION pour calculer le meilleur trajet.
+            </p>
+        </div>
+
+        <div style={tutorialSectionStyle}>
+            <div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}>
+                <Icons.Truck />
+                <h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>2. RÔLE TECHNICIEN</h2>
+            </div>
+            <p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}>
+                <strong><span style={stepNumberStyle}>A</span> Connexion :</strong> Identifiants fournis par l'admin.<br/>
+                <strong><span style={stepNumberStyle}>B</span> Navigation :</strong> Cliquez sur la boussole pour GPS.<br/>
+                <strong><span style={stepNumberStyle}>C</span> Validation :</strong> "DÉMARRER" puis "TERMINER & SIGNER".
+            </p>
+        </div>
+
+        <div style={{textAlign:'center'}}>
+            <button onClick={onClose} style={{...submitButtonStyle, width:'auto', padding:'15px 50px', fontSize:'16px'}}>FERMER LE GUIDE</button>
+        </div>
     </div>
 );
 
@@ -701,7 +742,9 @@ function App() {
                     </div>
                 </div>
 
-                {/* TAB 0: SAISIE */}
+                {/* CONTENT (Switched by activeTab for Desktop, or mobileTab for Mobile) */}
+                
+                {/* VIEW 0: SAISIE & OPTIMISATION */}
                 {((!isMobileView && activeTab === 0) || (isMobileView && mobileTab === 1)) && (
                 <>
                     <div style={cardStyle}>
@@ -710,25 +753,12 @@ function App() {
                             <button onClick={() => setShowTeamModal(true)} style={{background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '12px', color: COLORS.BLUE, fontFamily: "'Inter', sans-serif", fontWeight: '600', textDecoration: 'underline'}}>{userRole === 'admin' ? "GÉRER L'ÉQUIPE" : "VOIR L'ÉQUIPE"}</button>
                         </div>
                         
-                        {/* SELECTEUR HORS DU FORMULAIRE */}
                         {userRole === 'admin' && (
                             <div style={{marginBottom:'15px'}}>
                                 <div style={{fontSize:'11px', fontWeight:'bold', color:COLORS.GRAY_TEXT, marginBottom:'5px'}}>AFFECTER À :</div>
                                 <div style={{display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'5px'}}>
                                     {technicians.map(t => (
-                                        <div key={t.id} onClick={() => {
-                                            setSelectedTechId(t.id);
-                                            setMapCenter([parseFloat(t.start_lat), parseFloat(t.start_lng)]);
-                                            setMapBounds(null);
-                                        }} style={{
-                                            padding:'8px 15px', borderRadius:PILL_RADIUS, cursor:'pointer', fontSize:'12px', fontWeight:'bold', whiteSpace:'nowrap',
-                                            backgroundColor: selectedTechId === t.id ? COLORS.DARK : COLORS.WHITE,
-                                            color: selectedTechId === t.id ? COLORS.WHITE : COLORS.DARK,
-                                            border: '1px solid ' + (selectedTechId === t.id ? COLORS.DARK : COLORS.BORDER),
-                                            transition: '0.2s'
-                                        }}>
-                                            {t.name}
-                                        </div>
+                                        <div key={t.id} onClick={() => { setSelectedTechId(t.id); setMapCenter([parseFloat(t.start_lat), parseFloat(t.start_lng)]); setMapBounds(null); }} style={{ padding:'8px 15px', borderRadius:PILL_RADIUS, cursor:'pointer', fontSize:'12px', fontWeight:'bold', whiteSpace:'nowrap', backgroundColor: selectedTechId === t.id ? COLORS.DARK : COLORS.WHITE, color: selectedTechId === t.id ? COLORS.WHITE : COLORS.DARK, border: '1px solid ' + (selectedTechId === t.id ? COLORS.DARK : COLORS.BORDER), transition: '0.2s' }}>{t.name}</div>
                                     ))}
                                 </div>
                                 {!selectedTechId && <div style={{fontSize:'11px', color:COLORS.RED, marginTop:'5px'}}>* Sélectionnez un technicien</div>}
@@ -767,7 +797,7 @@ function App() {
                 </>
                 )}
 
-                {/* VIEW 1: LISTE ROUTE (Sur Desktop c'est Tab 1, sur Mobile c'est aussi Tab 1 mais affiché différemment) */}
+                {/* VIEW 1: LISTE ROUTE (Desktop: Tab 1, Mobile: Tab 1) */}
                 {((!isMobileView && activeTab === 1) || (isMobileView && mobileTab === 1 && route.length > 0 && activeTab === 1)) && (
                     <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', height:'100%'}}>
                         <h4 style={{...cardTitleStyle, marginBottom: '15px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '16px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>FEUILLE DE ROUTE</h4>
@@ -805,7 +835,7 @@ function App() {
                     </div>
                 )}
 
-                {/* TAB 2: HISTORIQUE */}
+                {/* VIEW 2: HISTORIQUE (Desktop: Tab 2, Mobile: Tab 2) */}
                 {((!isMobileView && activeTab === 2) || (isMobileView && mobileTab === 2)) && (
                     <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', height:'100%'}}>
                         <h4 style={{...cardTitleStyle, marginBottom: '15px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '16px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>HISTORIQUE DES TRAJETS</h4>
