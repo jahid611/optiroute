@@ -8,11 +8,12 @@ import SignatureCanvas from 'react-signature-canvas';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { Crisp } from "crisp-sdk-web";
 
-// --- FIX LEAFLET ---
+// --- FIX POUR VERCEL ---
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 
+// --- 1. CONFIGURATION LEAFLET ---
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: iconRetinaUrl,
@@ -31,8 +32,9 @@ const COLORS = {
 const PILL_RADIUS = '38px'; 
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
+const NAV_HEIGHT = '70px'; // Hauteur barre navigation mobile
 
-// --- STYLES CSS-IN-JS (MOBILE PERFECT) ---
+// --- STYLES CSS-IN-JS ---
 
 const rootContainerStyle = (isMobile) => ({ 
     display: 'flex', 
@@ -45,32 +47,28 @@ const rootContainerStyle = (isMobile) => ({
     zIndex: 1
 });
 
-// LA CARTE EST TOUJOURS LÀ (Z-INDEX 0)
-const mapContainerStyle = (isMobile) => ({ 
+const mapContainerStyle = (isMobile, showMap) => ({ 
     flex: 1, 
-    height: '100%', 
+    height: isMobile ? '100%' : '100%', 
     width: '100%',
-    order: isMobile ? 1 : 2, // Sur mobile, elle est en premier (fond)
-    borderLeft: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, 
+    order: isMobile ? 1 : 2, 
+    borderLeft: '1px solid ' + COLORS.BORDER, 
     zIndex: 0,
-    position: isMobile ? 'absolute' : 'relative', // Absolute sur mobile pour être en fond
+    position: isMobile ? 'absolute' : 'relative',
     top: 0, left: 0, right: 0, 
-    bottom: isMobile ? '60px' : 0 // S'arrête avant la barre de nav
+    // IMPORTANT : On laisse de la place pour la nav bar en bas sur mobile
+    bottom: isMobile ? NAV_HEIGHT : 0, 
+    display: (isMobile && !showMap) ? 'none' : 'block'
 });
 
-// LE PANEL VIENT SE POSER DESSUS (Z-INDEX 10)
 const panelContainerStyle = (isMobile, showPanel) => ({ 
     width: isMobile ? '100%' : '450px', 
     height: isMobile ? '100%' : '100%', 
     backgroundColor: 'rgba(255, 255, 255, 0.95)', 
     backdropFilter: 'blur(20px)', 
-    padding: isMobile ? '20px 20px 150px 20px' : '30px', 
+    padding: isMobile ? '20px 20px 20px 20px' : '30px', 
     boxSizing: 'border-box', 
-    display: 'flex',
-    // SUR MOBILE : Si showPanel est false, on cache le panel (display none) pour voir la map dessous
-    // SUR DESKTOP : Toujours flex
-    visibility: (isMobile && !showPanel) ? 'hidden' : 'visible', 
-    pointerEvents: (isMobile && !showPanel) ? 'none' : 'auto', // Clic traverse si caché
+    display: (isMobile && !showPanel) ? 'none' : 'flex', 
     flexDirection: 'column', 
     order: isMobile ? 2 : 1, 
     zIndex: 1000, 
@@ -78,24 +76,24 @@ const panelContainerStyle = (isMobile, showPanel) => ({
     boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)',
     overflowY: 'auto', 
     WebkitOverflowScrolling: 'touch',
+    // IMPORTANT : Panel au dessus de la map mais s'arrête avant la nav bar
     position: isMobile ? 'absolute' : 'relative',
-    top: 0, left: 0, right: 0, bottom: isMobile ? '60px' : 0
+    top: 0, left: 0, right: 0, 
+    bottom: isMobile ? NAV_HEIGHT : 0
 });
 
-// NAVIGATION TOUJOURS AU DESSUS (Z-INDEX 99999)
 const mobileBottomNavStyle = {
-    position: 'fixed', bottom: 0, left: 0, right: 0, height: '70px',
+    position: 'fixed', bottom: 0, left: 0, right: 0, height: NAV_HEIGHT,
     backgroundColor: COLORS.WHITE, borderTop: '1px solid ' + COLORS.BORDER,
     display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-    zIndex: 99999, paddingBottom: '15px', // Padding pour les écrans sans boutons physiques
-    boxShadow: '0 -5px 20px rgba(0,0,0,0.1)'
+    zIndex: 99999, paddingBottom: '10px',
+    boxShadow: '0 -2px 10px rgba(0,0,0,0.05)'
 };
 
 const mobileNavItemStyle = (isActive) => ({
     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
     color: isActive ? COLORS.BLUE : COLORS.GRAY_TEXT, fontSize: '10px', fontWeight: 'bold',
-    cursor: 'pointer', flex: 1, height: '100%', borderTop: isActive ? '3px solid '+COLORS.BLUE : '3px solid transparent',
-    transition: '0.2s'
+    cursor: 'pointer', flex: 1, height: '100%', borderTop: isActive ? '3px solid '+COLORS.BLUE : '3px solid transparent'
 });
 
 const panelHeaderStyle = { marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid ' + COLORS.DARK };
@@ -171,6 +169,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
         const pages = pdfDoc.getPages();
         const firstPage = pages[0];
         const { width, height } = firstPage.getSize(); 
+        
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
@@ -257,22 +256,10 @@ const AddressInput = ({ placeholder, value, onChange }) => {
     );
 };
 
-// FIX: MapReSizer pour forcer le rendu sur mobile quand on change d'onglet
-function MapReSizer({ isVisible }) {
-    const map = useMap();
-    useEffect(() => {
-        if(isVisible) {
-            setTimeout(() => { map.invalidateSize(); }, 200);
-        }
-    }, [isVisible, map]);
-    return null;
-}
-
 function MapController({ center, bounds }) {
     const map = useMap();
     useEffect(() => {
         if (bounds && bounds.length > 0) {
-            // Filter invalid points
             const validBounds = bounds.filter(p => p && isValidCoord(p[0]) && isValidCoord(p[1]));
             if(validBounds.length > 0) map.fitBounds(validBounds, { padding: [50, 50] });
         } else if (center && isValidCoord(center[0]) && isValidCoord(center[1])) {
@@ -371,7 +358,7 @@ function App() {
     const [showTutorial, setShowTutorial] = useState(false);
 
     const [activeTab, setActiveTab] = useState(0);
-    const [mobileTab, setMobileTab] = useState(1); // Default list
+    const [mobileTab, setMobileTab] = useState(1);
 
     const [isLoginView, setIsLoginView] = useState(true);
     const [authEmail, setAuthEmail] = useState("");
@@ -401,8 +388,7 @@ function App() {
     const [newTechPass, setNewTechPass] = useState("");
     const [isAddingTech, setIsAddingTech] = useState(false);
 
-    // FIX: Coordonnées par défaut valides
-    const [mapCenter, setMapCenter] = useState([48.8566, 2.3522]); // Paris
+    const [mapCenter, setMapCenter] = useState([48.8675, 2.3639]); 
     const [mapBounds, setMapBounds] = useState(null);
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
     const [loading, setLoading] = useState(false);
@@ -449,7 +435,7 @@ function App() {
                     id: m.id, step: m.route_order, client: m.client_name, time_slot: m.time_slot, address: m.address, lat: parseFloat(m.lat), lng: parseFloat(m.lng), technician_name: m.technician_name, phone: m.phone, comments: m.comments, status: m.status, signature: m.signature, distance_km: "0" 
                 }));
                 setRoute(mappedRoute);
-                setActiveTab(1); setMobileTab(0); 
+                setActiveTab(1); setMobileTab(0); // MOBILE: On ne force pas la map pour éviter confusion
                 
                 if (savedPath) {
                     try {
@@ -479,6 +465,7 @@ function App() {
     useEffect(() => {
         const handleResize = () => setScreenWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
+        
         Crisp.configure("3a2abcb6-a8fd-4fc5-b856-a99c36e6ad0b");
         try { if (window.$crisp) window.$crisp.push(["do", "chat:show"]); } catch(e) {}
 
@@ -667,11 +654,10 @@ function App() {
             {showEmptyModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowEmptyModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} /><h3 style={modalTitleStyle}>OPTIROUTE</h3><button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button></div></div>}
             {showUnassignedModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowUnassignedModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3><div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>{unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}</div><button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button></div></div>}
 
+            {/* LAYOUT RESPONSIVE */}
             <div style={mapContainerStyle(isMobileView, mobileTab === 0)}>
                 <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
-                    {/* MapReSizer pour forcer le rendu mobile */}
-                    <MapReSizer isVisible={isMobileView && mobileTab === 0} />
                     <MapController center={mapCenter} bounds={mapBounds} />
                     {technicians.map(t => {
                         const lat = parseFloat(t.start_lat);
@@ -731,6 +717,7 @@ function App() {
                             <button onClick={() => setShowTeamModal(true)} style={{background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '12px', color: COLORS.BLUE, fontFamily: "'Inter', sans-serif", fontWeight: '600', textDecoration: 'underline'}}>{userRole === 'admin' ? "GÉRER L'ÉQUIPE" : "VOIR L'ÉQUIPE"}</button>
                         </div>
                         
+                        {/* SELECTEUR HORS DU FORMULAIRE */}
                         {userRole === 'admin' && (
                             <div style={{marginBottom:'15px'}}>
                                 <div style={{fontSize:'11px', fontWeight:'bold', color:COLORS.GRAY_TEXT, marginBottom:'5px'}}>AFFECTER À :</div>
