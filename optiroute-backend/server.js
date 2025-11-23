@@ -245,6 +245,48 @@ app.post('/missions', authenticateToken, async (req, res) => {
     } catch (error) { res.status(500).json({ success: false, message: error.message }); }
 });
 
+
+// Changer le statut d'une mission (+ Auto-clôture du Trajet)
+app.patch('/missions/:id/status', authenticateToken, async (req, res) => {
+    try {
+        const { status, signature } = req.body; 
+        const missionId = req.params.id;
+        
+        if (!['in_progress', 'done', 'assigned', 'pending'].includes(status)) {
+            return res.status(400).json({ message: "Statut invalide" });
+        }
+
+        // 1. Mettre à jour la mission
+        if (status === 'done' && signature) {
+            await db.query('UPDATE missions SET status = ?, signature = ? WHERE id = ?', [status, signature, missionId]);
+        } else {
+            await db.query('UPDATE missions SET status = ? WHERE id = ?', [status, missionId]);
+        }
+
+        // 2. LOGIQUE INTELLIGENTE : Vérifier si le Trajet est fini
+        // On récupère le trip_id de cette mission
+        const [mRes] = await db.query("SELECT trip_id FROM missions WHERE id = ?", [missionId]);
+        const tripId = mRes[0]?.trip_id;
+
+        if (tripId) {
+            // On compte combien de missions dans ce trajet ne sont PAS ENCORE finies
+            const [countRes] = await db.query("SELECT COUNT(*) as remaining FROM missions WHERE trip_id = ? AND status != 'done'", [tripId]);
+            const remaining = countRes[0].remaining;
+
+            if (remaining === 0) {
+                // Si 0 restant, on passe le trajet en "completed" !
+                await db.query("UPDATE trips SET status = 'completed' WHERE id = ?", [tripId]);
+                console.log(`🎉 Trajet ID ${tripId} terminé !`);
+            }
+        }
+
+        res.json({ success: true });
+    } catch (error) { 
+        console.error(error);
+        res.status(500).json({ error: error.message }); 
+    }
+});
+
 app.delete('/missions/reset', authenticateToken, async (req, res) => {
     try {
         const companyId = req.user.role === 'admin' ? req.user.id : req.user.company_id;
