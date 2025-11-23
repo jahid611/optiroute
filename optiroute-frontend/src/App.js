@@ -23,7 +23,7 @@ L.Icon.Default.mergeOptions({
 
 // --- 2. CONSTANTES & STYLES ---
 const COLORS = {
-    DARK: '#0f172a', // Plus sombre pour le footer
+    DARK: '#0f172a',
     BLUE: '#3b82f6', 
     PASTEL_BLUE: '#e0f2fe',
     PASTEL_GREEN: '#dcfce7', 
@@ -36,7 +36,7 @@ const COLORS = {
     SUCCESS_TEXT: '#15803d'
 };
 
-const PILL_RADIUS = '12px'; // Plus moderne, moins rond
+const PILL_RADIUS = '12px';
 const STANDARD_RADIUS = '16px';
 const SHADOW = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
 
@@ -70,7 +70,6 @@ const panelContainerStyle = (isMobile) => ({
     zIndex: 1000,
     borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none',
     boxShadow: isMobile ? '0 -4px 20px rgba(0,0,0,0.05)' : '5px 0 30px rgba(0,0,0,0.05)',
-    // IMPORTANT : Padding bottom pour laisser la place au footer mobile
     paddingBottom: isMobile ? '80px' : '0px', 
     position: 'relative'
 });
@@ -79,10 +78,9 @@ const scrollableContentStyle = {
     padding: '30px',
     overflowY: 'auto',
     flex: 1,
-    WebkitOverflowScrolling: 'touch' // Pour un scroll fluide sur iOS
+    WebkitOverflowScrolling: 'touch'
 };
 
-// Styles Mobile Footer Navigation
 const mobileNavStyle = {
     position: 'fixed',
     bottom: 0,
@@ -95,7 +93,7 @@ const mobileNavStyle = {
     justifyContent: 'space-around',
     alignItems: 'center',
     zIndex: 2000,
-    paddingBottom: '10px', // Pour les écrans type iPhone X
+    paddingBottom: '10px',
     boxShadow: '0 -2px 10px rgba(0,0,0,0.05)'
 };
 
@@ -113,7 +111,6 @@ const mobileNavItemStyle = (isActive) => ({
     width: '60px'
 });
 
-// Autres styles inchangés mais nettoyés
 const cardStyle = { marginBottom: '25px' };
 const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK, fontSize: '18px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase' };
 const inputStyle = { width: '100%', padding: '14px', marginBottom: '10px', borderRadius: PILL_RADIUS, border: `1px solid ${COLORS.BORDER}`, backgroundColor: COLORS.BG_LIGHT, fontSize: '14px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', transition: 'all 0.2s' };
@@ -121,7 +118,6 @@ const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COL
 const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '16px', marginBottom: '12px', borderRadius: STANDARD_RADIUS, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', border: `1px solid ${COLORS.BORDER}`, transition: 'transform 0.1s' };
 const tripCardStyle = { backgroundColor: COLORS.WHITE, padding: '20px', borderRadius: STANDARD_RADIUS, marginBottom: '15px', border: `1px solid ${COLORS.BORDER}`, cursor: 'pointer', transition: '0.2s' };
 
-// Modales
 const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const modalContentStyle = { background: COLORS.WHITE, padding: '30px', borderRadius: '24px', width: '90%', maxWidth: '400px', textAlign: 'center', border: 'none', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' };
 
@@ -130,7 +126,6 @@ const Icons = {
     Home: ({color}) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>,
     List: ({color}) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>,
     Clock: ({color}) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>,
-    User: ({color}) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
     LogOut: ({color}) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>,
     Navigation: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
 };
@@ -182,7 +177,7 @@ const createCustomIcon = (index, total, status, isMyMission) => {
     let textColor = COLORS.DARK;
     if (isMyMission) {
         if (status === 'done') { bgColor = COLORS.SUCCESS_TEXT; textColor = 'white'; }
-        else { bgColor = COLORS.BLUE; if (index === 0) bgColor = '#10b981'; } // Vert émeraude pour le prochain
+        else { bgColor = COLORS.BLUE; if (index === 0) bgColor = '#10b981'; }
     }
     return L.divIcon({
         className: 'custom-marker',
@@ -193,7 +188,7 @@ const createCustomIcon = (index, total, status, isMyMission) => {
 
 // --- APP PRINCIPALE ---
 function App() {
-    const API_URL = "https://optiroute-wxaz.onrender.com"; // Remplacer par URL Render en prod
+    const API_URL = "https://optiroute-wxaz.onrender.com"; 
 
     const [token, setToken] = useState(localStorage.getItem('optiroute_token'));
     const [userRole, setUserRole] = useState(null);
@@ -201,10 +196,20 @@ function App() {
     const [userName, setUserName] = useState("");
     const [userCompany, setUserCompany] = useState(localStorage.getItem('optiroute_company') || "");
     
+    // --- CES LIGNES MANQUAIENT ET CAUSAIENT L'ERREUR, ELLES SONT LÀ MAINTENANT ---
+    const [authEmail, setAuthEmail] = useState("");
+    const [authPass, setAuthPass] = useState("");
+    const [authCompany, setAuthCompany] = useState("");
+    const [isLoginView, setIsLoginView] = useState(true);
+    const [authError, setAuthError] = useState("");
+    const [authLoading, setAuthLoading] = useState(false);
+    // -----------------------------------------------------------------------------
+
     // États UI
-    const [activeTab, setActiveTab] = useState(0); // 0=Add, 1=Route, 2=History
+    const [activeTab, setActiveTab] = useState(0); 
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
     const [loading, setLoading] = useState(false);
+    const [toast, setToast] = useState(null);
     
     // États Données
     const [technicians, setTechnicians] = useState([]);
@@ -214,7 +219,7 @@ function App() {
     const [historyTrips, setHistoryTrips] = useState([]);
     const [pendingMissions, setPendingMissions] = useState([]);
 
-    // États Formulaire
+    // États Formulaire Mission
     const [newName, setNewName] = useState("");
     const [newAddress, setNewAddress] = useState("");
     const [newPhone, setNewPhone] = useState("");
@@ -228,8 +233,19 @@ function App() {
     const [navModal, setNavModal] = useState(null);
     const [missionToSign, setMissionToSign] = useState(null);
     const [showTeamModal, setShowTeamModal] = useState(false);
-    const sigCanvas = useRef(null);
+    
+    // Modales suppression tech
+    const [techToDelete, setTechToDelete] = useState(null);
+    const [isDeletingTech, setIsDeletingTech] = useState(false);
+    
+    // Modales ajout tech
+    const [newTechName, setNewTechName] = useState("");
+    const [newTechAddress, setNewTechAddress] = useState("");
+    const [newTechEmail, setNewTechEmail] = useState("");
+    const [newTechPass, setNewTechPass] = useState("");
+    const [isAddingTech, setIsAddingTech] = useState(false);
 
+    const sigCanvas = useRef(null);
     const isMobile = screenWidth < 768;
 
     const getAuthHeaders = () => ({ headers: { Authorization: `Bearer ${token}` } });
@@ -259,6 +275,9 @@ function App() {
         const interval = setInterval(() => fetchCurrentTrip(), 30000);
         return () => clearInterval(interval);
     }, [token]);
+
+    // Toast timer
+    useEffect(() => { if (toast) setTimeout(() => setToast(null), 3000); }, [toast]);
 
     // --- ACTIONS ---
     const handleLogout = () => {
@@ -315,8 +334,35 @@ function App() {
             }, getAuthHeaders());
             setNewName(""); setNewAddress(""); setNewPhone(""); setNewComments("");
             setPendingMissions([...pendingMissions, 1]); // Fake update pour UI
-            alert("Mission ajoutée !");
+            setToast({ message: "Mission ajoutée", type: "success" });
         } catch (e) { alert("Erreur ajout"); }
+    };
+
+    // Gestion Equipe
+    const handleAddTech = async (e) => {
+        e.preventDefault();
+        if (!newTechName || !newTechAddress || !newTechEmail || !newTechPass) return;
+        setIsAddingTech(true);
+        try {
+            await axios.post(`${API_URL}/technicians`, { name: newTechName, address: newTechAddress, email: newTechEmail, password: newTechPass }, getAuthHeaders());
+            setNewTechName(""); setNewTechAddress(""); setNewTechEmail(""); setNewTechPass("");
+            await fetchTechnicians();
+            setShowTeamModal(false);
+            setToast({ message: "Technicien ajouté", type: "success" });
+        } catch (error) { alert("Erreur ajout"); }
+        finally { setIsAddingTech(false); }
+    };
+
+    const executeDeleteTech = async () => {
+        if (!techToDelete) return;
+        setIsDeletingTech(true);
+        try { 
+            await axios.delete(`${API_URL}/technicians/${techToDelete}`, getAuthHeaders()); 
+            await fetchTechnicians(); setTechToDelete(null);
+            if (selectedTechId === techToDelete) setSelectedTechId(null);
+            setToast({ message: "Technicien supprimé", type: "success" });
+        } catch (e) { alert("Erreur"); }
+        finally { setIsDeletingTech(false); }
     };
 
     const triggerStatusUpdate = async (id, status) => {
@@ -376,19 +422,35 @@ function App() {
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: COLORS.DARK, fontFamily: "'Inter', sans-serif" }}>
             <div style={{ background: 'white', padding: '40px', borderRadius: '20px', width: '90%', maxWidth: '350px', textAlign: 'center' }}>
                 <img src="/logo-truck.svg" alt="Logo" style={{ height: '50px', marginBottom: '20px' }} />
-                <h2 style={{fontSize:'20px', fontFamily:"'Oswald', sans-serif", marginBottom:'20px'}}>CONNEXION</h2>
+                <h2 style={{fontSize:'20px', fontFamily:"'Oswald', sans-serif", marginBottom:'20px'}}>{isLoginView ? "CONNEXION" : "INSCRIPTION"}</h2>
+                {authError && <div style={{color: COLORS.PASTEL_RED, marginBottom:'10px', fontSize:'12px'}}>{authError}</div>}
                 <form onSubmit={async (e) => {
                     e.preventDefault();
+                    setAuthLoading(true);
                     try {
-                        const res = await axios.post(`${API_URL}/auth/login`, { email: authEmail, password: authPass }); // Utiliser tes states ici
-                        localStorage.setItem('optiroute_token', res.data.token);
-                        setToken(res.data.token);
-                    } catch(err) { alert("Erreur login"); }
+                        const endpoint = isLoginView ? '/auth/login' : '/auth/register';
+                        const payload = isLoginView ? { email: authEmail, password: authPass } : { email: authEmail, password: authPass, company_name: authCompany };
+                        const res = await axios.post(`${API_URL}${endpoint}`, payload);
+                        
+                        if (isLoginView) {
+                            localStorage.setItem('optiroute_token', res.data.token);
+                            const compName = res.data.name || ''; localStorage.setItem('optiroute_company', compName);
+                            setToken(res.data.token); setUserCompany(compName);
+                        } else {
+                            setIsLoginView(true);
+                            setAuthError("Compte créé ! Connectez-vous.");
+                        }
+                    } catch(err) { setAuthError("Erreur d'authentification"); }
+                    finally { setAuthLoading(false); }
                 }}>
-                    <input type="email" placeholder="Email" onChange={e => setAuthEmail(e.target.value)} style={inputStyle} />
-                    <input type="password" placeholder="Mot de passe" onChange={e => setAuthPass(e.target.value)} style={inputStyle} />
-                    <button type="submit" style={submitButtonStyle}>SE CONNECTER</button>
+                    {!isLoginView && <input type="text" placeholder="Nom Entreprise" value={authCompany} onChange={e => setAuthCompany(e.target.value)} style={inputStyle} />}
+                    <input type="email" placeholder="Email" value={authEmail} onChange={e => setAuthEmail(e.target.value)} style={inputStyle} />
+                    <input type="password" placeholder="Mot de passe" value={authPass} onChange={e => setAuthPass(e.target.value)} style={inputStyle} />
+                    <button type="submit" style={submitButtonStyle} disabled={authLoading}>{authLoading ? '...' : (isLoginView ? 'SE CONNECTER' : 'CRÉER COMPTE')}</button>
                 </form>
+                <div onClick={() => setIsLoginView(!isLoginView)} style={{marginTop:'20px', fontSize:'12px', color:COLORS.GRAY_TEXT, cursor:'pointer', textDecoration:'underline'}}>
+                    {isLoginView ? "Créer un compte entreprise" : "J'ai déjà un compte"}
+                </div>
             </div>
         </div>
     );
@@ -396,6 +458,9 @@ function App() {
     // APP VIEW
     return (
         <div style={rootContainerStyle(isMobile)}>
+            {/* TOAST NOTIFICATION */}
+            {toast && <div style={{position: 'fixed', bottom: '90px', left: '50%', transform: 'translateX(-50%)', backgroundColor: toast.type === 'success' ? COLORS.DARK : COLORS.BLUE, color: 'white', padding: '15px 30px', borderRadius: PILL_RADIUS, boxShadow: SHADOW, zIndex: 99999, fontSize: '14px'}}>{toast.message}</div>}
+
             {/* Modale Signature */}
             {missionToSign && <div style={modalOverlayStyle}><div style={modalContentStyle}>
                 <h3>SIGNATURE</h3>
@@ -404,6 +469,46 @@ function App() {
                     <button onClick={() => setMissionToSign(null)} style={{...submitButtonStyle, backgroundColor:'transparent', color:COLORS.GRAY_TEXT, border:'1px solid #eee'}}>Annuler</button>
                     <button onClick={confirmSign} style={submitButtonStyle}>Valider</button>
                 </div>
+            </div></div>}
+
+            {/* Modale Navigation */}
+            {navModal && <div style={modalOverlayStyle} onClick={() => setNavModal(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}>
+                <h3 style={{...cardTitleStyle, marginBottom:'20px'}}>NAVIGATION</h3>
+                <a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={{...submitButtonStyle, display:'block', marginBottom:'10px', textDecoration:'none', backgroundColor:'#33ccff', color:'white'}}>WAZE 🚙</a>
+                <a href={`http://googleusercontent.com/maps.google.com/?q=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={{...submitButtonStyle, display:'block', marginBottom:'10px', textDecoration:'none', backgroundColor:'#4285F4', color:'white'}}>GOOGLE MAPS 🗺️</a>
+                <button onClick={() => setNavModal(null)} style={{...submitButtonStyle, backgroundColor:'transparent', color:COLORS.GRAY_TEXT, border:'1px solid #eee'}}>Fermer</button>
+            </div></div>}
+
+            {/* Modale Suppression Tech */}
+            {techToDelete && <div style={modalOverlayStyle} onClick={() => !isDeletingTech && setTechToDelete(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}>
+                <h3 style={{...cardTitleStyle, color: COLORS.DARK}}>SUPPRIMER ?</h3>
+                <div style={{display:'flex', gap:'10px', marginTop:'20px'}}>
+                    <button onClick={() => setTechToDelete(null)} style={{...submitButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`}}>NON</button>
+                    <button onClick={executeDeleteTech} style={{...submitButtonStyle, backgroundColor:COLORS.PASTEL_RED, color:COLORS.DARK}}>{isDeletingTech ? "..." : "OUI"}</button>
+                </div>
+            </div></div>}
+
+            {/* Modale Gestion Equipe (Ajout) */}
+            {showTeamModal && <div style={modalOverlayStyle} onClick={() => setShowTeamModal(false)}><div style={{...modalContentStyle, maxWidth:'450px'}} onClick={e => e.stopPropagation()}>
+                <h3 style={cardTitleStyle}>MON ÉQUIPE</h3>
+                <div style={{maxHeight: '200px', overflowY: 'auto', marginBottom: '20px', textAlign:'left'}}>
+                    {technicians.map(t => (
+                        <div key={t.id} style={{display:'flex', justifyContent:'space-between', padding:'10px', borderBottom:'1px solid #eee'}}>
+                            <div><b>{t.name}</b> <span style={{fontSize:'12px', color:COLORS.GRAY_TEXT}}>({t.email})</span></div>
+                            {userRole === 'admin' && <button onClick={() => setTechToDelete(t.id)} style={{border:'none', background:'none', cursor:'pointer'}}>🗑️</button>}
+                        </div>
+                    ))}
+                </div>
+                {userRole === 'admin' && (
+                    <form onSubmit={handleAddTech} style={{borderTop:'1px solid #eee', paddingTop:'15px'}}>
+                        <input type="text" placeholder="Nom" value={newTechName} onChange={(e) => setNewTechName(e.target.value)} style={inputStyle} />
+                        <AddressInput placeholder="Adresse (Départ)" value={newTechAddress} onChange={setNewTechAddress} />
+                        <input type="email" placeholder="Email" value={newTechEmail} onChange={(e) => setNewTechEmail(e.target.value)} style={inputStyle} />
+                        <input type="password" placeholder="Mot de passe" value={newTechPass} onChange={(e) => setNewTechPass(e.target.value)} style={inputStyle} />
+                        <button type="submit" disabled={isAddingTech} style={submitButtonStyle}>{isAddingTech ? "..." : "AJOUTER"}</button>
+                    </form>
+                )}
+                <button onClick={() => setShowTeamModal(false)} style={{marginTop:'10px', background:'none', border:'none', color:COLORS.GRAY_TEXT, cursor:'pointer'}}>Fermer</button>
             </div></div>}
 
             {/* LA CARTE */}
@@ -435,8 +540,10 @@ function App() {
                     {/* TAB 0: AJOUT MISSION */}
                     {activeTab === 0 && (
                         <div>
-                            <h2 style={cardTitleStyle}>Nouvelle Mission</h2>
-                            <p style={{fontSize:'12px', color:COLORS.GRAY_TEXT, marginBottom:'20px'}}>Ajoutez une étape à la tournée.</p>
+                            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px'}}>
+                                <h2 style={cardTitleStyle}>Nouvelle Mission</h2>
+                                {userRole === 'admin' && <button onClick={() => setShowTeamModal(true)} style={{background:'none', border:'none', color:COLORS.BLUE, fontWeight:'bold', cursor:'pointer', fontSize:'12px'}}>GÉRER ÉQUIPE</button>}
+                            </div>
                             
                             {/* Sélecteur Tech (Admin) */}
                             {userRole === 'admin' && (
