@@ -42,7 +42,7 @@ const rootContainerStyle = (isMobile) => ({
     top: 0, left: 0, right: 0, bottom: 0,
     fontFamily: "'Inter', sans-serif", 
     backgroundColor: COLORS.BG_LIGHT, 
-    overflow: 'hidden', // On gère le scroll dans les enfants
+    overflow: 'hidden',
     zIndex: 1
 });
 
@@ -59,15 +59,14 @@ const mapContainerStyle = (isMobile, showMap) => ({
     display: (isMobile && !showMap) ? 'none' : 'block'
 });
 
-// CORRECTION SCROLL MOBILE ICI 👇
+// FIX SCROLL MOBILE : Padding bas augmenté
 const panelContainerStyle = (isMobile, showPanel) => ({ 
     width: isMobile ? '100%' : '450px', 
     height: isMobile ? '100%' : '100%', 
     backgroundColor: 'rgba(255, 255, 255, 0.95)', 
     backdropFilter: 'blur(20px)', 
     WebkitBackdropFilter: 'blur(20px)', 
-    // Padding bas énorme pour mobile pour passer au dessus de la navBar
-    padding: isMobile ? '20px 20px 120px 20px' : '30px', 
+    padding: isMobile ? '20px 20px 150px 20px' : '30px', // 150px pour être large
     boxSizing: 'border-box', 
     display: (isMobile && !showPanel) ? 'none' : 'flex', 
     flexDirection: 'column', 
@@ -75,15 +74,16 @@ const panelContainerStyle = (isMobile, showPanel) => ({
     zIndex: 1000, 
     borderTop: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, 
     boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)',
-    overflowY: 'auto', // IMPORTANT : Permet de scroller si le formulaire est long
-    WebkitOverflowScrolling: 'touch' // Fluidité iOS
+    overflowY: 'auto', 
+    WebkitOverflowScrolling: 'touch'
 });
 
 const mobileBottomNavStyle = {
-    position: 'fixed', bottom: 0, left: 0, right: 0, height: '70px',
+    position: 'fixed', bottom: 0, left: 0, right: 0, height: '60px',
     backgroundColor: COLORS.WHITE, borderTop: '1px solid ' + COLORS.BORDER,
     display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-    zIndex: 99999, paddingBottom: '10px' // Padding pour iPhone X safe area
+    zIndex: 99999, paddingBottom: 'safe-area-inset-bottom',
+    boxShadow: '0 -2px 10px rgba(0,0,0,0.05)'
 };
 
 const mobileNavItemStyle = (isActive) => ({
@@ -94,16 +94,16 @@ const mobileNavItemStyle = (isActive) => ({
 
 const panelHeaderStyle = { marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid ' + COLORS.DARK };
 const proTagStyle = { fontSize: '0.4em', backgroundColor: COLORS.BLUE, color: COLORS.WHITE, padding: '3px 6px', verticalAlign: 'top', marginLeft: '8px', fontFamily: "'Inter', sans-serif", fontWeight: '700', borderRadius: '4px' };
-const cardStyle = { marginBottom: '20px', flexShrink: 0 }; // flexShrink 0 pour ne pas écraser
+const cardStyle = { marginBottom: '25px', flexShrink: 0 }; 
 const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK };
-const inputStyle = { width: '100%', padding: '16px', marginBottom: '12px', borderRadius: PILL_RADIUS, border: '1px solid transparent', backgroundColor: COLORS.WHITE, fontSize: '16px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: '0.2s' };
+const inputStyle = { width: '100%', padding: '16px', marginBottom: '12px', borderRadius: PILL_RADIUS, border: '1px solid #eee', backgroundColor: '#f9f9f9', fontSize: '16px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', transition: '0.2s' };
 const dropdownItemStyle = { padding: '12px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, fontWeight: '600', transition: 'background 0.2s' };
 const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
 const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px', marginTop: 'auto' };
 const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%' };
 const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
 const resetButtonStyle = { padding: '10px', backgroundColor: 'white', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', width: '50px', height: '50px' };
-const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'visible' }; // Visible pour laisser le parent scroller
+const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'visible' }; 
 const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
 const missionInfoStyle = { flex: 1, marginRight: '10px' };
 const missionTitleStyle = { fontWeight: '700', fontSize: '14px', color: COLORS.DARK, display: 'flex', alignItems: 'center', fontFamily: "'Inter', sans-serif" };
@@ -115,10 +115,10 @@ const navArrowStyle = { cursor: 'pointer', padding: '10px', background: COLORS.B
 const pdfButtonStyle = { marginTop:'10px', padding:'8px 15px', fontSize:'11px', borderRadius:'20px', border:'1px solid #ddd', background:'white', cursor:'pointer', display:'flex', alignItems:'center', fontWeight:'bold', color:COLORS.DARK, fontFamily:"'Inter', sans-serif", width: '100%', justifyContent: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' };
 const tripCardStyle = { backgroundColor: COLORS.WHITE, padding: '20px', borderRadius: STANDARD_RADIUS, marginBottom: '15px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, cursor: 'pointer' };
 
-const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.4)', backdropFilter: 'blur(8px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' };
+const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.4)', backdropFilter: 'blur(8px)', zIndex: 20001, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const modalContentStyle = { background: COLORS.WHITE, padding: '40px', borderRadius: '24px', width: '90%', maxWidth: '400px', textAlign: 'center', border: 'none', boxSizing: 'border-box', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' };
 const modalTitleStyle = { marginTop: 0, marginBottom: '10px', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '22px', letterSpacing: '1px' };
-const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', padding: '15px', backgroundColor: '#fff', color: COLORS.DARK, textDecoration: 'none', borderRadius: STANDARD_RADIUS, border: '1px solid #eee', fontWeight: '700', fontSize: '14px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px', boxSizing: 'border-box', boxShadow:'0 2px 5px rgba(0,0,0,0.02)' };
+const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', padding: '15px', backgroundColor: '#f8f9fa', color: COLORS.DARK, textDecoration: 'none', borderRadius: STANDARD_RADIUS, border: '1px solid #eee', fontWeight: '700', fontSize: '14px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px', boxSizing: 'border-box' };
 const gpsIconStyle = { width: '24px', height: '24px', objectFit: 'contain', marginRight: '15px' };
 const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', border: 'none', background: 'transparent', color: COLORS.GRAY_TEXT, fontWeight: '600', cursor: 'pointer', borderRadius: PILL_RADIUS, fontFamily: "'Inter', sans-serif", fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' };
 
@@ -127,7 +127,7 @@ const landingContainerStyle = { minHeight: '100vh', backgroundColor: COLORS.BG_L
 const navStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER };
 const heroSectionStyle = { padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' };
 const heroTitleStyle = { fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(30px, 5vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px' };
-const heroSubtitleStyle = { fontSize: '18px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6' };
+const heroSubtitleStyle = { fontSize: '16px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6' };
 const ctaButtonStyle = { padding: '18px 40px', fontSize: '16px', fontWeight: '700', color: COLORS.WHITE, backgroundColor: COLORS.BLUE, border: 'none', borderRadius: PILL_RADIUS, cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", letterSpacing: '1px', boxShadow: '0 10px 25px rgba(43, 121, 194, 0.4)', transition: 'transform 0.2s' };
 const featuresGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '30px', padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' };
 const featureCardStyle = (color) => ({ backgroundColor: COLORS.WHITE, padding: '30px', borderRadius: '24px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, position: 'relative', overflow: 'hidden' });
@@ -140,7 +140,7 @@ const stepNumberStyle = { display: 'inline-block', backgroundColor: COLORS.BLUE,
 const Icons = {
     User: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
     Truck: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>,
-    Help: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
+    Help: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
     Map: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
     Check: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
     History: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>,
@@ -148,6 +148,9 @@ const Icons = {
 };
 
 // --- 3. COMPOSANTS UTILITAIRES ---
+// Helper pour vérifier coordonnees
+const isValidCoord = (n) => !isNaN(n) && n !== null && n !== undefined;
+
 const formatDuration = (minutes) => {
     if (!minutes) return "";
     const h = Math.floor(minutes / 60);
@@ -163,7 +166,6 @@ const generatePDF = async (mission, technicianName, companyName) => {
         const pages = pdfDoc.getPages();
         const firstPage = pages[0];
         const { width, height } = firstPage.getSize(); 
-        
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
@@ -253,10 +255,11 @@ const AddressInput = ({ placeholder, value, onChange }) => {
 function MapController({ center, bounds }) {
     const map = useMap();
     useEffect(() => {
-        // FIX NAN ERROR : Vérifier que les coordonnées sont valides avant de bouger
-        if (bounds && bounds.length > 0 && bounds[0] && !isNaN(bounds[0][0])) {
-            map.fitBounds(bounds, { padding: [50, 50] });
-        } else if (center && !isNaN(center[0]) && !isNaN(center[1])) {
+        if (bounds && bounds.length > 0) {
+            // Validation des bounds pour éviter NaN error
+            const validBounds = bounds.every(p => isValidCoord(p[0]) && isValidCoord(p[1]));
+            if(validBounds) map.fitBounds(bounds, { padding: [50, 50] });
+        } else if (center && isValidCoord(center[0]) && isValidCoord(center[1])) {
             map.flyTo(center, 13, { duration: 1.5 });
         }
     }, [center, bounds, map]);
@@ -308,8 +311,8 @@ const TutorialPage = ({ onClose }) => (
             <img src="/logo-truck.svg" alt="Logo" style={{height:'60px', marginBottom:'20px'}} />
             <h1 style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase', color:COLORS.DARK, fontSize:'36px'}}>Guide d'Utilisation</h1>
         </div>
-        <div style={tutorialSectionStyle}><div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}><Icons.User /><h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>1. RÔLE ADMINISTRATEUR (PATRON)</h2></div><p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}><strong><span style={stepNumberStyle}>A</span> Gérer l'Équipe :</strong> Cliquez sur "GÉRER L'ÉQUIPE" pour ajouter des techniciens.<br/><strong><span style={stepNumberStyle}>B</span> Créer des Missions :</strong> Sélectionnez d'abord un technicien dans la liste. Le formulaire s'active. Renseignez l'adresse (auto-complétion).<br/><strong><span style={stepNumberStyle}>C</span> Optimiser :</strong> Cliquez sur le CAMION pour calculer le meilleur trajet.</p></div>
-        <div style={tutorialSectionStyle}><div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}><Icons.Truck /><h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>2. RÔLE TECHNICIEN</h2></div><p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}><strong><span style={stepNumberStyle}>A</span> Connexion :</strong> Identifiants fournis par l'admin.<br/><strong><span style={stepNumberStyle}>B</span> Navigation :</strong> Cliquez sur la boussole pour GPS.<br/><strong><span style={stepNumberStyle}>C</span> Validation :</strong> "DÉMARRER" puis "TERMINER & SIGNER".</p></div>
+        <div style={tutorialSectionStyle}><div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}><Icons.User /><h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>1. RÔLE ADMINISTRATEUR</h2></div><p style={{color:COLORS.GRAY_TEXT, fontSize:'14px'}}>Gérez votre équipe, assignez, optimisez.</p></div>
+        <div style={tutorialSectionStyle}><div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}><Icons.Truck /><h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>2. RÔLE TECHNICIEN</h2></div><p style={{color:COLORS.GRAY_TEXT, fontSize:'14px'}}>Naviguez, validez, signez.</p></div>
         <div style={{textAlign:'center'}}><button onClick={onClose} style={{...submitButtonStyle, width:'auto', padding:'15px 50px', fontSize:'16px'}}>FERMER LE GUIDE</button></div>
     </div>
 );
@@ -326,14 +329,8 @@ const LandingPage = ({ onStart }) => (
             </div>
         </nav>
         <section style={heroSectionStyle}>
-            <span style={{color: COLORS.BLUE, fontWeight:'bold', letterSpacing:'2px', fontSize:'14px', marginBottom:'10px', display:'block'}}>LA SOLUTION B2B ULTIME</span>
             <h1 style={heroTitleStyle}>OPTIMISEZ VOS TOURNÉES<br/>EN UN CLIC</h1>
             <button onClick={onStart} style={ctaButtonStyle}>COMMENCER GRATUITEMENT</button>
-        </section>
-        <section style={featuresGridStyle}>
-            <div style={featureCardStyle(COLORS.PASTEL_BLUE)}><Icons.Map/><h3 style={{fontFamily:"'Oswald', sans-serif", fontSize:'20px', marginTop:'10px'}}>INTELLIGENCE ARTIFICIELLE</h3></div>
-            <div style={featureCardStyle(COLORS.PASTEL_GREEN)}><Icons.Truck/><h3 style={{fontFamily:"'Oswald', sans-serif", fontSize:'20px', marginTop:'10px'}}>APPLICATION TERRAIN</h3></div>
-            <div style={featureCardStyle(COLORS.PASTEL_RED)}><Icons.Check/><h3 style={{fontFamily:"'Oswald', sans-serif", fontSize:'20px', marginTop:'10px'}}>PREUVE DE PASSAGE</h3></div>
         </section>
     </div>
 );
@@ -382,6 +379,7 @@ function App() {
     const [newTechPass, setNewTechPass] = useState("");
     const [isAddingTech, setIsAddingTech] = useState(false);
 
+    // Default to Paris to avoid initial NaN center if needed
     const [mapCenter, setMapCenter] = useState([48.8675, 2.3639]); 
     const [mapBounds, setMapBounds] = useState(null);
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
@@ -426,19 +424,7 @@ function App() {
             
             if(res.data && res.data.length > 0) {
                 const mappedRoute = res.data.map(m => ({
-                    id: m.id,
-                    step: m.route_order,
-                    client: m.client_name,
-                    time_slot: m.time_slot,
-                    address: m.address,
-                    lat: parseFloat(m.lat),
-                    lng: parseFloat(m.lng),
-                    technician_name: m.technician_name,
-                    phone: m.phone,
-                    comments: m.comments,
-                    status: m.status,
-                    signature: m.signature,
-                    distance_km: "0" 
+                    id: m.id, step: m.route_order, client: m.client_name, time_slot: m.time_slot, address: m.address, lat: parseFloat(m.lat), lng: parseFloat(m.lng), technician_name: m.technician_name, phone: m.phone, comments: m.comments, status: m.status, signature: m.signature, distance_km: "0" 
                 }));
                 setRoute(mappedRoute);
                 setActiveTab(1); setMobileTab(0); 
@@ -462,9 +448,11 @@ function App() {
         } catch (e) { console.error("Erreur history"); }
     };
 
+    // INIT APP
     useEffect(() => {
         const handleResize = () => setScreenWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
+        
         Crisp.configure("3a2abcb6-a8fd-4fc5-b856-a99c36e6ad0b");
         try { if (window.$crisp) window.$crisp.push(["do", "chat:show"]); } catch(e) {}
 
@@ -515,8 +503,12 @@ function App() {
             const updatedList = await fetchTechnicians();
             const added = updatedList[updatedList.length - 1];
             if (added) { 
-                setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); 
-                setMapBounds(null);
+                const lat = parseFloat(added.start_lat);
+                const lng = parseFloat(added.start_lng);
+                if(isValidCoord(lat) && isValidCoord(lng)) {
+                    setMapCenter([lat, lng]); 
+                    setMapBounds(null);
+                }
                 setSelectedTechId(added.id); 
             }
             setToast({ message: "Technicien ajouté", type: "success" }); setShowTeamModal(false); setMobileTab(0);
@@ -561,10 +553,7 @@ function App() {
                 if (userRole === 'tech') myRoute = myRoute.filter(step => step.technician_name === userName);
                 myRoute = myRoute.map(step => ({...step, status: step.status || 'assigned'}));
                 setRoute(myRoute); setRoutePath(response.data.path); setPendingMissions([]); 
-                
-                // SAUVEGARDE LOCALE DU TRACE
                 localStorage.setItem('saved_route_path', JSON.stringify(response.data.path));
-                
                 if (response.data.path.length > 0) setMapBounds(response.data.path);
                 setActiveTab(1); setMobileTab(0); 
             } else { setRoute([]); }
@@ -662,7 +651,6 @@ function App() {
             {showEmptyModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowEmptyModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} /><h3 style={modalTitleStyle}>OPTIROUTE</h3><button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button></div></div>}
             {showUnassignedModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowUnassignedModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3><div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>{unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}</div><button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button></div></div>}
 
-            {/* LAYOUT RESPONSIVE */}
             <div style={mapContainerStyle(isMobileView, mobileTab === 0)}>
                 <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
@@ -670,14 +658,18 @@ function App() {
                     {technicians.map(t => {
                         const lat = parseFloat(t.start_lat);
                         const lng = parseFloat(t.start_lng);
-                        if(isNaN(lat) || isNaN(lng)) return null;
-                        return (<Marker key={`tech-${t.id}`} position={[lat, lng]}><Popup><div style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase'}}>🏠 {t.name}</div></Popup></Marker>);
+                        if(isValidCoord(lat) && isValidCoord(lng)) {
+                            return (<Marker key={`tech-${t.id}`} position={[lat, lng]}><Popup><div style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase'}}>🏠 {t.name}</div></Popup></Marker>);
+                        }
+                        return null;
                     })}
                     {route.map((step, index) => {
                         const lat = parseFloat(step.lat);
                         const lng = parseFloat(step.lng);
-                        if(isNaN(lat) || isNaN(lng)) return null;
-                        return (<Marker key={index} position={[lat, lng]} icon={createCustomIcon(index, route.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>);
+                        if(isValidCoord(lat) && isValidCoord(lng)) {
+                            return (<Marker key={index} position={[lat, lng]} icon={createCustomIcon(index, route.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>);
+                        }
+                        return null;
                     })}
                     {routePath.length > 0 && <Polyline positions={routePath} color={COLORS.BLUE} weight={5} opacity={0.8} />}
                 </MapContainer>
@@ -706,7 +698,6 @@ function App() {
                             <button onClick={handleLogout} style={{background: 'transparent', border: 'none', color: COLORS.RED, cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration:'underline', fontFamily:"'Inter', sans-serif", marginLeft:'15px'}}>DÉCO</button>
                         </div>
                         )}
-                        {/* Mobile Header only needs Logout as Nav is bottom */}
                         {isMobileView && (
                              <button onClick={handleLogout} style={{background: 'transparent', border: 'none', color: COLORS.RED, cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration:'underline', fontFamily:"'Inter', sans-serif"}}>DÉCO</button>
                         )}
@@ -729,10 +720,9 @@ function App() {
                                     {technicians.map(t => (
                                         <div key={t.id} onClick={() => {
                                             setSelectedTechId(t.id);
-                                            // FIX NAN
                                             const lat = parseFloat(t.start_lat);
                                             const lng = parseFloat(t.start_lng);
-                                            if(!isNaN(lat) && !isNaN(lng)) {
+                                            if(isValidCoord(lat) && isValidCoord(lng)) {
                                                 setMapCenter([lat, lng]);
                                                 setMapBounds(null);
                                             }
@@ -768,7 +758,6 @@ function App() {
                         </form>
                     </div>
                     {pendingMissions.length > 0 && (<div style={{marginBottom: '20px', border: `1px dashed ${COLORS.BLUE}`, borderRadius: STANDARD_RADIUS, padding: '15px', backgroundColor: 'rgba(43, 121, 194, 0.05)'}}><div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}><h5 style={{margin:0, color:COLORS.BLUE, fontFamily:"'Oswald', sans-serif", fontSize:'14px'}}>EN ATTENTE ({pendingMissions.length})</h5></div><div style={{maxHeight:'80px', overflowY:'auto'}}>{pendingMissions.map((pm, idx) => (<div key={idx} style={{fontSize:'12px', marginBottom:'4px', display:'flex', alignItems:'center', fontFamily:"'Inter', sans-serif"}}><div style={{width:'6px', height:'6px', borderRadius:'50%', background:COLORS.BLUE, marginRight:'8px'}}></div><span style={{fontWeight:'600', marginRight:'5px', color:COLORS.DARK}}>{pm.name}</span> <span style={{color:COLORS.GRAY_TEXT}}>({formatDuration(pm.time)})</span></div>))}</div></div>)}
-                    
                     <div style={actionButtonsContainerStyle}>
                         <div style={buttonsRowStyle}>
                             <button onClick={handleOptimize} disabled={loading} style={optimizeButtonStyle}>{loading ? (<div style={{display:'flex', flexDirection:'column', alignItems:'center'}}><img src="/logo-truck.svg" alt="..." style={{width:'60px', opacity:0.5}} /><span style={{fontSize: '12px', color: COLORS.BLUE, fontWeight: 'bold', fontFamily: "'Oswald', sans-serif", marginTop:'5px'}}>OPTIMISATION...</span></div>) : (<div style={{position:'relative'}}><img src="/logo-truck.svg" alt="Optimize" style={{ width:'100px', height:'auto', filter: 'drop-shadow(0px 5px 10px rgba(0,0,0,0.2))' }} />{pendingMissions.length > 0 && <div style={{position:'absolute', top:'-5px', right:'-5px', background:COLORS.RED, color:'white', borderRadius:'50%', width:'24px', height:'24px', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', border:'2px solid white', boxShadow:'0 2px 5px rgba(0,0,0,0.2)'}}>{pendingMissions.length}</div>}</div>)}</button>
@@ -801,7 +790,6 @@ function App() {
                                             {(step.status === 'assigned' || !step.status) && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'in_progress')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_GREEN, color:COLORS.DARK}}>DÉMARRER</button>}
                                             {step.status === 'in_progress' && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'done')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_RED, color:COLORS.DARK}}>TERMINER</button>}
                                             
-                                            {/* AFFICHAGE SIGNATURE + PDF */}
                                             {step.status === 'done' && (
                                                 <div style={{marginTop:'10px'}}>
                                                     <div style={{fontSize:'11px', color:COLORS.SUCCESS_TEXT, fontWeight:'bold', fontFamily:"'Inter', sans-serif"}}>✅ MISSION TERMINÉE</div>
