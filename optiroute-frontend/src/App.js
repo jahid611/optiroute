@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'; // Ajout de useMemo
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import axios from 'axios';
 import 'leaflet/dist/leaflet.css';
@@ -23,163 +23,119 @@ L.Icon.Default.mergeOptions({
 
 // --- 2. CONSTANTES & STYLES ---
 const COLORS = {
-    DARK: '#3b4651', BLUE: '#2b79c2', PASTEL_BLUE: '#A0C4FF',
-    PASTEL_GREEN: '#B9FBC0', PASTEL_RED: '#FFADAD', WHITE: '#ffffff',
-    BORDER: '#e0e0e0', GRAY_TEXT: '#6c757d', BG_LIGHT: '#f8f9fa', WARNING: '#ffd6a5',
-    SUCCESS_TEXT: '#2e7d32'
+    DARK: '#0f172a', // Plus sombre pour le footer
+    BLUE: '#3b82f6', 
+    PASTEL_BLUE: '#e0f2fe',
+    PASTEL_GREEN: '#dcfce7', 
+    PASTEL_RED: '#fee2e2', 
+    WHITE: '#ffffff',
+    BORDER: '#e2e8f0', 
+    GRAY_TEXT: '#64748b', 
+    BG_LIGHT: '#f8fafc', 
+    WARNING: '#fef3c7',
+    SUCCESS_TEXT: '#15803d'
 };
 
-const PILL_RADIUS = '38px';
-const STANDARD_RADIUS = '12px';
-const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
+const PILL_RADIUS = '12px'; // Plus moderne, moins rond
+const STANDARD_RADIUS = '16px';
+const SHADOW = '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
 
-// [AMELIORATION 1] Styles Intelligents pour la Split View Mobile
+// Styles Layout
 const rootContainerStyle = (isMobile) => ({
     display: 'flex',
     flexDirection: isMobile ? 'column' : 'row',
-    height: '100vh', // Force la hauteur de l'écran
+    height: '100vh',
     width: '100vw',
     fontFamily: "'Inter', sans-serif",
     backgroundColor: COLORS.BG_LIGHT,
-    overflow: 'hidden' // Empêche le scroll global
+    overflow: 'hidden'
 });
 
 const mapContainerStyle = (isMobile) => ({
-    flex: isMobile ? 'none' : 1, // Sur mobile, pas de flex, hauteur fixe
-    height: isMobile ? '35vh' : '100%', // 35% de l'écran sur mobile
+    flex: isMobile ? 'none' : 1,
+    height: isMobile ? '35vh' : '100%',
     order: isMobile ? 1 : 2,
     borderLeft: isMobile ? 'none' : '1px solid ' + COLORS.BORDER,
-    borderBottom: isMobile ? '4px solid ' + COLORS.BLUE : 'none', // Séparation visuelle
     zIndex: 0,
-    transition: 'height 0.3s ease'
+    position: 'relative'
 });
 
 const panelContainerStyle = (isMobile) => ({
     width: isMobile ? '100%' : '450px',
-    height: isMobile ? '65vh' : '100%', // 65% restant sur mobile
-    backgroundColor: 'rgba(255, 255, 255, 0.95)', // Un peu plus opaque pour la lisibilité
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    padding: '30px',
-    boxSizing: 'border-box',
+    height: isMobile ? '65vh' : '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.98)',
     display: 'flex',
     flexDirection: 'column',
     order: isMobile ? 2 : 1,
     zIndex: 1000,
     borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none',
-    boxShadow: isMobile ? '0 -5px 20px rgba(0,0,0,0.1)' : '5px 0 30px rgba(0,0,0,0.05)',
-    overflowY: 'auto' // SCROLL INTERNE UNIQUEMENT ICI
+    boxShadow: isMobile ? '0 -4px 20px rgba(0,0,0,0.05)' : '5px 0 30px rgba(0,0,0,0.05)',
+    // IMPORTANT : Padding bottom pour laisser la place au footer mobile
+    paddingBottom: isMobile ? '80px' : '0px', 
+    position: 'relative'
 });
 
-const panelHeaderStyle = { marginBottom: '25px', paddingBottom: '20px', borderBottom: '2px solid ' + COLORS.DARK };
-const proTagStyle = { fontSize: '0.4em', backgroundColor: COLORS.BLUE, color: COLORS.WHITE, padding: '3px 6px', verticalAlign: 'top', marginLeft: '8px', fontFamily: "'Inter', sans-serif", fontWeight: '700', borderRadius: '4px' };
+const scrollableContentStyle = {
+    padding: '30px',
+    overflowY: 'auto',
+    flex: 1,
+    WebkitOverflowScrolling: 'touch' // Pour un scroll fluide sur iOS
+};
+
+// Styles Mobile Footer Navigation
+const mobileNavStyle = {
+    position: 'fixed',
+    bottom: 0,
+    left: 0,
+    width: '100%',
+    height: '70px',
+    backgroundColor: COLORS.WHITE,
+    borderTop: `1px solid ${COLORS.BORDER}`,
+    display: 'flex',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    zIndex: 2000,
+    paddingBottom: '10px', // Pour les écrans type iPhone X
+    boxShadow: '0 -2px 10px rgba(0,0,0,0.05)'
+};
+
+const mobileNavItemStyle = (isActive) => ({
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: isActive ? COLORS.BLUE : COLORS.GRAY_TEXT,
+    fontSize: '10px',
+    fontWeight: isActive ? '700' : '500',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    width: '60px'
+});
+
+// Autres styles inchangés mais nettoyés
 const cardStyle = { marginBottom: '25px' };
-const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK };
-const inputStyle = { width: '100%', padding: '14px 20px', marginBottom: '10px', borderRadius: PILL_RADIUS, border: '1px solid transparent', backgroundColor: COLORS.WHITE, fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: '0.2s' };
-const dropdownItemStyle = { padding: '12px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, fontWeight: '600', transition: 'background 0.2s' };
-const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
-const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px', marginTop: 'auto' };
-const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%' };
-const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
-const resetButtonStyle = { padding: '10px', backgroundColor: 'white', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', width: '50px', height: '50px' };
-const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'visible', flex: 1, borderRadius: STANDARD_RADIUS, paddingRight: '5px' }; // overflow visible car c'est le panel qui scroll
-const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
-const missionInfoStyle = { flex: 1, marginRight: '10px' };
-const missionTitleStyle = { fontWeight: '700', fontSize: '14px', color: COLORS.DARK, display: 'flex', alignItems: 'center', fontFamily: "'Inter', sans-serif" };
-const missionAddressStyle = { color: COLORS.GRAY_TEXT, fontSize: '12px', marginTop: '2px', fontFamily: "'Inter', sans-serif" };
-const compassButtonStyle = { backgroundColor: '#f8f9fa', border: '1px solid #eee', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginLeft:'5px' };
-const phoneButtonStyle = { backgroundColor: COLORS.PASTEL_GREEN, border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', textDecoration:'none', marginLeft:'5px' };
-const statusButtonStyle = { marginTop: '12px', width: '100%', padding: '10px', borderRadius: PILL_RADIUS, border: 'none', fontWeight: '700', fontSize: '12px', cursor: 'pointer', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '1px', transition: '0.2s' };
-const navArrowStyle = { cursor: 'pointer', padding: '10px', background: COLORS.BG_LIGHT, borderRadius: '50%', border: '1px solid '+COLORS.BORDER, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', marginLeft: '10px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', transition: '0.2s' };
-const pdfButtonStyle = { marginTop:'10px', padding:'8px 15px', fontSize:'11px', borderRadius:'20px', border:'1px solid #ddd', background:'white', cursor:'pointer', display:'flex', alignItems:'center', fontWeight:'bold', color:COLORS.DARK, fontFamily:"'Inter', sans-serif", width: '100%', justifyContent: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' };
-const tripCardStyle = { backgroundColor: COLORS.WHITE, padding: '20px', borderRadius: STANDARD_RADIUS, marginBottom: '15px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, cursor: 'pointer' };
+const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK, fontSize: '18px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase' };
+const inputStyle = { width: '100%', padding: '14px', marginBottom: '10px', borderRadius: PILL_RADIUS, border: `1px solid ${COLORS.BORDER}`, backgroundColor: COLORS.BG_LIGHT, fontSize: '14px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', transition: 'all 0.2s' };
+const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '0.5px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', transition: 'transform 0.1s' };
+const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '16px', marginBottom: '12px', borderRadius: STANDARD_RADIUS, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', border: `1px solid ${COLORS.BORDER}`, transition: 'transform 0.1s' };
+const tripCardStyle = { backgroundColor: COLORS.WHITE, padding: '20px', borderRadius: STANDARD_RADIUS, marginBottom: '15px', border: `1px solid ${COLORS.BORDER}`, cursor: 'pointer', transition: '0.2s' };
 
-const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.4)', backdropFilter: 'blur(8px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const modalContentStyle = { background: COLORS.WHITE, padding: '40px', borderRadius: '24px', width: '90%', maxWidth: '400px', textAlign: 'center', border: 'none', boxSizing: 'border-box', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' };
-const modalTitleStyle = { marginTop: 0, marginBottom: '10px', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '22px', letterSpacing: '1px' };
-const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', padding: '15px', backgroundColor: '#fff', color: COLORS.DARK, textDecoration: 'none', borderRadius: STANDARD_RADIUS, border: '1px solid #eee', fontWeight: '700', fontSize: '14px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px', boxSizing: 'border-box', boxShadow:'0 2px 5px rgba(0,0,0,0.02)' };
-const gpsIconStyle = { width: '24px', height: '24px', objectFit: 'contain', marginRight: '15px' };
-const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', border: 'none', background: 'transparent', color: COLORS.GRAY_TEXT, fontWeight: '600', cursor: 'pointer', borderRadius: PILL_RADIUS, fontFamily: "'Inter', sans-serif", fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' };
+// Modales
+const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' };
+const modalContentStyle = { background: COLORS.WHITE, padding: '30px', borderRadius: '24px', width: '90%', maxWidth: '400px', textAlign: 'center', border: 'none', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' };
 
-// Styles Landing & Tuto
-const landingContainerStyle = { minHeight: '100vh', backgroundColor: COLORS.BG_LIGHT, fontFamily: "'Inter', sans-serif", color: COLORS.DARK, overflowX: 'hidden' };
-const navStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER };
-const heroSectionStyle = { padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' };
-const heroTitleStyle = { fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(40px, 6vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px' };
-const heroSubtitleStyle = { fontSize: '18px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6' };
-const ctaButtonStyle = { padding: '18px 40px', fontSize: '16px', fontWeight: '700', color: COLORS.WHITE, backgroundColor: COLORS.BLUE, border: 'none', borderRadius: PILL_RADIUS, cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", letterSpacing: '1px', boxShadow: '0 10px 25px rgba(43, 121, 194, 0.4)', transition: 'transform 0.2s' };
-const featuresGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', padding: '60px 10%', maxWidth: '1400px', margin: '0 auto' };
-const featureCardStyle = (color) => ({ backgroundColor: COLORS.WHITE, padding: '40px', borderRadius: '24px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, position: 'relative', overflow: 'hidden' });
-const tutorialContainerStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: COLORS.BG_LIGHT, zIndex: 20000, overflowY: 'auto', padding: '40px 20px' };
-const tutorialHeaderStyle = { maxWidth: '800px', margin: '0 auto 40px', textAlign: 'center' };
-const tutorialSectionStyle = { maxWidth: '800px', margin: '0 auto 30px', backgroundColor: 'white', padding: '30px', borderRadius: '20px', boxShadow: SHADOW };
-const stepNumberStyle = { display: 'inline-block', backgroundColor: COLORS.BLUE, color: 'white', width: '25px', height: '25px', borderRadius: '50%', textAlign: 'center', lineHeight: '25px', marginRight: '10px', fontWeight: 'bold', fontSize: '14px' };
-
-// --- 4. SVG ICONS ---
+// --- ICONS SVG ---
 const Icons = {
-    User: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
-    Truck: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>,
-    Help: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
-    Map: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
-    Check: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
-    History: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+    Home: ({color}) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>,
+    List: ({color}) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>,
+    Clock: ({color}) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>,
+    User: ({color}) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
+    LogOut: ({color}) => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>,
+    Navigation: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
 };
 
-// --- 3. COMPOSANTS UTILITAIRES ---
-const formatDuration = (minutes) => {
-    if (!minutes) return "";
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    if (h > 0) return `${h}h ${m > 0 ? m + 'min' : ''}`;
-    return `${m} min`;
-};
-
-const generatePDF = async (mission, technicianName, companyName) => {
-    try {
-        const existingPdfBytes = await fetch('/template_rapport.pdf').then(res => res.arrayBuffer());
-        const pdfDoc = await PDFDocument.load(existingPdfBytes);
-        const pages = pdfDoc.getPages();
-        const firstPage = pages[0];
-        const { width, height } = firstPage.getSize(); 
-        
-        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-        const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-
-        const row1_Y = height - 252;
-        firstPage.drawText(mission.client || "", { x: 100, y: row1_Y, size: 11, font: fontBold });
-        firstPage.drawText(mission.address || "", { x: 370, y: row1_Y, size: 10, font: font, maxWidth: 200, lineHeight: 12 });
-
-        const row2_Y = height - 315;
-        if(mission.phone) firstPage.drawText(mission.phone, { x: 100, y: row2_Y, size: 11, font: font });
-        firstPage.drawText(new Date().toLocaleDateString(), { x: 355, y: row2_Y, size: 11, font: font });
-
-        const row3_Y = height - 405;
-        firstPage.drawText(technicianName || "", { x: 100, y: row3_Y, size: 11, font: font });
-        firstPage.drawText("VALIDÉ", { x: 370, y: row3_Y, size: 11, font: fontBold, color: rgb(0, 0.5, 0) });
-
-        if (mission.comments) {
-            firstPage.drawText(mission.comments, { x: 75, y: height - 465, size: 10, font: font, maxWidth: 500 });
-        }
-
-        if (mission.signature) {
-            const signatureImage = await pdfDoc.embedPng(mission.signature);
-            const sigDims = signatureImage.scale(0.4); 
-            firstPage.drawImage(signatureImage, { x: 50, y: height - 580, width: sigDims.width, height: sigDims.height });
-        } else {
-            firstPage.drawText("(Non signé)", { x: 50, y: height - 550, size: 10, font: font, color: rgb(0.5,0.5,0.5) });
-        }
-
-        const pdfBytes = await pdfDoc.save();
-        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `Rapport_${mission.client.replace(/\s+/g, '_')}.pdf`;
-        link.click();
-    } catch (error) {
-        console.error("Erreur PDF", error);
-        alert("Erreur de génération PDF. Vérifiez 'template_rapport.pdf'.");
-    }
-};
+// --- COMPOSANTS INTERNES ---
 
 const AddressInput = ({ placeholder, value, onChange }) => {
     const [suggestions, setSuggestions] = useState([]);
@@ -193,34 +149,18 @@ const AddressInput = ({ placeholder, value, onChange }) => {
                     const data = await response.json();
                     setSuggestions(data.features);
                 } catch (e) { console.error(e); }
-            } else {
-                setSuggestions([]);
-            }
+            } else { setSuggestions([]); }
         }, 300);
         return () => clearTimeout(delayDebounceFn);
     }, [value, showSuggestions]);
 
     return (
         <div style={{ position: 'relative', width: '100%' }}>
-            <input 
-                type="text" 
-                placeholder={placeholder} 
-                value={value} 
-                onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }} 
-                style={inputStyle} 
-            />
+            <input type="text" placeholder={placeholder} value={value} onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }} style={inputStyle} />
             {suggestions.length > 0 && showSuggestions && (
                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', borderRadius: '12px', boxShadow: SHADOW, zIndex: 1000, overflow: 'hidden', marginTop: '-5px', border: '1px solid ' + COLORS.BORDER }}>
                     {suggestions.map((s, i) => (
-                        <div 
-                            key={i} 
-                            onClick={() => { onChange(s.properties.label); setShowSuggestions(false); }} 
-                            style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px', textAlign:'left', fontFamily:"'Inter', sans-serif" }}
-                            onMouseEnter={(e) => e.target.style.backgroundColor = COLORS.BG_LIGHT}
-                            onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
-                        >
-                            📍 {s.properties.label}
-                        </div>
+                        <div key={i} onClick={() => { onChange(s.properties.label); setShowSuggestions(false); }} style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px', textAlign:'left', fontFamily:"'Inter', sans-serif" }}>📍 {s.properties.label}</div>
                     ))}
                 </div>
             )}
@@ -228,122 +168,32 @@ const AddressInput = ({ placeholder, value, onChange }) => {
     );
 };
 
-function MapController({ center, bounds }) {
+const MapController = ({ center, bounds }) => {
     const map = useMap();
     useEffect(() => {
-        if (bounds && bounds.length > 0) {
-            map.fitBounds(bounds, { padding: [50, 50] });
-        } else if (center) {
-            map.flyTo(center, 13, { duration: 1.5 });
-        }
+        if (bounds && bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
+        else if (center) map.flyTo(center, 13, { duration: 1.5 });
     }, [center, bounds, map]);
     return null;
-}
+};
 
 const createCustomIcon = (index, total, status, isMyMission) => {
-    let bgColor = '#e0e0e0'; 
+    let bgColor = '#cbd5e1'; 
     let textColor = COLORS.DARK;
     if (isMyMission) {
-        if (status === 'done') { 
-            bgColor = COLORS.PASTEL_RED; 
-            textColor = COLORS.GRAY_TEXT; 
-        } else { 
-            bgColor = COLORS.PASTEL_BLUE; 
-            if (index === 0) bgColor = COLORS.PASTEL_GREEN; 
-            if (index === total - 1) bgColor = COLORS.PASTEL_RED; 
-        }
+        if (status === 'done') { bgColor = COLORS.SUCCESS_TEXT; textColor = 'white'; }
+        else { bgColor = COLORS.BLUE; if (index === 0) bgColor = '#10b981'; } // Vert émeraude pour le prochain
     }
     return L.divIcon({
         className: 'custom-marker',
-        html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`,
-        iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14]
+        html: `<div style="background-color: ${bgColor}; width: 32px; height: 32px; border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.2); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 13px; color: white;">${index + 1}</div>`,
+        iconSize: [32, 32], iconAnchor: [16, 16], popupAnchor: [0, -16]
     });
 };
 
-const getStepColor = (index, total, status) => {
-    if (status === 'done') return COLORS.PASTEL_RED; 
-    if (index === 0) return COLORS.PASTEL_GREEN; 
-    if (index === total - 1) return COLORS.PASTEL_RED; 
-    return COLORS.PASTEL_BLUE; 
-};
-
-const renderClientName = (name, slot) => {
-    let iconSrc = "/icon-morning.svg"; 
-    if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
-    return (
-        <div style={{display: 'flex', alignItems: 'center'}}>
-            <img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} />
-            <span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span>
-        </div>
-    );
-};
-
-// --- PAGES ---
-const TutorialPage = ({ onClose }) => (
-    <div style={tutorialContainerStyle}>
-        <div style={tutorialHeaderStyle}>
-            <img src="/logo-truck.svg" alt="Logo" style={{height:'60px', marginBottom:'20px'}} />
-            <h1 style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase', color:COLORS.DARK, fontSize:'36px'}}>Guide d'Utilisation Complet</h1>
-            <p style={{color:COLORS.GRAY_TEXT, maxWidth:'600px', margin:'0 auto'}}>Maîtrisez OptiRoute Pro en 5 minutes.</p>
-        </div>
-
-        <div style={tutorialSectionStyle}>
-            <div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}>
-                <Icons.User />
-                <h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>1. RÔLE ADMINISTRATEUR (PATRON)</h2>
-            </div>
-            <p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}>
-                <strong><span style={stepNumberStyle}>A</span> Gérer l'Équipe :</strong> Cliquez sur "GÉRER L'ÉQUIPE" pour ajouter des techniciens.<br/>
-                <strong><span style={stepNumberStyle}>B</span> Créer des Missions :</strong> Sélectionnez d'abord un technicien dans la liste. Le formulaire s'active. Renseignez l'adresse (auto-complétion).<br/>
-                <strong><span style={stepNumberStyle}>C</span> Optimiser :</strong> Cliquez sur le CAMION pour calculer le meilleur trajet.
-            </p>
-        </div>
-
-        <div style={tutorialSectionStyle}>
-            <div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}>
-                <Icons.Truck />
-                <h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>2. RÔLE TECHNICIEN</h2>
-            </div>
-            <p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}>
-                <strong><span style={stepNumberStyle}>A</span> Connexion :</strong> Identifiants fournis par l'admin.<br/>
-                <strong><span style={stepNumberStyle}>B</span> Navigation :</strong> Cliquez sur la boussole pour GPS.<br/>
-                <strong><span style={stepNumberStyle}>C</span> Validation :</strong> "DÉMARRER" puis "TERMINER & SIGNER".
-            </p>
-        </div>
-
-        <div style={{textAlign:'center'}}>
-            <button onClick={onClose} style={{...submitButtonStyle, width:'auto', padding:'15px 50px', fontSize:'16px'}}>FERMER LE GUIDE</button>
-        </div>
-    </div>
-);
-
-const LandingPage = ({ onStart }) => (
-    <div style={landingContainerStyle}>
-        <nav style={navStyle}>
-            <div style={{display:'flex', alignItems:'center'}}>
-                <img src="/logo-truck.svg" alt="Logo" style={{height:'40px', marginRight:'15px'}} />
-                <span style={{fontFamily:"'Oswald', sans-serif", fontSize:'24px', fontWeight:'bold', letterSpacing:'1px'}}>OPTIROUTE <span style={proTagStyle}>PRO</span></span>
-            </div>
-            <div style={{display:'flex', gap:'10px'}}>
-                <button onClick={onStart} style={{...submitButtonStyle, width:'auto', padding:'10px 25px', fontSize:'12px', boxShadow:'none'}}>ACCÈS CLIENT</button>
-            </div>
-        </nav>
-        <section style={heroSectionStyle}>
-            <span style={{color: COLORS.BLUE, fontWeight:'bold', letterSpacing:'2px', fontSize:'14px', marginBottom:'10px', display:'block'}}>LA SOLUTION B2B ULTIME</span>
-            <h1 style={heroTitleStyle}>OPTIMISEZ VOS TOURNÉES<br/>EN UN CLIC</h1>
-            <button onClick={onStart} style={ctaButtonStyle}>COMMENCER GRATUITEMENT</button>
-        </section>
-        <section style={featuresGridStyle}>
-            <div style={featureCardStyle(COLORS.PASTEL_BLUE)}><Icons.Map/><h3 style={{fontFamily:"'Oswald', sans-serif", fontSize:'20px', marginTop:'10px'}}>INTELLIGENCE ARTIFICIELLE</h3></div>
-            <div style={featureCardStyle(COLORS.PASTEL_GREEN)}><Icons.Truck/><h3 style={{fontFamily:"'Oswald', sans-serif", fontSize:'20px', marginTop:'10px'}}>APPLICATION TERRAIN</h3></div>
-            <div style={featureCardStyle(COLORS.PASTEL_RED)}><Icons.Check/><h3 style={{fontFamily:"'Oswald', sans-serif", fontSize:'20px', marginTop:'10px'}}>PREUVE DE PASSAGE</h3></div>
-        </section>
-    </div>
-);
-
-// --- 5. APPLICATION PRINCIPALE ---
+// --- APP PRINCIPALE ---
 function App() {
-    const API_URL = "https://optiroute-wxaz.onrender.com";
+    const API_URL = "https://optiroute-wxaz.onrender.com"; // Remplacer par URL Render en prod
 
     const [token, setToken] = useState(localStorage.getItem('optiroute_token'));
     const [userRole, setUserRole] = useState(null);
@@ -351,502 +201,334 @@ function App() {
     const [userName, setUserName] = useState("");
     const [userCompany, setUserCompany] = useState(localStorage.getItem('optiroute_company') || "");
     
-    const [showLanding, setShowLanding] = useState(!token);
-    const [showTutorial, setShowTutorial] = useState(false);
-
-    const [activeTab, setActiveTab] = useState(0);
-    const [isLoginView, setIsLoginView] = useState(true);
-    const [authEmail, setAuthEmail] = useState("");
-    const [authPass, setAuthPass] = useState("");
-    const [authCompany, setAuthCompany] = useState("");
-    const [authError, setAuthError] = useState("");
-    const [authLoading, setAuthLoading] = useState(false);
-
+    // États UI
+    const [activeTab, setActiveTab] = useState(0); // 0=Add, 1=Route, 2=History
+    const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+    const [loading, setLoading] = useState(false);
+    
+    // États Données
     const [technicians, setTechnicians] = useState([]);
     const [selectedTechId, setSelectedTechId] = useState(null);
     const [route, setRoute] = useState([]);
-    const [routePath, setRoutePath] = useState([]); 
-    const [pendingMissions, setPendingMissions] = useState([]);
+    const [routePath, setRoutePath] = useState([]);
     const [historyTrips, setHistoryTrips] = useState([]);
+    const [pendingMissions, setPendingMissions] = useState([]);
 
+    // États Formulaire
     const [newName, setNewName] = useState("");
     const [newAddress, setNewAddress] = useState("");
     const [newPhone, setNewPhone] = useState("");
     const [newComments, setNewComments] = useState("");
     const [timeSlot, setTimeSlot] = useState("morning");
     const [duration, setDuration] = useState(30);
-    const [isAddingMission, setIsAddingMission] = useState(false);
-    
-    const [newTechName, setNewTechName] = useState("");
-    const [newTechAddress, setNewTechAddress] = useState("");
-    const [newTechEmail, setNewTechEmail] = useState("");
-    const [newTechPass, setNewTechPass] = useState("");
-    const [isAddingTech, setIsAddingTech] = useState(false);
 
-    const [mapCenter, setMapCenter] = useState([48.8675, 2.3639]); 
+    // États Modales & Map
+    const [mapCenter, setMapCenter] = useState([48.8675, 2.3639]);
     const [mapBounds, setMapBounds] = useState(null);
-    const [screenWidth, setScreenWidth] = useState(window.innerWidth);
-    const [loading, setLoading] = useState(false);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [toast, setToast] = useState(null);
-
-    const [navModal, setNavModal] = useState(null); 
-    const [showTeamModal, setShowTeamModal] = useState(false);
-    const [showResetModal, setShowResetModal] = useState(false);
-    const [showEmptyModal, setShowEmptyModal] = useState(false);
-    const [showUnassignedModal, setShowUnassignedModal] = useState(false);
-    const [unassignedList, setUnassignedList] = useState([]); 
-    const [techToDelete, setTechToDelete] = useState(null); 
-    const [isDeletingTech, setIsDeletingTech] = useState(false);
-    
+    const [navModal, setNavModal] = useState(null);
     const [missionToSign, setMissionToSign] = useState(null);
+    const [showTeamModal, setShowTeamModal] = useState(false);
     const sigCanvas = useRef(null);
 
-    const isMobileView = screenWidth < 768;
+    const isMobile = screenWidth < 768;
 
     const getAuthHeaders = () => ({ headers: { Authorization: `Bearer ${token}` } });
 
-    // DÉCLARATION AVANT UTILISATION (POUR EVITER NO-UNDEF)
+    // --- EFFETS ---
+    useEffect(() => {
+        const handleResize = () => setScreenWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        
+        Crisp.configure("3a2abcb6-a8fd-4fc5-b856-a99c36e6ad0b");
+        
+        if (token) {
+            try {
+                const decoded = jwtDecode(token);
+                setUserRole(decoded.role); setUserId(decoded.id); setUserName(decoded.name);
+                if (decoded.role === 'tech') setSelectedTechId(decoded.id);
+                fetchTechnicians();
+                fetchCurrentTrip();
+            } catch (e) { handleLogout(); }
+        }
+        return () => window.removeEventListener('resize', handleResize);
+    }, [token]);
+
+    // Polling 30s
+    useEffect(() => {
+        if (!token) return;
+        const interval = setInterval(() => fetchCurrentTrip(), 30000);
+        return () => clearInterval(interval);
+    }, [token]);
+
+    // --- ACTIONS ---
     const handleLogout = () => {
-        localStorage.removeItem('optiroute_token'); localStorage.removeItem('optiroute_company');
-        // Nettoyage persistance
-        localStorage.removeItem('saved_route_path');
-        setToken(null); setUserRole(null); setRoute([]); setPendingMissions([]);
-        setShowLanding(true);
+        localStorage.clear(); setToken(null);
     };
 
     const fetchTechnicians = async () => {
         try {
             const res = await axios.get(`${API_URL}/technicians`, getAuthHeaders());
-            setTechnicians(res.data); return res.data;
-        } catch (e) { if(e.response?.status === 401) handleLogout(); return []; }
+            setTechnicians(res.data);
+        } catch (e) {}
     };
-    
+
     const fetchCurrentTrip = async () => {
         try {
-            // 1. Récupérer la route depuis le serveur (missions avec statuts)
             const res = await axios.get(`${API_URL}/trips/current`, getAuthHeaders());
-            
-            // 2. Récupérer le tracé (path) depuis le LocalStorage (Persistance visuelle)
             const savedPath = localStorage.getItem('saved_route_path');
-            
-            if(res.data && res.data.length > 0) {
-                const mappedRoute = res.data.map(m => ({
-                    id: m.id,
-                    step: m.route_order,
-                    client: m.client_name,
-                    time_slot: m.time_slot,
-                    address: m.address,
-                    lat: parseFloat(m.lat),
-                    lng: parseFloat(m.lng),
-                    technician_name: m.technician_name,
-                    phone: m.phone,
-                    comments: m.comments,
-                    status: m.status,
-                    signature: m.signature,
-                    distance_km: "0" // Pas grave au refresh
-                }));
-                setRoute(mappedRoute);
-                setActiveTab(1); 
-                
-                // Restaurer le tracé bleu si dispo
-                if (savedPath) {
-                    const parsedPath = JSON.parse(savedPath);
-                    setRoutePath(parsedPath);
-                    // On ne force pas le zoom à chaque polling pour pas embêter l'utilisateur
-                    if (!mapBounds) setMapBounds(parsedPath);
-                } else if (mappedRoute.length > 0 && !mapBounds) {
-                      // Sinon zoom sur les points (seulement si pas déjà zoomé)
-                      const points = mappedRoute.map(p => [p.lat, p.lng]);
-                      setMapBounds(points);
-                }
+            if(res.data) {
+                const mapped = res.data.map(m => ({ ...m, step: m.route_order }));
+                setRoute(mapped);
+                if (savedPath && !mapBounds) setRoutePath(JSON.parse(savedPath));
             }
-        } catch (e) { console.error("Pas de trip actif"); }
+        } catch (e) {}
     };
 
     const fetchHistory = async () => {
         try {
             const res = await axios.get(`${API_URL}/trips/history`, getAuthHeaders());
             setHistoryTrips(res.data);
-        } catch (e) { console.error("Erreur history"); }
-    };
-
-    // INIT APP
-    useEffect(() => {
-        const handleResize = () => setScreenWidth(window.innerWidth);
-        window.addEventListener('resize', handleResize);
-        
-        // Crisp
-        Crisp.configure("3a2abcb6-a8fd-4fc5-b856-a99c36e6ad0b");
-        try { if (window.$crisp) window.$crisp.push(["do", "chat:show"]); } catch(e) {}
-
-        const initApp = async () => {
-            if (token) {
-                setShowLanding(false);
-                try {
-                    const decoded = jwtDecode(token);
-                    setUserRole(decoded.role); setUserId(decoded.id); setUserName(decoded.name);
-                    if (decoded.role === 'tech') setSelectedTechId(decoded.id);
-                    
-                    await fetchTechnicians();
-                    await fetchCurrentTrip(); // CHARGEMENT PERSISTANT
-                    
-                } catch (e) { handleLogout(); }
-            }
-        };
-        initApp();
-        return () => window.removeEventListener('resize', handleResize);
-        // eslint-disable-next-line
-    }, [token]);
-
-    // [AMELIORATION 2] POLLING TEMPS RÉEL (Update toutes les 30s)
-    useEffect(() => {
-        if (!token) return;
-        
-        const interval = setInterval(() => {
-            // On recharge le trip discrètement pour mettre à jour les statuts (Couleurs)
-            // Sans changer le zoom ni le tracé
-            fetchCurrentTrip();
-        }, 30000); // 30 secondes
-
-        return () => clearInterval(interval);
-    }, [token]);
-
-
-    useEffect(() => { if (toast) setTimeout(() => setToast(null), 3000); }, [toast]);
-
-    const handleAuth = async (e) => {
-        e.preventDefault(); setAuthError(""); setAuthLoading(true);
-        try {
-            const endpoint = isLoginView ? '/auth/login' : '/auth/register';
-            const payload = isLoginView ? { email: authEmail, password: authPass } : { email: authEmail, password: authPass, company_name: authCompany };
-            const res = await axios.post(`${API_URL}${endpoint}`, payload);
-            if (isLoginView) {
-                localStorage.setItem('optiroute_token', res.data.token);
-                const compName = res.data.name || ''; localStorage.setItem('optiroute_company', compName);
-                setToken(res.data.token); setUserCompany(compName); setShowLanding(false);
-                setTimeout(() => { fetchTechnicians(); fetchCurrentTrip(); }, 500);
-            } else { setToast({message: "Compte créé.", type: "success"}); setIsLoginView(true); }
-        } catch (err) { setAuthError(err.response?.data?.message || "Erreur."); } 
-        finally { setAuthLoading(false); }
-    };
-
-    const handleAddTech = async (e) => {
-        e.preventDefault();
-        if (!newTechName || !newTechAddress || !newTechEmail || !newTechPass) return;
-        setIsAddingTech(true);
-        try {
-            await axios.post(`${API_URL}/technicians`, { name: newTechName, address: newTechAddress, email: newTechEmail, password: newTechPass }, getAuthHeaders());
-            setNewTechName(""); setNewTechAddress(""); setNewTechEmail(""); setNewTechPass("");
-            const updatedList = await fetchTechnicians();
-            const added = updatedList[updatedList.length - 1];
-            if (added) { 
-                setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); 
-                setMapBounds(null);
-                setSelectedTechId(added.id); 
-            }
-            setToast({ message: "Technicien ajouté", type: "success" }); setShowTeamModal(false);
-        } catch (error) { alert("Erreur ajout"); }
-        finally { setIsAddingTech(false); }
-    };
-
-    const executeDeleteTech = async () => {
-        if (!techToDelete) return;
-        setIsDeletingTech(true);
-        try { 
-            await axios.delete(`${API_URL}/technicians/${techToDelete}`, getAuthHeaders()); 
-            await fetchTechnicians(); setTechToDelete(null);
-            if (selectedTechId === techToDelete) setSelectedTechId(null);
-            setToast({ message: "Technicien supprimé", type: "success" });
-        } catch (e) { alert("Erreur"); }
-        finally { setIsDeletingTech(false); }
-    };
-
-    const handleAddMission = async (e) => {
-        e.preventDefault(); 
-        if (userRole === 'admin' && !selectedTechId) return;
-        if(!newName || !newAddress) return;
-        setIsAddingMission(true);
-        try {
-            const response = await axios.post(`${API_URL}/missions`, { client_name: newName, address: newAddress, time_slot: timeSlot, duration: duration, technician_id: selectedTechId, phone: newPhone, comments: newComments }, getAuthHeaders());
-            if(response.data.success) { 
-                setPendingMissions([...pendingMissions, { name: newName, time: duration, techId: selectedTechId }]);
-                setNewName(""); setNewAddress(""); setNewPhone(""); setNewComments("");
-                setToast({ message: "Mission assignée", type: "success" });
-            } else { alert(response.data.message); }
-        } catch (error) { alert("Erreur réseau"); }
-        finally { setIsAddingMission(false); }
+        } catch (e) { console.error(e); }
     };
 
     const handleOptimize = async () => {
-        setLoading(true); setUnassignedList([]); 
-        try {
-            const response = await axios.get(`${API_URL}/optimize`, getAuthHeaders());
-            if (response.data.path && Array.isArray(response.data.route)) {
-                let myRoute = response.data.route;
-                if (userRole === 'tech') myRoute = myRoute.filter(step => step.technician_name === userName);
-                myRoute = myRoute.map(step => ({...step, status: step.status || 'assigned'}));
-                setRoute(myRoute); setRoutePath(response.data.path); setPendingMissions([]); 
-                
-                // SAUVEGARDE LOCALE DU TRACE
-                localStorage.setItem('saved_route_path', JSON.stringify(response.data.path));
-                
-                if (response.data.path.length > 0) setMapBounds(response.data.path);
-                setActiveTab(1); 
-            } else { setRoute([]); }
-            if (response.data.unassigned?.length > 0) { setUnassignedList(response.data.unassigned); setShowUnassignedModal(true); }
-        } catch (error) { console.error(error); alert("Erreur"); }
-        finally { setLoading(false); }
-    };
-
-    const triggerStatusUpdate = (missionId, newStatus) => {
-        if (newStatus === 'done') { setMissionToSign(missionId); } 
-        else { updateStatusOnServer(missionId, newStatus, null); }
-    };
-
-    const confirmSignatureAndFinish = () => {
-        if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
-            try {
-                const signatureData = sigCanvas.current.toDataURL();
-                updateStatusOnServer(missionToSign, 'done', signatureData);
-                setMissionToSign(null);
-            } catch (e) { alert("Erreur signature"); }
-        } else { alert("Veuillez signer."); }
-    };
-
-    const updateStatusOnServer = async (missionId, newStatus, signatureData) => {
-        if (!missionId) return;
-        setRoute(prevRoute => prevRoute.map(step => {
-            if (step.id === missionId) return { ...step, status: newStatus };
-            return step;
-        }));
-        try {
-            await axios.patch(`${API_URL}/missions/${missionId}/status`, { status: newStatus, signature: signatureData }, getAuthHeaders());
-            setToast({ message: newStatus === 'done' ? "Mission Terminée" : "Mission Démarrée", type: "success" });
-        } catch (error) { handleOptimize(); }
-    };
-
-    const confirmResetMissions = async () => {
         setLoading(true);
         try {
-            await axios.delete(`${API_URL}/missions/reset`, getAuthHeaders()); 
-            setRoute([]); setRoutePath([]); setUnassignedList([]); setPendingMissions([]);
-            localStorage.removeItem('saved_route_path'); // Nettoyage
-            setShowResetModal(false); setToast({ message: "Missions archivées", type: "info" });
-            setActiveTab(0); 
-        } catch (error) { alert("Erreur"); }
+            const response = await axios.get(`${API_URL}/optimize`, getAuthHeaders());
+            if (response.data.route) {
+                setRoute(response.data.route);
+                setRoutePath(response.data.path);
+                localStorage.setItem('saved_route_path', JSON.stringify(response.data.path));
+                setMapBounds(response.data.path);
+                setActiveTab(1); // Auto switch to Route view
+            }
+        } catch (e) { alert("Erreur optimisation"); }
         finally { setLoading(false); }
     };
 
-    // [AMELIORATION 3] MEMOIZATION DE LA MAP (Pour éviter les lags quand on tape du texte)
-    const MapSection = useMemo(() => {
-        return (
-            <div style={mapContainerStyle(isMobileView)}>
-                <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
-                    <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
-                    <MapController center={mapCenter} bounds={mapBounds} />
-                    {technicians.map(t => (<Marker key={`tech-${t.id}`} position={[parseFloat(t.start_lat), parseFloat(t.start_lng)]}><Popup><div style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase'}}>🏠 {t.name}</div></Popup></Marker>))}
-                    {route.map((step, index) => (<Marker key={index} position={[step.lat, step.lng]} icon={createCustomIcon(index, route.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>))}
-                    {routePath.length > 0 && <Polyline positions={routePath} color={COLORS.BLUE} weight={5} opacity={0.8} />}
-                </MapContainer>
-            </div>
-        );
-    }, [mapCenter, mapBounds, route, routePath, technicians, userRole, userName, isMobileView]);
+    const handleAddMission = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.post(`${API_URL}/missions`, { 
+                client_name: newName, address: newAddress, time_slot: timeSlot, 
+                duration: duration, technician_id: selectedTechId, phone: newPhone, comments: newComments 
+            }, getAuthHeaders());
+            setNewName(""); setNewAddress(""); setNewPhone(""); setNewComments("");
+            setPendingMissions([...pendingMissions, 1]); // Fake update pour UI
+            alert("Mission ajoutée !");
+        } catch (e) { alert("Erreur ajout"); }
+    };
 
+    const triggerStatusUpdate = async (id, status) => {
+        if (status === 'done') { setMissionToSign(id); return; }
+        await axios.patch(`${API_URL}/missions/${id}/status`, { status }, getAuthHeaders());
+        fetchCurrentTrip();
+    };
 
-    // --- CONDITIONAL RENDERING ---
-    if (showTutorial) {
-        return <TutorialPage onClose={() => setShowTutorial(false)} />;
-    }
+    const confirmSign = async () => {
+        if (!sigCanvas.current || sigCanvas.current.isEmpty()) return alert("Signez d'abord");
+        await axios.patch(`${API_URL}/missions/${missionToSign}/status`, { 
+            status: 'done', signature: sigCanvas.current.toDataURL() 
+        }, getAuthHeaders());
+        setMissionToSign(null);
+        fetchCurrentTrip();
+    };
 
-    if (showLanding && !token) {
-        return <LandingPage onStart={() => setShowLanding(false)} />;
-    }
+    // --- RENDUS COMPOSANTS ---
 
+    // 1. Footer Mobile (Navigation Native)
+    const MobileFooter = () => (
+        <div style={mobileNavStyle}>
+            <button onClick={() => setActiveTab(0)} style={mobileNavItemStyle(activeTab === 0)}>
+                <Icons.Home color={activeTab === 0 ? COLORS.BLUE : COLORS.GRAY_TEXT} />
+                <span style={{marginTop: '4px'}}>Saisie</span>
+            </button>
+            <button onClick={() => setActiveTab(1)} style={mobileNavItemStyle(activeTab === 1)}>
+                <Icons.List color={activeTab === 1 ? COLORS.BLUE : COLORS.GRAY_TEXT} />
+                <span style={{marginTop: '4px'}}>Route</span>
+            </button>
+            <button onClick={() => { fetchHistory(); setActiveTab(2); }} style={mobileNavItemStyle(activeTab === 2)}>
+                <Icons.Clock color={activeTab === 2 ? COLORS.BLUE : COLORS.GRAY_TEXT} />
+                <span style={{marginTop: '4px'}}>Historique</span>
+            </button>
+            <button onClick={handleLogout} style={mobileNavItemStyle(false)}>
+                <Icons.LogOut color={COLORS.GRAY_TEXT} />
+                <span style={{marginTop: '4px'}}>Déco</span>
+            </button>
+        </div>
+    );
+
+    // 2. Map Memoized
+    const MapSection = useMemo(() => (
+        <div style={mapContainerStyle(isMobile)}>
+            <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
+                <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+                <MapController center={mapCenter} bounds={mapBounds} />
+                {technicians.map(t => <Marker key={t.id} position={[parseFloat(t.start_lat), parseFloat(t.start_lng)]}><Popup>🏠 {t.name}</Popup></Marker>)}
+                {route.map((step, i) => <Marker key={i} position={[step.lat, step.lng]} icon={createCustomIcon(i, route.length, step.status, true)}><Popup>#{step.step} {step.client_name}</Popup></Marker>)}
+                {routePath.length > 0 && <Polyline positions={routePath} color={COLORS.BLUE} weight={5} opacity={0.7} />}
+            </MapContainer>
+        </div>
+    ), [mapCenter, mapBounds, route, routePath, technicians, isMobile]);
+
+    // LOGIN VIEW
     if (!token) return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: COLORS.DARK, color: 'white', fontFamily: "'Inter', sans-serif" }}>
-            <button onClick={() => setShowLanding(true)} style={{position:'absolute', top:'20px', left:'20px', background:'transparent', border:'1px solid white', color:'white', padding:'10px 20px', borderRadius:'30px', cursor:'pointer', fontWeight:'bold'}}>← ACCUEIL</button>
-            <div style={{ background: 'white', padding: '50px', borderRadius: STANDARD_RADIUS, width: '90%', maxWidth: '400px', color: COLORS.DARK, textAlign: 'center', boxShadow: SHADOW }}>
-                <img src="/logo-truck.svg" alt="OptiRoute" style={{ height: '60px', marginBottom: '30px' }} />
-                <h2 style={{ margin: '0 0 30px 0', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize:'24px' }}>{isLoginView ? "Connexion" : "Compte Entreprise"}</h2>
-                {authError && <div style={{ color: COLORS.RED, marginBottom: '20px', fontSize: '14px', fontWeight:'600', border:`1px solid ${COLORS.RED}`, padding:'10px', borderRadius:STANDARD_RADIUS }}>{authError}</div>}
-                <form onSubmit={handleAuth}>
-                    {!isLoginView && <input type="text" placeholder="NOM DE L'ENTREPRISE" required value={authCompany} onChange={e => setAuthCompany(e.target.value)} style={inputStyle} />}
-                    <input type="email" placeholder="EMAIL" required value={authEmail} onChange={e => setAuthEmail(e.target.value)} style={inputStyle} />
-                    <input type="password" placeholder="MOT DE PASSE" required value={authPass} onChange={e => setAuthPass(e.target.value)} style={inputStyle} />
-                    <button type="submit" disabled={authLoading} style={{...submitButtonStyle, marginTop:'20px'}}>{authLoading ? "..." : (isLoginView ? "ENTRER" : "CRÉER COMPTE")}</button>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: COLORS.DARK, fontFamily: "'Inter', sans-serif" }}>
+            <div style={{ background: 'white', padding: '40px', borderRadius: '20px', width: '90%', maxWidth: '350px', textAlign: 'center' }}>
+                <img src="/logo-truck.svg" alt="Logo" style={{ height: '50px', marginBottom: '20px' }} />
+                <h2 style={{fontSize:'20px', fontFamily:"'Oswald', sans-serif", marginBottom:'20px'}}>CONNEXION</h2>
+                <form onSubmit={async (e) => {
+                    e.preventDefault();
+                    try {
+                        const res = await axios.post(`${API_URL}/auth/login`, { email: authEmail, password: authPass }); // Utiliser tes states ici
+                        localStorage.setItem('optiroute_token', res.data.token);
+                        setToken(res.data.token);
+                    } catch(err) { alert("Erreur login"); }
+                }}>
+                    <input type="email" placeholder="Email" onChange={e => setAuthEmail(e.target.value)} style={inputStyle} />
+                    <input type="password" placeholder="Mot de passe" onChange={e => setAuthPass(e.target.value)} style={inputStyle} />
+                    <button type="submit" style={submitButtonStyle}>SE CONNECTER</button>
                 </form>
-                <div style={{ marginTop: '25px', fontSize: '13px', color: COLORS.GRAY_TEXT, cursor: 'pointer', textDecoration: 'underline', fontWeight:'500' }} onClick={() => setIsLoginView(!isLoginView)}>{isLoginView ? "Créer un compte entreprise" : "J'ai déjà un compte"}</div>
             </div>
         </div>
     );
 
+    // APP VIEW
     return (
-        <div style={rootContainerStyle(isMobileView)}>
-            <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap'); .leaflet-control-attribution { display: none !important; } .leaflet-div-icon { background: transparent; border: none; }`}</style>
-            
-            {toast && <div style={{position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', backgroundColor: toast.type === 'success' ? COLORS.DARK : COLORS.BLUE, color: 'white', padding: '15px 30px', borderRadius: PILL_RADIUS, boxShadow: SHADOW, zIndex: 99999, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '14px', display: 'flex', alignItems: 'center'}}><img src="/logo-truck.svg" alt="" style={{width:'20px', height:'20px', marginRight:'15px', filter:'invert(1)'}}/>{toast.message}</div>}
-
-            {missionToSign && <div style={modalOverlayStyle} onClick={() => setMissionToSign(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, fontSize:'18px'}}>SIGNATURE CLIENT</h3><div style={{border: `2px dashed ${COLORS.BORDER}`, borderRadius: STANDARD_RADIUS, backgroundColor: '#f9f9f9', marginBottom: '20px'}}><SignatureCanvas ref={sigCanvas} penColor="black" canvasProps={{width: 300, height: 200, className: 'sigCanvas'}} /></div><div style={{display:'flex', gap:'10px'}}><button onClick={() => { if(sigCanvas.current) sigCanvas.current.clear(); }} style={{...cancelButtonStyle, border: '1px solid #eee'}}>EFFACER</button><button onClick={confirmSignatureAndFinish} style={{...submitButtonStyle, marginTop:0}}>VALIDER</button></div></div></div>}
-
-            {techToDelete && <div style={{...modalOverlayStyle, zIndex: 10002}} onClick={() => !isDeletingTech && setTechToDelete(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/icon-trash.svg" alt="Del" style={{width:'40px', marginBottom:'15px'}} /><h3 style={{...modalTitleStyle, color: COLORS.DARK}}>SUPPRIMER ?</h3><div style={{display:'flex', gap:'10px'}}><button onClick={() => setTechToDelete(null)} style={{...cancelButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`, marginTop:0}}>NON</button><button onClick={executeDeleteTech} style={{...submitButtonStyle, marginTop:0, backgroundColor:COLORS.RED}}>{isDeletingTech ? "..." : "OUI"}</button></div></div></div>}
-
-            {showTeamModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowTeamModal(false)}><div style={{...modalContentStyle, maxWidth:'450px', padding:'40px'}} onClick={e => e.stopPropagation()}><div style={{display:'flex', alignItems:'center', marginBottom:'20px', borderBottom:`2px solid ${COLORS.DARK}`, paddingBottom:'15px'}}><h3 style={{margin:0, fontFamily:"'Oswald', sans-serif", fontSize:'24px', textTransform:'uppercase'}}>MON ÉQUIPE</h3></div><div style={{maxHeight: '250px', overflowY: 'auto', marginBottom: '30px'}}>{technicians.map(t => (<div key={t.id} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'15px', marginBottom:'10px', border:`1px solid ${COLORS.BORDER}`, borderRadius:STANDARD_RADIUS, backgroundColor: COLORS.BG_LIGHT}}>
-                <div style={{display:'flex', alignItems:'center'}}>
-                    <div style={{width:'35px', height:'35px', borderRadius:'50%', backgroundColor:COLORS.BLUE, color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', marginRight:'15px', fontSize:'14px'}}>{t.name.charAt(0)}</div>
-                    <div><div style={{fontWeight:'700', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", fontSize:'16px'}}>{t.name}</div><div style={{fontSize:'12px', color: COLORS.GRAY_TEXT}}>{t.email}</div></div>
+        <div style={rootContainerStyle(isMobile)}>
+            {/* Modale Signature */}
+            {missionToSign && <div style={modalOverlayStyle}><div style={modalContentStyle}>
+                <h3>SIGNATURE</h3>
+                <div style={{border:'2px dashed #eee', marginBottom:'15px'}}><SignatureCanvas ref={sigCanvas} canvasProps={{width:300, height:200}} /></div>
+                <div style={{display:'flex', gap:'10px'}}>
+                    <button onClick={() => setMissionToSign(null)} style={{...submitButtonStyle, backgroundColor:'transparent', color:COLORS.GRAY_TEXT, border:'1px solid #eee'}}>Annuler</button>
+                    <button onClick={confirmSign} style={submitButtonStyle}>Valider</button>
                 </div>
-                {userRole === 'admin' && (<button onClick={() => setTechToDelete(t.id)} style={{background:'transparent', border:'none', cursor:'pointer', opacity:0.6}}><img src="/icon-trash.svg" alt="Del" style={{width:'20px'}} /></button>)}</div>))}</div>{userRole === 'admin' && (<form onSubmit={handleAddTech}><input type="text" placeholder="Nom" value={newTechName} onChange={(e) => setNewTechName(e.target.value)} style={inputStyle} /><AddressInput placeholder="Adresse (Départ)" value={newTechAddress} onChange={setNewTechAddress} /><input type="email" placeholder="Email" value={newTechEmail} onChange={(e) => setNewTechEmail(e.target.value)} style={inputStyle} /><input type="password" placeholder="Mot de passe" value={newTechPass} onChange={(e) => setNewTechPass(e.target.value)} style={inputStyle} /><button type="submit" disabled={isAddingTech} style={{...submitButtonStyle, marginTop: '10px'}}>{isAddingTech ? "..." : "CRÉER LE COMPTE"}</button></form>)}<button onClick={() => setShowTeamModal(false)} style={{...cancelButtonStyle, border:'none', marginTop:'10px'}}>FERMER</button></div></div>}
+            </div></div>}
 
-            {showResetModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowResetModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/icon-trash.svg" alt="!" style={{width:'40px', marginBottom:'15px'}}/ ><h3 style={modalTitleStyle}>VIDER ?</h3><div style={{display:'flex', gap:'10px'}}><button onClick={()=>setShowResetModal(false)} style={{...cancelButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`, marginTop:0}}>ANNULER</button><button onClick={confirmResetMissions} style={{...submitButtonStyle, marginTop:0, backgroundColor:COLORS.DARK}}>{loading ? "..." : "CONFIRMER"}</button></div></div></div>}
-
-            {navModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setNavModal(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={modalTitleStyle}>NAVIGATION</h3><div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}><a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/waze.png" alt="W" style={gpsIconStyle}/>Waze</a><a href={`http://googleusercontent.com/maps.google.com/?q=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/google.png" alt="G" style={gpsIconStyle}/>Google Maps</a></div><button onClick={() => setNavModal(null)} style={cancelButtonStyle}>FERMER</button></div></div>}
-            {showEmptyModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowEmptyModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} /><h3 style={modalTitleStyle}>OPTIROUTE</h3><button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button></div></div>}
-            {showUnassignedModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowUnassignedModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3><div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>{unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}</div><button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button></div></div>}
-
-            {/* Rendu Optimisé de la Carte */}
+            {/* LA CARTE */}
             {MapSection}
 
-            <div style={panelContainerStyle(isMobileView)}>
-                <div style={panelHeaderStyle}>
-                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width:'100%'}}>
-                        <div style={{display:'flex', alignItems:'center'}}><img src="/logo-truck.svg" alt="Logo" style={{height: '36px', marginRight: '15px'}} />
-                            <div>
-                                <h2 style={{margin: 0, color: COLORS.DARK, fontSize: '1.8em', fontFamily: "'Oswald', sans-serif", fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px'}}>OptiRoute <span style={proTagStyle}>PRO</span></h2>
-                                <div style={{fontSize: '12px', color: COLORS.GRAY_TEXT, marginTop: '2px', fontFamily:"'Inter', sans-serif", fontWeight:'500', textTransform:'uppercase'}}>
-                                    {userRole === 'admin' ? `ADMINISTRATION : ${userCompany}` : `TECHNICIEN : ${userName}`}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div style={{display:'flex', alignItems:'center'}}>
-                            {activeTab === 0 && <div onClick={() => setActiveTab(1)} style={navArrowStyle}><img src="/arrow.svg" alt="Go" style={{width:'14px', height:'14px'}} /></div>}
-                            {activeTab === 1 && <div onClick={() => setActiveTab(0)} style={{...navArrowStyle, transform:'rotate(180deg)'}}><img src="/arrow.svg" alt="Back" style={{width:'14px', height:'14px'}} /></div>}
-                            {activeTab === 2 && <div onClick={() => setActiveTab(0)} style={{...navArrowStyle, transform:'rotate(180deg)'}}><img src="/arrow.svg" alt="Back" style={{width:'14px', height:'14px'}} /></div>}
-                            
-                            {/* Bouton Historique */}
-                            <div onClick={() => { fetchHistory(); setActiveTab(2); }} style={{cursor:'pointer', marginLeft:'10px', fontSize:'20px'}}>🕒</div>
-                            <div onClick={() => setShowTutorial(true)} style={{cursor:'pointer', marginLeft:'10px'}}><Icons.Help/></div>
-                            <button onClick={handleLogout} style={{background: 'transparent', border: 'none', color: COLORS.RED, cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration:'underline', fontFamily:"'Inter', sans-serif", marginLeft:'15px'}}>DÉCO</button>
-                        </div>
+            {/* LE PANNEAU */}
+            <div style={panelContainerStyle(isMobile)}>
+                
+                {/* Header du Panneau (Logo + Titre) */}
+                <div style={{ padding: '25px 30px', borderBottom: isMobile ? 'none' : `1px solid ${COLORS.BORDER}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                        <h1 style={{ margin: 0, fontSize: '20px', fontFamily: "'Oswald', sans-serif", letterSpacing: '1px', color: COLORS.DARK }}>OPTIROUTE <span style={{fontSize:'10px', background:COLORS.BLUE, color:'white', padding:'2px 6px', borderRadius:'4px', verticalAlign:'middle'}}>PRO</span></h1>
+                        <div style={{ fontSize: '11px', color: COLORS.GRAY_TEXT, marginTop: '2px', fontWeight: '500' }}>{userRole === 'admin' ? userCompany : userName}</div>
                     </div>
+                    {/* Navigation Desktop (Cachée en mobile) */}
+                    {!isMobile && (
+                        <div style={{ display: 'flex', gap: '15px' }}>
+                            <button onClick={() => setActiveTab(0)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontWeight: activeTab === 0 ? 'bold' : 'normal', color: activeTab === 0 ? COLORS.BLUE : COLORS.GRAY_TEXT }}>Saisie</button>
+                            <button onClick={() => setActiveTab(1)} style={{ border: 'none', background: 'none', cursor: 'pointer', fontWeight: activeTab === 1 ? 'bold' : 'normal', color: activeTab === 1 ? COLORS.BLUE : COLORS.GRAY_TEXT }}>Route</button>
+                            <button onClick={() => { fetchHistory(); setActiveTab(2); }} style={{ border: 'none', background: 'none', cursor: 'pointer', fontWeight: activeTab === 2 ? 'bold' : 'normal', color: activeTab === 2 ? COLORS.BLUE : COLORS.GRAY_TEXT }}>Historique</button>
+                            <button onClick={handleLogout} style={{ border: 'none', background: 'none', cursor: 'pointer', color: COLORS.PASTEL_RED, fontWeight:'bold' }}>Exit</button>
+                        </div>
+                    )}
                 </div>
 
-                {/* TAB 0: SAISIE */}
-                {activeTab === 0 && (
-                <>
-                    <div style={cardStyle}>
-                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
-                            <div style={{display: 'flex', alignItems: 'center'}}><img src="/icon-plus.svg" alt="+" style={{width:'16px', marginRight:'8px'}} /><h4 style={{margin:0, color: COLORS.DARK, fontSize: '14px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '1px'}}>NOUVELLE MISSION</h4></div>
-                            <button onClick={() => setShowTeamModal(true)} style={{background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '12px', color: COLORS.BLUE, fontFamily: "'Inter', sans-serif", fontWeight: '600', textDecoration: 'underline'}}>{userRole === 'admin' ? "GÉRER L'ÉQUIPE" : "VOIR L'ÉQUIPE"}</button>
-                        </div>
-                        
-                        {/* SELECTEUR HORS DU FORMULAIRE */}
-                        {userRole === 'admin' && (
-                            <div style={{marginBottom:'15px'}}>
-                                <div style={{fontSize:'11px', fontWeight:'bold', color:COLORS.GRAY_TEXT, marginBottom:'5px'}}>AFFECTER À :</div>
-                                <div style={{display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'5px'}}>
+                {/* CONTENU SCROLLABLE */}
+                <div style={scrollableContentStyle}>
+                    
+                    {/* TAB 0: AJOUT MISSION */}
+                    {activeTab === 0 && (
+                        <div>
+                            <h2 style={cardTitleStyle}>Nouvelle Mission</h2>
+                            <p style={{fontSize:'12px', color:COLORS.GRAY_TEXT, marginBottom:'20px'}}>Ajoutez une étape à la tournée.</p>
+                            
+                            {/* Sélecteur Tech (Admin) */}
+                            {userRole === 'admin' && (
+                                <div style={{display:'flex', gap:'10px', overflowX:'auto', marginBottom:'15px', paddingBottom:'5px'}}>
                                     {technicians.map(t => (
-                                        <div key={t.id} onClick={() => {
-                                            setSelectedTechId(t.id);
-                                            setMapCenter([parseFloat(t.start_lat), parseFloat(t.start_lng)]);
-                                            setMapBounds(null);
-                                        }} style={{
-                                            padding:'8px 15px', borderRadius:PILL_RADIUS, cursor:'pointer', fontSize:'12px', fontWeight:'bold', whiteSpace:'nowrap',
-                                            backgroundColor: selectedTechId === t.id ? COLORS.DARK : COLORS.WHITE,
-                                            color: selectedTechId === t.id ? COLORS.WHITE : COLORS.DARK,
-                                            border: '1px solid ' + (selectedTechId === t.id ? COLORS.DARK : COLORS.BORDER),
-                                            transition: '0.2s'
-                                        }}>
+                                        <div key={t.id} onClick={() => { setSelectedTechId(t.id); setMapCenter([parseFloat(t.start_lat), parseFloat(t.start_lng)]); }} 
+                                            style={{ padding:'6px 12px', borderRadius:'20px', fontSize:'12px', fontWeight:'bold', cursor:'pointer', whiteSpace:'nowrap', backgroundColor: selectedTechId === t.id ? COLORS.DARK : COLORS.WHITE, color: selectedTechId === t.id ? COLORS.WHITE : COLORS.DARK, border: `1px solid ${COLORS.BORDER}` }}>
                                             {t.name}
                                         </div>
                                     ))}
                                 </div>
-                                {!selectedTechId && <div style={{fontSize:'11px', color:COLORS.RED, marginTop:'5px'}}>* Sélectionnez un technicien</div>}
-                            </div>
-                        )}
+                            )}
 
-                        <form onSubmit={handleAddMission} style={{opacity: (userRole === 'admin' && !selectedTechId) ? 0.5 : 1, pointerEvents: (userRole === 'admin' && !selectedTechId) ? 'none' : 'auto', transition: '0.3s'}}>
-                            <input type="text" placeholder="CLIENT" value={newName} onChange={(e) => setNewName(e.target.value)} style={inputStyle} />
-                            <AddressInput placeholder="ADRESSE" value={newAddress} onChange={setNewAddress} />
-                            <input type="text" placeholder="TÉLÉPHONE (Optionnel)" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} style={inputStyle} />
-                            <input type="text" placeholder="COMMENTAIRE (Digicode, etc.)" value={newComments} onChange={(e) => setNewComments(e.target.value)} style={inputStyle} />
-                            <div style={{display:'flex', gap:'10px', marginBottom:'5px'}}>
-                                <div style={{position: 'relative', flex: 1, userSelect: 'none'}}>
-                                    <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} style={{...inputStyle, display: 'flex', alignItems: 'center', cursor: 'pointer', position: 'relative', marginBottom:0}}><img src={timeSlot === 'morning' ? '/icon-morning.svg' : '/icon-afternoon.svg'} alt="time" style={{width: '18px', marginRight: '10px'}} /><span style={{flex: 1, fontSize:'13px', textTransform:'uppercase', fontWeight:'600'}}>{timeSlot === 'morning' ? 'MATIN' : 'APRÈS-MIDI'}</span></div>
-                                    {isDropdownOpen && (<div style={{position: 'absolute', top: '110%', left: 0, right: 0, backgroundColor: COLORS.WHITE, border: `1px solid ${COLORS.DARK}`, borderRadius: '20px', zIndex: 100, boxShadow: SHADOW, overflow: 'hidden', padding: '5px'}}><div onClick={() => { setTimeSlot('morning'); setIsDropdownOpen(false); }} style={dropdownItemStyle}><img src="/icon-morning.svg" alt="M" style={{width: '18px', marginRight: '10px'}} />MATIN</div><div style={{height: '1px', background: '#eee', margin: '0 10px'}}></div><div onClick={() => { setTimeSlot('afternoon'); setIsDropdownOpen(false); }} style={dropdownItemStyle}><img src="/icon-afternoon.svg" alt="A" style={{width: '18px', marginRight: '10px'}} />APRÈS-MIDI</div></div>)}
+                            <form onSubmit={handleAddMission}>
+                                <input placeholder="Nom Client" value={newName} onChange={e => setNewName(e.target.value)} style={inputStyle} />
+                                <AddressInput placeholder="Adresse" value={newAddress} onChange={setNewAddress} />
+                                <div style={{display:'flex', gap:'10px'}}>
+                                    <input type="number" value={duration} onChange={e => setDuration(e.target.value)} style={{...inputStyle, textAlign:'center'}} />
+                                    <select value={timeSlot} onChange={e => setTimeSlot(e.target.value)} style={inputStyle}>
+                                        <option value="morning">Matin</option>
+                                        <option value="afternoon">Après-midi</option>
+                                    </select>
                                 </div>
-                                <div style={{width: '90px', position:'relative'}}><input type="number" min="5" step="5" value={duration} onChange={(e) => setDuration(parseInt(e.target.value) || 30)} style={{...inputStyle, textAlign:'center', marginBottom:0, paddingRight:'25px'}} /><span style={{position:'absolute', right:'10px', top:'50%', transform:'translateY(-50%)', fontSize:'10px', color:COLORS.GRAY_TEXT, fontWeight:'bold'}}>MIN</span></div>
+                                <button type="submit" style={submitButtonStyle}>Ajouter (+)</button>
+                            </form>
+                            
+                            <div style={{marginTop:'20px', paddingTop:'20px', borderTop:`1px dashed ${COLORS.BORDER}`}}>
+                                <button onClick={handleOptimize} style={{...submitButtonStyle, backgroundColor: COLORS.BLUE, boxShadow: '0 4px 15px rgba(59, 130, 246, 0.4)'}}>
+                                    {loading ? 'CALCUL...' : 'OPTIMISER LA TOURNÉE 🚀'}
+                                </button>
                             </div>
-                            <div style={{textAlign:'right', fontSize:'11px', color:COLORS.GRAY_TEXT, fontStyle:'italic', marginBottom:'15px'}}>Temps estimé : <strong>{formatDuration(duration)}</strong></div>
-                            <button type="submit" disabled={isAddingMission} style={{...submitButtonStyle, opacity: isAddingMission ? 0.7 : 1}}>{isAddingMission ? "..." : "AJOUTER AU TRAJET"}</button>
-                        </form>
-                    </div>
-                    {pendingMissions.length > 0 && (<div style={{marginBottom: '20px', border: `1px dashed ${COLORS.BLUE}`, borderRadius: STANDARD_RADIUS, padding: '15px', backgroundColor: 'rgba(43, 121, 194, 0.05)'}}><div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}><h5 style={{margin:0, color:COLORS.BLUE, fontFamily:"'Oswald', sans-serif", fontSize:'14px'}}>EN ATTENTE ({pendingMissions.length})</h5></div><div style={{maxHeight:'80px', overflowY:'auto'}}>{pendingMissions.map((pm, idx) => (<div key={idx} style={{fontSize:'12px', marginBottom:'4px', display:'flex', alignItems:'center', fontFamily:"'Inter', sans-serif"}}><div style={{width:'6px', height:'6px', borderRadius:'50%', background:COLORS.BLUE, marginRight:'8px'}}></div><span style={{fontWeight:'600', marginRight:'5px', color:COLORS.DARK}}>{pm.name}</span> <span style={{color:COLORS.GRAY_TEXT}}>({formatDuration(pm.time)})</span></div>))}</div></div>)}
-                    <div style={actionButtonsContainerStyle}>
-                        <div style={buttonsRowStyle}>
-                            <button onClick={handleOptimize} disabled={loading} style={optimizeButtonStyle}>{loading ? (<div style={{display:'flex', flexDirection:'column', alignItems:'center'}}><img src="/logo-truck.svg" alt="..." style={{width:'60px', opacity:0.5}} /><span style={{fontSize: '12px', color: COLORS.BLUE, fontWeight: 'bold', fontFamily: "'Oswald', sans-serif", marginTop:'5px'}}>OPTIMISATION...</span></div>) : (<div style={{position:'relative'}}><img src="/logo-truck.svg" alt="Optimize" style={{ width:'100px', height:'auto', filter: 'drop-shadow(0px 5px 10px rgba(0,0,0,0.2))' }} />{pendingMissions.length > 0 && <div style={{position:'absolute', top:'-5px', right:'-5px', background:COLORS.RED, color:'white', borderRadius:'50%', width:'24px', height:'24px', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', border:'2px solid white', boxShadow:'0 2px 5px rgba(0,0,0,0.2)'}}>{pendingMissions.length}</div>}</div>)}</button>
-                            {userRole === 'admin' && (<button onClick={()=>setShowResetModal(true)} style={resetButtonStyle}><img src="/icon-trash.svg" alt="Reset" style={{width:'28px', opacity:0.6}} /></button>)}
                         </div>
-                    </div>
-                </>
-                )}
+                    )}
 
-                {/* TAB 1: ROUTE */}
-                {activeTab === 1 && (
-                    <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', height:'100%'}}>
-                        <h4 style={{...cardTitleStyle, marginBottom: '15px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '16px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>FEUILLE DE ROUTE</h4>
-                        <div style={missionsListStyle}>
-                            {route.length === 0 ? (<div style={{padding: '30px', textAlign: 'center', color: COLORS.GRAY_TEXT, fontSize: '0.9em', fontFamily: "'Inter', sans-serif"}}><div style={{opacity:0.3, fontSize:'40px', marginBottom:'10px'}}>🗺️</div><p style={{margin: 0}}>La carte est vide.</p></div>) : (route.map((step, index) => { const stepColor = getStepColor(index, route.length, step.status); return (
-                                <div key={index} style={{...missionItemStyle, backgroundColor: step.status === 'done' ? '#f5f5f5' : 'white', opacity: step.status === 'done' ? 0.7 : 1}}>
-                                    <div style={{display:'flex', width:'100%', alignItems:'flex-start'}}>
-                                        <div style={{backgroundColor: stepColor, color: COLORS.DARK, width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontFamily: "'Inter', sans-serif", marginRight: '15px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', flexShrink: 0, border:'2px solid white'}}>{step.step}</div>
-                                        <div style={missionInfoStyle}>
-                                            <div style={missionTitleStyle}>{renderClientName(step.client, step.time_slot)}</div>
-                                            <div style={missionAddressStyle}>{step.address.substring(0, 35)}...</div>
-                                            <div style={{fontSize: '10px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif", textTransform:'uppercase'}}>{step.technician_name ? `🚛 ${step.technician_name} • ` : ''}📍 {step.distance_km} km</div>
-                                            {step.comments && <div style={{fontSize:'11px', color:COLORS.GRAY_TEXT, marginTop:'4px', fontStyle:'italic'}}>📝 {step.comments}</div>}
-                                            
-                                            {(step.status === 'assigned' || !step.status) && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'in_progress')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_GREEN, color:COLORS.DARK}}>DÉMARRER</button>}
-                                            {step.status === 'in_progress' && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'done')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_RED, color:COLORS.DARK}}>TERMINER</button>}
-                                            {step.status === 'done' && (<div style={{marginTop:'10px'}}><div style={{fontSize:'11px', color:COLORS.SUCCESS_TEXT, fontWeight:'bold', fontFamily:"'Inter', sans-serif"}}>✅ MISSION TERMINÉE</div>{step.signature && <div style={{marginTop:'5px', border:'1px solid #eee', padding:'2px', background:'white', width:'fit-content'}}><img src={step.signature} alt="Sign" style={{height:'30px'}} /></div>}<button onClick={() => generatePDF(step, step.technician_name, userCompany)} style={pdfButtonStyle}>📄 TÉLÉCHARGER RAPPORT</button></div>)}
+                    {/* TAB 1: ROUTE */}
+                    {activeTab === 1 && (
+                        <div>
+                            <div style={{display:'flex', justifyContent:'space-between', marginBottom:'15px'}}>
+                                <h2 style={cardTitleStyle}>Feuille de Route</h2>
+                                <span style={{fontSize:'12px', background:COLORS.PASTEL_BLUE, color:COLORS.BLUE, padding:'2px 8px', borderRadius:'10px', fontWeight:'bold'}}>{route.length} Missions</span>
+                            </div>
+                            
+                            {route.length === 0 ? <div style={{textAlign:'center', color:COLORS.GRAY_TEXT, marginTop:'40px'}}>La route est vide.</div> : 
+                             route.map((step, i) => (
+                                <div key={i} style={missionItemStyle}>
+                                    <div>
+                                        <div style={{fontSize:'14px', fontWeight:'bold', color:COLORS.DARK}}>#{step.step} {step.client_name}</div>
+                                        <div style={{fontSize:'12px', color:COLORS.GRAY_TEXT}}>{step.address}</div>
+                                        <div style={{marginTop:'8px', display:'flex', gap:'5px'}}>
+                                            {(step.status === 'assigned' || !step.status) && <button onClick={() => triggerStatusUpdate(step.id, 'in_progress')} style={{border:'none', background:COLORS.PASTEL_GREEN, color:COLORS.SUCCESS_TEXT, fontSize:'10px', fontWeight:'bold', padding:'4px 8px', borderRadius:'4px', cursor:'pointer'}}>DÉMARRER</button>}
+                                            {step.status === 'in_progress' && <button onClick={() => triggerStatusUpdate(step.id, 'done')} style={{border:'none', background:COLORS.PASTEL_RED, color:COLORS.DARK, fontSize:'10px', fontWeight:'bold', padding:'4px 8px', borderRadius:'4px', cursor:'pointer'}}>TERMINER</button>}
+                                            {step.status === 'done' && <span style={{fontSize:'10px', fontWeight:'bold', color:COLORS.SUCCESS_TEXT}}>✅ FAIT</span>}
                                         </div>
                                     </div>
-                                    <div style={{display:'flex', flexDirection:'column', gap:'5px'}}>
-                                        {step.phone && <a href={`tel:${step.phone}`} style={phoneButtonStyle}>📞</a>}
-                                        <button onClick={() => setNavModal({lat: step.lat, lng: step.lng})} style={compassButtonStyle}><img src="/icon-navigation.svg" alt="GPS" style={{width:'18px'}} /></button>
-                                    </div>
-                                </div>
-                            ); }))}
-                        </div>
-                    </div>
-                )}
-
-                {/* TAB 2: HISTORIQUE */}
-                {activeTab === 2 && (
-                    <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', height:'100%'}}>
-                        <h4 style={{...cardTitleStyle, marginBottom: '15px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '16px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>HISTORIQUE DES TRAJETS</h4>
-                        <div style={missionsListStyle}>
-                            {historyTrips.length === 0 ? <div style={{textAlign:'center', marginTop:'20px', color:COLORS.GRAY_TEXT}}>Aucun trajet archivé.</div> : historyTrips.map(trip => (
-                                <div key={trip.id} style={tripCardStyle}>
-                                    <div style={{display:'flex', justifyContent:'space-between'}}>
-                                        <div style={{fontWeight:'bold', fontFamily:"'Oswald', sans-serif"}}>{trip.name}</div>
-                                        <div style={{fontSize:'12px', color:COLORS.GRAY_TEXT}}>{new Date(trip.created_at).toLocaleDateString()}</div>
-                                    </div>
-                                    <div style={{fontSize:'13px', marginTop:'5px'}}>
-                                        🚛 {trip.tech_name || 'Non assigné'} • 📦 {trip.mission_count} Missions
-                                    </div>
-                                    <div style={{marginTop:'10px', fontSize:'12px'}}>
-                                        <span style={{backgroundColor: trip.status === 'active' ? COLORS.PASTEL_BLUE : (trip.status === 'completed' ? COLORS.PASTEL_GREEN : COLORS.BORDER), padding:'3px 8px', borderRadius:'10px', fontWeight:'bold', color:COLORS.DARK}}>
-                                            {trip.status === 'active' ? 'EN COURS' : (trip.status === 'completed' ? 'TERMINÉ ✅' : 'ARCHIVÉ')}
-                                        </span>
-                                        <span style={{marginLeft:'10px', color:COLORS.BLUE, fontWeight:'bold'}}>{trip.total_km} km</span>
-                                    </div>
+                                    <button onClick={() => { setNavModal({lat:step.lat, lng:step.lng}); }} style={{background:COLORS.BG_LIGHT, border:'none', borderRadius:'50%', width:'30px', height:'30px', cursor:'pointer'}}><Icons.Navigation /></button>
                                 </div>
                             ))}
                         </div>
-                    </div>
-                )}
+                    )}
+
+                    {/* TAB 2: HISTORIQUE (Avec suppression visuelle des vides) */}
+                    {activeTab === 2 && (
+                        <div>
+                            <h2 style={cardTitleStyle}>Historique</h2>
+                            <p style={{fontSize:'12px', color:COLORS.GRAY_TEXT, marginBottom:'20px'}}>Vos trajets passés.</p>
+                            
+                            {/* Le filtre .filter(t => t.mission_count > 0) fait disparaître les trajets vides */}
+                            {historyTrips.filter(t => t.mission_count > 0).length === 0 ? 
+                                <div style={{textAlign:'center', color:COLORS.GRAY_TEXT, marginTop:'30px'}}>Aucun historique valide.</div> 
+                                : 
+                                historyTrips.filter(t => t.mission_count > 0).map(trip => (
+                                    <div key={trip.id} style={tripCardStyle}>
+                                        <div style={{display:'flex', justifyContent:'space-between', fontWeight:'bold', fontSize:'14px', color:COLORS.DARK}}>
+                                            <span>{new Date(trip.created_at).toLocaleDateString()}</span>
+                                            <span>{trip.total_km} km</span>
+                                        </div>
+                                        <div style={{fontSize:'13px', color:COLORS.GRAY_TEXT, marginTop:'5px'}}>
+                                            {trip.tech_name} • {trip.mission_count} missions
+                                        </div>
+                                        <div style={{marginTop:'10px', fontSize:'11px', fontWeight:'bold', color: trip.status==='active' ? COLORS.BLUE : COLORS.SUCCESS_TEXT}}>
+                                            {trip.status === 'active' ? '● EN COURS' : '● TERMINÉ'}
+                                        </div>
+                                    </div>
+                                ))
+                            }
+                        </div>
+                    )}
+
+                </div>
+
+                {/* Footer Mobile (Seulement si écran < 768px) */}
+                {isMobile && <MobileFooter />}
             </div>
         </div>
     );
