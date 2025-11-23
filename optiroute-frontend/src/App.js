@@ -21,66 +21,48 @@ L.Icon.Default.mergeOptions({
     shadowUrl: shadowUrl,
 });
 
-// --- 2. CONSTANTES & STYLES ---
+// --- 2. CONSTANTES & STYLES (DESIGN ORIGINAL) ---
 const COLORS = {
     DARK: '#3b4651', BLUE: '#2b79c2', PASTEL_BLUE: '#A0C4FF',
     PASTEL_GREEN: '#B9FBC0', PASTEL_RED: '#FFADAD', WHITE: '#ffffff',
     BORDER: '#e0e0e0', GRAY_TEXT: '#6c757d', BG_LIGHT: '#f8f9fa', WARNING: '#ffd6a5',
-    SUCCESS_TEXT: '#2e7d32'
+    SUCCESS_TEXT: '#2e7d32',
+    CARD_BG: '#ffffff'
 };
 
 const PILL_RADIUS = '38px';
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 
-// --- STYLES LAYOUT CORRIGÉS POUR SCROLL ET FULL MAP ---
-
-// Conteneur principal
+// --- STYLES LAYOUT ---
 const rootContainerStyle = (isMobile) => ({ 
-    display: 'flex', 
-    flexDirection: isMobile ? 'column' : 'row', 
-    height: '100vh', 
-    width: '100vw',
-    fontFamily: "'Inter', sans-serif", 
-    backgroundColor: COLORS.BG_LIGHT, 
-    overflow: 'hidden' 
+    display: 'flex', flexDirection: isMobile ? 'column' : 'row', 
+    height: '100vh', width: '100vw', fontFamily: "'Inter', sans-serif", 
+    backgroundColor: COLORS.BG_LIGHT, overflow: 'hidden' 
 });
 
-// Carte : Prend toute la place si Mode Carte (Tab 3), sinon 35%
-const mapContainerStyle = (isMobile, isFullMap) => ({ 
+const mapContainerStyle = (isMobile) => ({ 
     flex: isMobile ? 'none' : 1, 
-    // Si mobile et mode carte (3) : 100% moins le footer (70px). Sinon 35%.
-    height: isMobile ? (isFullMap ? 'calc(100vh - 70px)' : '35vh') : '100%', 
-    width: '100%',
-    order: isMobile ? 1 : 2, 
-    borderLeft: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, 
-    zIndex: 0,
+    height: isMobile ? '35vh' : '100%', 
+    width: '100%', order: isMobile ? 1 : 2, 
+    borderLeft: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, zIndex: 0,
     transition: 'height 0.3s ease' 
 });
 
-// Panneau blanc : Caché si Mode Carte (Tab 3)
-const panelContainerStyle = (isMobile, isFullMap) => ({ 
-    display: (isMobile && isFullMap) ? 'none' : 'flex', // CACHÉ EN MODE CARTE
+const panelContainerStyle = (isMobile) => ({ 
     width: isMobile ? '100%' : '450px', 
     height: isMobile ? '65vh' : '100%', 
     backgroundColor: 'rgba(255, 255, 255, 0.95)', 
-    backdropFilter: 'blur(20px)', 
-    WebkitBackdropFilter: 'blur(20px)', 
-    flexDirection: 'column', 
-    order: isMobile ? 2 : 1, 
-    zIndex: 1000, 
+    backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', 
+    flexDirection: 'column', order: isMobile ? 2 : 1, zIndex: 1000, 
     borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none', 
     boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box', display: 'flex'
 });
 
-// Contenu qui scroll (CORRECTION DU BUG SCROLL)
 const scrollableContentStyle = (isMobile) => ({
-    padding: '30px',
-    overflowY: 'auto',
-    flex: 1,
-    // Padding GÉANT en bas sur mobile pour que le bouton "Optimiser" remonte au dessus du footer
-    paddingBottom: isMobile ? '150px' : '30px', 
+    padding: '30px', overflowY: 'auto', flex: 1,
+    paddingBottom: isMobile ? '100px' : '30px', 
     WebkitOverflowScrolling: 'touch'
 });
 
@@ -90,7 +72,7 @@ const cardStyle = { marginBottom: '25px' };
 const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK };
 const inputStyle = { width: '100%', padding: '14px 20px', marginBottom: '10px', borderRadius: PILL_RADIUS, border: '1px solid transparent', backgroundColor: COLORS.WHITE, fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: '0.2s' };
 const dropdownItemStyle = { padding: '12px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, fontWeight: '600', transition: 'background 0.2s' };
-const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
+const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif', transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
 const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px', marginTop: 'auto' };
 const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%' };
 const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
@@ -151,8 +133,7 @@ const Icons = {
     History: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>,
     LogOut: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>,
     List: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>,
-    // Icone CARTE SEULE
-    FullMap: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 9 3"></polygon><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
+    ArrowLeft: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.DARK} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
 };
 
 // --- 3. COMPOSANTS UTILITAIRES ---
@@ -325,15 +306,18 @@ function App() {
     const [showLanding, setShowLanding] = useState(!token);
     const [showTutorial, setShowTutorial] = useState(false);
 
-    const [activeTab, setActiveTab] = useState(0); // 0=Add, 1=List, 2=History, 3=FullMap
+    const [activeTab, setActiveTab] = useState(0); // 0=Add, 1=List, 2=History
     const [isLoginView, setIsLoginView] = useState(true);
 
     const [technicians, setTechnicians] = useState([]);
-    const [selectedTechId, setSelectedTechId] = useState(null);
+    const [selectedTechId, setSelectedTechId] = useState(null); // Sert de filtre global
     const [route, setRoute] = useState([]);
     const [routePath, setRoutePath] = useState([]); 
     const [pendingMissions, setPendingMissions] = useState([]);
     const [historyTrips, setHistoryTrips] = useState([]);
+    
+    // Nouvel état pour voir le détail d'un historique
+    const [viewHistoryDetail, setViewHistoryDetail] = useState(null);
 
     const [newName, setNewName] = useState("");
     const [newAddress, setNewAddress] = useState("");
@@ -539,29 +523,101 @@ function App() {
         finally { setLoading(false); }
     };
 
-    // Map Memoized (Performance)
+    // Map Memoized (Performance) - Filtre Visuel
+    // On montre sur la carte UNIQUEMENT ce qui correspond au filtre technicien actuel
+    const filteredRoute = selectedTechId 
+        ? route.filter(r => r.technician_id === selectedTechId) 
+        : route;
+
     const MapSection = useMemo(() => (
-        <div style={mapContainerStyle(isMobileView, activeTab === 3)}>
+        <div style={mapContainerStyle(isMobileView)}>
             <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                 <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
                 <MapController center={mapCenter} bounds={mapBounds} />
                 {technicians.map(t => (<Marker key={`tech-${t.id}`} position={[parseFloat(t.start_lat), parseFloat(t.start_lng)]}><Popup><div style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase'}}>🏠 {t.name}</div></Popup></Marker>))}
-                {route.map((step, index) => (<Marker key={index} position={[step.lat, step.lng]} icon={createCustomIcon(index, route.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>))}
+                {filteredRoute.map((step, index) => (<Marker key={index} position={[step.lat, step.lng]} icon={createCustomIcon(index, filteredRoute.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>))}
                 {routePath.length > 0 && <Polyline positions={routePath} color={COLORS.BLUE} weight={5} opacity={0.8} />}
             </MapContainer>
         </div>
-    ), [mapCenter, mapBounds, route, routePath, technicians, userRole, userName, isMobileView, activeTab]);
+    ), [mapCenter, mapBounds, filteredRoute, routePath, technicians, userRole, userName, isMobileView, selectedTechId]);
 
     // Footer Mobile
     const MobileFooter = () => (
         <div style={mobileNavStyle}>
             <button onClick={() => setActiveTab(0)} style={mobileNavItemStyle(activeTab === 0)}><Icons.User color={activeTab === 0 ? COLORS.BLUE : COLORS.GRAY_TEXT}/><span style={{marginTop:'4px'}}>Saisie</span></button>
-            <button onClick={() => setActiveTab(1)} style={mobileNavItemStyle(activeTab === 1)}><Icons.List color={activeTab === 1 ? COLORS.BLUE : COLORS.GRAY_TEXT}/><span style={{marginTop:'4px'}}>Liste</span></button>
-            <button onClick={() => setActiveTab(3)} style={mobileNavItemStyle(activeTab === 3)}><Icons.FullMap color={activeTab === 3 ? COLORS.BLUE : COLORS.GRAY_TEXT}/><span style={{marginTop:'4px'}}>Carte</span></button>
-            <button onClick={() => { fetchHistory(); setActiveTab(2); }} style={mobileNavItemStyle(activeTab === 2)}><Icons.History color={activeTab === 2 ? COLORS.BLUE : COLORS.GRAY_TEXT}/><span style={{marginTop:'4px'}}>Hist.</span></button>
+            <button onClick={() => setActiveTab(1)} style={mobileNavItemStyle(activeTab === 1)}><Icons.List color={activeTab === 1 ? COLORS.BLUE : COLORS.GRAY_TEXT}/><span style={{marginTop:'4px'}}>Route</span></button>
+            <button onClick={() => { fetchHistory(); setActiveTab(2); setViewHistoryDetail(null); }} style={mobileNavItemStyle(activeTab === 2)}><Icons.History color={activeTab === 2 ? COLORS.BLUE : COLORS.GRAY_TEXT}/><span style={{marginTop:'4px'}}>Hist.</span></button>
             <button onClick={handleLogout} style={mobileNavItemStyle(false)}><Icons.LogOut color={COLORS.PASTEL_RED}/><span style={{marginTop:'4px'}}>Déco</span></button>
         </div>
     );
+
+    // Rendu Détail Historique (Hyper Complet)
+    const renderHistoryDetail = () => {
+        if (!viewHistoryDetail) return null;
+        const trip = viewHistoryDetail;
+        
+        return (
+            <div>
+                <div style={{display:'flex', alignItems:'center', marginBottom:'20px'}}>
+                    <button onClick={() => setViewHistoryDetail(null)} style={{border:'none', background:'none', cursor:'pointer', marginRight:'10px'}}><Icons.ArrowLeft color={COLORS.DARK}/></button>
+                    <h2 style={cardTitleStyle}>DÉTAIL DE LA TOURNÉE</h2>
+                </div>
+
+                <div style={{backgroundColor: COLORS.WHITE, padding:'20px', borderRadius: STANDARD_RADIUS, boxShadow: SHADOW, marginBottom:'20px', border: `1px solid ${COLORS.BLUE}`}}>
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:`1px dashed ${COLORS.BORDER}`, paddingBottom:'15px', marginBottom:'15px'}}>
+                        <div>
+                            <div style={{fontSize:'12px', color:COLORS.GRAY_TEXT}}>DATE</div>
+                            <div style={{fontSize:'16px', fontWeight:'bold', color:COLORS.DARK}}>{new Date(trip.created_at).toLocaleDateString()}</div>
+                        </div>
+                        <div style={{textAlign:'right'}}>
+                            <div style={{fontSize:'12px', color:COLORS.GRAY_TEXT}}>TECHNICIEN</div>
+                            <div style={{fontSize:'16px', fontWeight:'bold', color:COLORS.BLUE}}>{trip.tech_name}</div>
+                        </div>
+                    </div>
+                    
+                    <div style={{display:'flex', justifyContent:'space-around', textAlign:'center'}}>
+                        <div>
+                            <div style={{fontSize:'24px', fontWeight:'bold', color:COLORS.DARK}}>{trip.total_km}</div>
+                            <div style={{fontSize:'10px', color:COLORS.GRAY_TEXT, textTransform:'uppercase'}}>KILOMÈTRES</div>
+                        </div>
+                        <div>
+                            <div style={{fontSize:'24px', fontWeight:'bold', color:COLORS.DARK}}>{trip.mission_count}</div>
+                            <div style={{fontSize:'10px', color:COLORS.GRAY_TEXT, textTransform:'uppercase'}}>MISSIONS</div>
+                        </div>
+                        <div>
+                            <div style={{fontSize:'24px', fontWeight:'bold', color:COLORS.SUCCESS_TEXT}}>100%</div>
+                            <div style={{fontSize:'10px', color:COLORS.GRAY_TEXT, textTransform:'uppercase'}}>EFFICACITÉ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style={{backgroundColor: COLORS.WHITE, padding:'20px', borderRadius: STANDARD_RADIUS, border: `1px solid ${COLORS.BORDER}`}}>
+                    <h4 style={{margin:'0 0 15px 0', fontSize:'14px', color:COLORS.GRAY_TEXT}}>RÉCAPITULATIF</h4>
+                    <div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}>
+                        <div style={{width:'10px', height:'10px', borderRadius:'50%', background:COLORS.BLUE, marginRight:'15px'}}></div>
+                        <div>
+                            <div style={{fontWeight:'bold', fontSize:'14px'}}>DÉPART DÉPÔT</div>
+                            <div style={{fontSize:'12px', color:COLORS.GRAY_TEXT}}>08:00 • {userCompany}</div>
+                        </div>
+                    </div>
+                    <div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}>
+                        <div style={{width:'10px', height:'10px', borderRadius:'50%', background:COLORS.SUCCESS_TEXT, marginRight:'15px'}}></div>
+                        <div>
+                            <div style={{fontWeight:'bold', fontSize:'14px'}}>{trip.mission_count} CLIENTS VISITÉS</div>
+                            <div style={{fontSize:'12px', color:COLORS.GRAY_TEXT}}>Succès complet</div>
+                        </div>
+                    </div>
+                    <div style={{display:'flex', alignItems:'center'}}>
+                        <div style={{width:'10px', height:'10px', borderRadius:'50%', background:COLORS.PASTEL_RED, marginRight:'15px'}}></div>
+                        <div>
+                            <div style={{fontWeight:'bold', fontSize:'14px'}}>RETOUR DÉPÔT</div>
+                            <div style={{fontSize:'12px', color:COLORS.GRAY_TEXT}}>17:30 • Fin de service</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
     // --- CONDITIONAL RENDERING ---
     if (showTutorial) return <TutorialPage onClose={() => setShowTutorial(false)} />;
@@ -589,7 +645,7 @@ function App() {
         <div style={rootContainerStyle(isMobileView)}>
             <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@500;700&display=swap'); .leaflet-control-attribution { display: none !important; } .leaflet-div-icon { background: transparent; border: none; }`}</style>
             
-            {toast && <div style={{position: 'fixed', bottom: '90px', left: '50%', transform: 'translateX(-50%)', backgroundColor: toast.type === 'success' ? COLORS.DARK : COLORS.BLUE, color: 'white', padding: '15px 30px', borderRadius: PILL_RADIUS, boxShadow: SHADOW, zIndex: 99999, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '14px', display: 'flex', alignItems: 'center'}}><img src="/logo-truck.svg" alt="" style={{width:'20px', height:'20px', marginRight:'15px', filter:'invert(1)'}}/>{toast.message}</div>}
+            {toast && <div style={{position: 'fixed', bottom: '30px', left: '50%', transform: 'translateX(-50%)', backgroundColor: toast.type === 'success' ? COLORS.DARK : COLORS.BLUE, color: 'white', padding: '15px 30px', borderRadius: PILL_RADIUS, boxShadow: SHADOW, zIndex: 99999, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '14px', display: 'flex', alignItems: 'center'}}><img src="/logo-truck.svg" alt="" style={{width:'20px', height:'20px', marginRight:'15px', filter:'invert(1)'}}/>{toast.message}</div>}
 
             {missionToSign && <div style={modalOverlayStyle} onClick={() => setMissionToSign(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, fontSize:'18px'}}>SIGNATURE CLIENT</h3><div style={{border: `2px dashed ${COLORS.BORDER}`, borderRadius: STANDARD_RADIUS, backgroundColor: '#f9f9f9', marginBottom: '20px'}}><SignatureCanvas ref={sigCanvas} penColor="black" canvasProps={{width: 300, height: 200, className: 'sigCanvas'}} /></div><div style={{display:'flex', gap:'10px'}}><button onClick={() => { if(sigCanvas.current) sigCanvas.current.clear(); }} style={{...cancelButtonStyle, border: '1px solid #eee'}}>EFFACER</button><button onClick={confirmSignatureAndFinish} style={{...submitButtonStyle, marginTop:0}}>VALIDER</button></div></div></div>}
 
@@ -611,7 +667,7 @@ function App() {
             {/* Rendu Optimisé de la Carte */}
             {MapSection}
 
-            <div style={panelContainerStyle(isMobileView, activeTab === 3)}>
+            <div style={panelContainerStyle(isMobileView)}>
                 <div style={panelHeaderStyle}>
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width:'100%'}}>
                         <div style={{display:'flex', alignItems:'center'}}><img src="/logo-truck.svg" alt="Logo" style={{height: '36px', marginRight: '15px'}} />
@@ -699,41 +755,54 @@ function App() {
 
                 {/* TAB 1: ROUTE */}
                 {activeTab === 1 && (
-                    <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', height:'100%'}}>
-                        <h4 style={{...cardTitleStyle, marginBottom: '15px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '16px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>FEUILLE DE ROUTE</h4>
-                        <div style={missionsListStyle}>
-                            {route.length === 0 ? (<div style={{padding: '30px', textAlign: 'center', color: COLORS.GRAY_TEXT, fontSize: '0.9em', fontFamily: "'Inter', sans-serif"}}><div style={{opacity:0.3, fontSize:'40px', marginBottom:'10px'}}>🗺️</div><p style={{margin: 0}}>La carte est vide.</p></div>) : (route.map((step, index) => { const stepColor = getStepColor(index, route.length, step.status); return (
-                                <div key={index} style={{...missionItemStyle, backgroundColor: step.status === 'done' ? '#f5f5f5' : 'white', opacity: step.status === 'done' ? 0.7 : 1}}>
-                                    <div style={{display:'flex', width:'100%', alignItems:'flex-start'}}>
-                                        <div style={{backgroundColor: stepColor, color: COLORS.DARK, width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontFamily: "'Inter', sans-serif", marginRight: '15px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', flexShrink: 0, border:'2px solid white'}}>{step.step}</div>
-                                        <div style={missionInfoStyle}>
-                                            <div style={missionTitleStyle}>{renderClientName(step.client, step.time_slot)}</div>
-                                            <div style={missionAddressStyle}>{step.address.substring(0, 35)}...</div>
-                                            <div style={{fontSize: '10px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif", textTransform:'uppercase'}}>{step.technician_name ? `🚛 ${step.technician_name} • ` : ''}📍 {step.distance_km} km</div>
-                                            {step.comments && <div style={{fontSize:'11px', color:COLORS.GRAY_TEXT, marginTop:'4px', fontStyle:'italic'}}>📝 {step.comments}</div>}
-                                            
-                                            {(step.status === 'assigned' || !step.status) && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'in_progress')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_GREEN, color:COLORS.DARK}}>DÉMARRER</button>}
-                                            {step.status === 'in_progress' && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'done')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_RED, color:COLORS.DARK}}>TERMINER</button>}
-                                            {step.status === 'done' && (<div style={{marginTop:'10px'}}><div style={{fontSize:'11px', color:COLORS.SUCCESS_TEXT, fontWeight:'bold', fontFamily:"'Inter', sans-serif"}}>✅ MISSION TERMINÉE</div>{step.signature && <div style={{marginTop:'5px', border:'1px solid #eee', padding:'2px', background:'white', width:'fit-content'}}><img src={step.signature} alt="Sign" style={{height:'30px'}} /></div>}<button onClick={() => generatePDF(step, step.technician_name, userCompany)} style={pdfButtonStyle}>📄 TÉLÉCHARGER RAPPORT</button></div>)}
-                                        </div>
-                                    </div>
-                                    <div style={{display:'flex', flexDirection:'column', gap:'5px'}}>
-                                        {step.phone && <a href={`tel:${step.phone}`} style={phoneButtonStyle}>📞</a>}
-                                        <button onClick={() => setNavModal({lat: step.lat, lng: step.lng})} style={compassButtonStyle}><img src="/icon-navigation.svg" alt="GPS" style={{width:'18px'}} /></button>
+                    <div style={scrollableContentStyle(isMobileView)}>
+                        <div style={{display:'flex', justifyContent:'space-between', marginBottom:'15px', alignItems:'center'}}>
+                            <h2 style={cardTitleStyle}>Feuille de Route</h2>
+                            <span style={{fontSize:'12px', background:COLORS.PASTEL_BLUE, color:COLORS.BLUE, padding:'2px 8px', borderRadius:'10px', fontWeight:'bold'}}>{filteredRoute.length} Missions</span>
+                        </div>
+
+                        {/* FILTRE TECHNICIEN ANTI-MÉLANGE */}
+                        {userRole === 'admin' && (
+                            <div style={{display:'flex', gap:'10px', overflowX:'auto', marginBottom:'15px', paddingBottom:'5px'}}>
+                                <div onClick={() => setSelectedTechId(null)} style={{padding:'6px 12px', borderRadius:'20px', fontSize:'12px', fontWeight:'bold', cursor:'pointer', whiteSpace:'nowrap', backgroundColor: !selectedTechId ? COLORS.DARK : COLORS.WHITE, color: !selectedTechId ? COLORS.WHITE : COLORS.DARK, border: `1px solid ${COLORS.BORDER}`}}>TOUS</div>
+                                {technicians.map(t => (
+                                    <div key={t.id} onClick={() => setSelectedTechId(t.id)} style={{padding:'6px 12px', borderRadius:'20px', fontSize:'12px', fontWeight:'bold', cursor:'pointer', whiteSpace:'nowrap', backgroundColor: selectedTechId === t.id ? COLORS.DARK : COLORS.WHITE, color: selectedTechId === t.id ? COLORS.WHITE : COLORS.DARK, border: `1px solid ${COLORS.BORDER}`}}>{t.name}</div>
+                                ))}
+                            </div>
+                        )}
+                        
+                        {filteredRoute.length === 0 ? (<div style={{textAlign:'center', color:COLORS.GRAY_TEXT, marginTop:'40px'}}>Aucune route sélectionnée.</div>) : 
+                         filteredRoute.map((step, index) => { const stepColor = getStepColor(index, filteredRoute.length, step.status); return (
+                            <div key={index} style={{...missionItemStyle, backgroundColor: step.status === 'done' ? '#f5f5f5' : 'white', opacity: step.status === 'done' ? 0.7 : 1}}>
+                                <div style={{display:'flex', width:'100%', alignItems:'flex-start'}}>
+                                    <div style={{backgroundColor: stepColor, color: COLORS.DARK, width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontFamily: "'Inter', sans-serif", marginRight: '15px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', flexShrink: 0, border:'2px solid white'}}>{step.step}</div>
+                                    <div style={missionInfoStyle}>
+                                        <div style={missionTitleStyle}>{renderClientName(step.client, step.time_slot)}</div>
+                                        <div style={missionAddressStyle}>{step.address.substring(0, 35)}...</div>
+                                        <div style={{fontSize: '10px', color: COLORS.BLUE, marginTop: '4px', fontWeight: '600', fontFamily: "'Inter', sans-serif", textTransform:'uppercase'}}>{step.technician_name ? `🚛 ${step.technician_name} • ` : ''}📍 {step.distance_km} km</div>
+                                        {step.comments && <div style={{fontSize:'11px', color:COLORS.GRAY_TEXT, marginTop:'4px', fontStyle:'italic'}}>📝 {step.comments}</div>}
+                                        
+                                        {(step.status === 'assigned' || !step.status) && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'in_progress')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_GREEN, color:COLORS.DARK}}>DÉMARRER</button>}
+                                        {step.status === 'in_progress' && <button onClick={() => triggerStatusUpdate(step.id || route[index].id, 'done')} style={{...statusButtonStyle, backgroundColor:COLORS.PASTEL_RED, color:COLORS.DARK}}>TERMINER</button>}
+                                        {step.status === 'done' && (<div style={{marginTop:'10px'}}><div style={{fontSize:'11px', color:COLORS.SUCCESS_TEXT, fontWeight:'bold', fontFamily:"'Inter', sans-serif"}}>✅ MISSION TERMINÉE</div>{step.signature && <div style={{marginTop:'5px', border:'1px solid #eee', padding:'2px', background:'white', width:'fit-content'}}><img src={step.signature} alt="Sign" style={{height:'30px'}} /></div>}<button onClick={() => generatePDF(step, step.technician_name, userCompany)} style={pdfButtonStyle}>📄 TÉLÉCHARGER RAPPORT</button></div>)}
                                     </div>
                                 </div>
-                            ); }))}
-                        </div>
+                                <div style={{display:'flex', flexDirection:'column', gap:'5px'}}>
+                                    {step.phone && <a href={`tel:${step.phone}`} style={phoneButtonStyle}>📞</a>}
+                                    <button onClick={() => setNavModal({lat: step.lat, lng: step.lng})} style={compassButtonStyle}><img src="/icon-navigation.svg" alt="GPS" style={{width:'18px'}} /></button>
+                                </div>
+                            </div>
+                        ); })}
                     </div>
                 )}
 
                 {/* TAB 2: HISTORIQUE */}
-                {activeTab === 2 && (
-                    <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', height:'100%'}}>
+                {activeTab === 2 && !viewHistoryDetail && (
+                    <div style={scrollableContentStyle(isMobileView)}>
                         <h4 style={{...cardTitleStyle, marginBottom: '15px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '16px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>HISTORIQUE DES TRAJETS</h4>
                         <div style={missionsListStyle}>
                             {historyTrips.filter(t => t.mission_count > 0).length === 0 ? <div style={{textAlign:'center', marginTop:'20px', color:COLORS.GRAY_TEXT}}>Aucun trajet archivé.</div> : historyTrips.filter(t => t.mission_count > 0).map(trip => (
-                                <div key={trip.id} style={tripCardStyle}>
+                                <div key={trip.id} onClick={() => setViewHistoryDetail(trip)} style={tripCardStyle}>
                                     <div style={{display:'flex', justifyContent:'space-between'}}>
                                         <div style={{fontWeight:'bold', fontFamily:"'Oswald', sans-serif"}}>{trip.name}</div>
                                         <div style={{fontSize:'12px', color:COLORS.GRAY_TEXT}}>{new Date(trip.created_at).toLocaleDateString()}</div>
@@ -750,6 +819,13 @@ function App() {
                                 </div>
                             ))}
                         </div>
+                    </div>
+                )}
+
+                {/* DÉTAIL HISTORIQUE */}
+                {activeTab === 2 && viewHistoryDetail && (
+                    <div style={scrollableContentStyle(isMobileView)}>
+                        {renderHistoryDetail()}
                     </div>
                 )}
                 
