@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react'; // Ajout de useMemo
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import axios from 'axios';
-import 'leaflet/dist/leaflet.css'; 
+import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { jwtDecode } from 'jwt-decode'; 
+import { jwtDecode } from 'jwt-decode';
 import SignatureCanvas from 'react-signature-canvas';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { Crisp } from "crisp-sdk-web";
@@ -23,20 +23,54 @@ L.Icon.Default.mergeOptions({
 
 // --- 2. CONSTANTES & STYLES ---
 const COLORS = {
-    DARK: '#3b4651', BLUE: '#2b79c2', PASTEL_BLUE: '#A0C4FF', 
-    PASTEL_GREEN: '#B9FBC0', PASTEL_RED: '#FFADAD', WHITE: '#ffffff', 
+    DARK: '#3b4651', BLUE: '#2b79c2', PASTEL_BLUE: '#A0C4FF',
+    PASTEL_GREEN: '#B9FBC0', PASTEL_RED: '#FFADAD', WHITE: '#ffffff',
     BORDER: '#e0e0e0', GRAY_TEXT: '#6c757d', BG_LIGHT: '#f8f9fa', WARNING: '#ffd6a5',
     SUCCESS_TEXT: '#2e7d32'
 };
 
-const PILL_RADIUS = '38px'; 
+const PILL_RADIUS = '38px';
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 
-// Styles
-const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: COLORS.BG_LIGHT, overflow: 'hidden' });
-const mapContainerStyle = (isMobile) => ({ flex: 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: '1px solid ' + COLORS.BORDER, zIndex: 0 });
-const panelContainerStyle = (isMobile) => ({ width: isMobile ? '100%' : '450px', height: isMobile ? 'auto' : '100%', minHeight: isMobile ? '60vh' : '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: '30px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', order: isMobile ? 2 : 1, zIndex: 1000, borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none', boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)' });
+// [AMELIORATION 1] Styles Intelligents pour la Split View Mobile
+const rootContainerStyle = (isMobile) => ({
+    display: 'flex',
+    flexDirection: isMobile ? 'column' : 'row',
+    height: '100vh', // Force la hauteur de l'écran
+    width: '100vw',
+    fontFamily: "'Inter', sans-serif",
+    backgroundColor: COLORS.BG_LIGHT,
+    overflow: 'hidden' // Empêche le scroll global
+});
+
+const mapContainerStyle = (isMobile) => ({
+    flex: isMobile ? 'none' : 1, // Sur mobile, pas de flex, hauteur fixe
+    height: isMobile ? '35vh' : '100%', // 35% de l'écran sur mobile
+    order: isMobile ? 1 : 2,
+    borderLeft: isMobile ? 'none' : '1px solid ' + COLORS.BORDER,
+    borderBottom: isMobile ? '4px solid ' + COLORS.BLUE : 'none', // Séparation visuelle
+    zIndex: 0,
+    transition: 'height 0.3s ease'
+});
+
+const panelContainerStyle = (isMobile) => ({
+    width: isMobile ? '100%' : '450px',
+    height: isMobile ? '65vh' : '100%', // 65% restant sur mobile
+    backgroundColor: 'rgba(255, 255, 255, 0.95)', // Un peu plus opaque pour la lisibilité
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    padding: '30px',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
+    order: isMobile ? 2 : 1,
+    zIndex: 1000,
+    borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none',
+    boxShadow: isMobile ? '0 -5px 20px rgba(0,0,0,0.1)' : '5px 0 30px rgba(0,0,0,0.05)',
+    overflowY: 'auto' // SCROLL INTERNE UNIQUEMENT ICI
+});
+
 const panelHeaderStyle = { marginBottom: '25px', paddingBottom: '20px', borderBottom: '2px solid ' + COLORS.DARK };
 const proTagStyle = { fontSize: '0.4em', backgroundColor: COLORS.BLUE, color: COLORS.WHITE, padding: '3px 6px', verticalAlign: 'top', marginLeft: '8px', fontFamily: "'Inter', sans-serif", fontWeight: '700', borderRadius: '4px' };
 const cardStyle = { marginBottom: '25px' };
@@ -48,7 +82,7 @@ const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', 
 const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%' };
 const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
 const resetButtonStyle = { padding: '10px', backgroundColor: 'white', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', width: '50px', height: '50px' };
-const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'auto', flex: 1, borderRadius: STANDARD_RADIUS, paddingRight: '5px' };
+const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'visible', flex: 1, borderRadius: STANDARD_RADIUS, paddingRight: '5px' }; // overflow visible car c'est le panel qui scroll
 const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
 const missionInfoStyle = { flex: 1, marginRight: '10px' };
 const missionTitleStyle = { fontWeight: '700', fontSize: '14px', color: COLORS.DARK, display: 'flex', alignItems: 'center', fontFamily: "'Inter', sans-serif" };
@@ -419,11 +453,12 @@ function App() {
                 if (savedPath) {
                     const parsedPath = JSON.parse(savedPath);
                     setRoutePath(parsedPath);
-                    setMapBounds(parsedPath);
-                } else if (mappedRoute.length > 0) {
-                     // Sinon zoom sur les points
-                     const points = mappedRoute.map(p => [p.lat, p.lng]);
-                     setMapBounds(points);
+                    // On ne force pas le zoom à chaque polling pour pas embêter l'utilisateur
+                    if (!mapBounds) setMapBounds(parsedPath);
+                } else if (mappedRoute.length > 0 && !mapBounds) {
+                      // Sinon zoom sur les points (seulement si pas déjà zoomé)
+                      const points = mappedRoute.map(p => [p.lat, p.lng]);
+                      setMapBounds(points);
                 }
             }
         } catch (e) { console.error("Pas de trip actif"); }
@@ -463,6 +498,20 @@ function App() {
         return () => window.removeEventListener('resize', handleResize);
         // eslint-disable-next-line
     }, [token]);
+
+    // [AMELIORATION 2] POLLING TEMPS RÉEL (Update toutes les 30s)
+    useEffect(() => {
+        if (!token) return;
+        
+        const interval = setInterval(() => {
+            // On recharge le trip discrètement pour mettre à jour les statuts (Couleurs)
+            // Sans changer le zoom ni le tracé
+            fetchCurrentTrip();
+        }, 30000); // 30 secondes
+
+        return () => clearInterval(interval);
+    }, [token]);
+
 
     useEffect(() => { if (toast) setTimeout(() => setToast(null), 3000); }, [toast]);
 
@@ -589,6 +638,22 @@ function App() {
         finally { setLoading(false); }
     };
 
+    // [AMELIORATION 3] MEMOIZATION DE LA MAP (Pour éviter les lags quand on tape du texte)
+    const MapSection = useMemo(() => {
+        return (
+            <div style={mapContainerStyle(isMobileView)}>
+                <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
+                    <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+                    <MapController center={mapCenter} bounds={mapBounds} />
+                    {technicians.map(t => (<Marker key={`tech-${t.id}`} position={[parseFloat(t.start_lat), parseFloat(t.start_lng)]}><Popup><div style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase'}}>🏠 {t.name}</div></Popup></Marker>))}
+                    {route.map((step, index) => (<Marker key={index} position={[step.lat, step.lng]} icon={createCustomIcon(index, route.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>))}
+                    {routePath.length > 0 && <Polyline positions={routePath} color={COLORS.BLUE} weight={5} opacity={0.8} />}
+                </MapContainer>
+            </div>
+        );
+    }, [mapCenter, mapBounds, route, routePath, technicians, userRole, userName, isMobileView]);
+
+
     // --- CONDITIONAL RENDERING ---
     if (showTutorial) {
         return <TutorialPage onClose={() => setShowTutorial(false)} />;
@@ -639,15 +704,8 @@ function App() {
             {showEmptyModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowEmptyModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} /><h3 style={modalTitleStyle}>OPTIROUTE</h3><button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button></div></div>}
             {showUnassignedModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowUnassignedModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3><div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>{unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}</div><button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button></div></div>}
 
-            <div style={mapContainerStyle(isMobileView)}>
-                <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
-                    <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
-                    <MapController center={mapCenter} bounds={mapBounds} />
-                    {technicians.map(t => (<Marker key={`tech-${t.id}`} position={[parseFloat(t.start_lat), parseFloat(t.start_lng)]}><Popup><div style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase'}}>🏠 {t.name}</div></Popup></Marker>))}
-                    {route.map((step, index) => (<Marker key={index} position={[step.lat, step.lng]} icon={createCustomIcon(index, route.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>))}
-                    {routePath.length > 0 && <Polyline positions={routePath} color={COLORS.BLUE} weight={5} opacity={0.8} />}
-                </MapContainer>
-            </div>
+            {/* Rendu Optimisé de la Carte */}
+            {MapSection}
 
             <div style={panelContainerStyle(isMobileView)}>
                 <div style={panelHeaderStyle}>
