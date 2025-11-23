@@ -127,8 +127,91 @@ app.delete('/technicians/:id', authenticateToken, async (req, res) => {
 app.get('/optimize', authenticateToken, async (req, res) => {
     try {
         const companyId = req.user.role === 'admin' ? req.user.id : req.user.company_id;
+        
+        // On lance le calcul VROOM
         const result = await optimizeRoute(companyId);
+        
+        // SI SUCCÈS : On sauvegarde cela dans la table 'trips'
+        // On cherche s'il y a déjà un trip "active" pour ce user (simplification: 1 trip actif par boite pour l'instant, ou par tech)
+        // Ici on va créer un trip PAR TECHNICIEN concerné dans la route.
+        
+        // Pour simplifier la V1 du multi-trajet : On considère que ce clic génère UN GROS "Plan de journée"
+        // On va créer une entrée 'active' dans trips si elle n'existe pas pour aujourd'hui
+        
+        // 1. On archive les anciens trips actifs qui ne sont pas celui d'aujourd'hui (optionnel)
+        
+        // 2. On met à jour la table TRIPS
+        // Pour chaque technicien présent dans la route calculée, on crée/update son trip
+        const techsInRoute = [...new Set(result.route.map(r => r.technician_id))];
+        
+        for (const techId of techsInRoute) {
+            // Vérifier si trip actif existe
+            const [existing] = await db.query("SELECT id FROM trips WHERE technician_id = ? AND status = 'active'", [techId]);
+            
+            let tripId;
+            if (existing.length > 0) {
+                tripId = existing[0].id;
+                // Update stats si besoin
+            } else {
+                // Créer nouveau trip
+                const dateStr = new Date().toLocaleDateString('fr-FR');
+                const [ins] = await db.query("INSERT INTO trips (user_id, technician_id, name, status) VALUES (?, ?, ?, 'active')", 
+                    [companyId, techId, `Tournée du ${dateStr}`]);
+                tripId = ins.insertId;
+            }
+
+            // Lier les missions à ce trip
+            const missionIds = result.route.filter(r => r.technician_id === techId).map(r => r.id);
+            if (missionIds.length > 0) {
+                await db.query(`UPDATE missions SET trip_id = ? WHERE id IN (${missionIds.join(',')})`, [tripId]);
+            }
+        }
+
         res.json({ success: true, route: result.route, path: result.path, unassigned: result.unassigned });
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+app.get('/trips/current', authenticateToken, async (req, res) => {
+    try {
+        const companyId = req.user.role === 'admin' ? req.user.id : req.user.company_id;
+        
+        // On récupère toutes les missions qui sont dans un trip "active" ou qui sont "assigned" mais pas done/archived
+        // Cette requête reconstruit la vue "Route" au chargement
+        const [rows] = await db.query(`
+            SELECT m.*, t.name as technician_name 
+            FROM missions m
+            JOIN technicians t ON m.technician_id = t.id
+            JOIN trips tr ON m.trip_id = tr.id
+            WHERE m.user_id = ? 
+            AND tr.status = 'active'
+            ORDER BY m.route_order ASC
+        `, [companyId]);
+
+        // On doit aussi reconstruire le path (tracé) ? 
+        // Pour l'instant, on renvoie juste les missions, le front refera les marqueurs.
+        // Le tracé bleu (Polyline) nécessite un recalcul ou stockage de la géométrie. 
+        // Astuce : Pour le refresh, on renvoie les points, le front ne tracera pas la ligne bleue VROOM mais affichera les points. 
+        // Si tu veux la ligne bleue au refresh, il faut stocker la 'geometry' dans la table trips.
+        
+        res.json(rows);
+    } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+
+app.get('/trips/history', authenticateToken, async (req, res) => {
+    try {
+        const companyId = req.user.role === 'admin' ? req.user.id : req.user.company_id;
+        // Récupère les trips terminés OU actifs
+        const [trips] = await db.query(`
+            SELECT t.*, tech.name as tech_name, COUNT(m.id) as mission_count 
+            FROM trips t
+            LEFT JOIN technicians tech ON t.technician_id = tech.id
+            LEFT JOIN missions m ON m.trip_id = t.id
+            WHERE t.user_id = ?
+            GROUP BY t.id
+            ORDER BY t.created_at DESC
+        `, [companyId]);
+        res.json(trips);
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
@@ -165,7 +248,15 @@ app.post('/missions', authenticateToken, async (req, res) => {
 app.delete('/missions/reset', authenticateToken, async (req, res) => {
     try {
         const companyId = req.user.role === 'admin' ? req.user.id : req.user.company_id;
-        await db.query('DELETE FROM missions WHERE user_id = ?', [companyId]);
+        // On passe les trips actifs en 'archived' (ou on supprime le lien trip_id des missions pending)
+        // Ici on va "vider la carte" :
+        // 1. Passer les trips actifs en 'archived' (si on veut garder l'historique) OU supprimer le trip_id
+        await db.query("UPDATE trips SET status = 'archived' WHERE user_id = ? AND status = 'active'", [companyId]);
+        
+        // 2. Remettre les missions non terminées en 'pending' et sans technicien ?
+        // Non, le user veut que ça "parte de l'écran".
+        // Donc on considère que c'est "Fermé".
+        
         res.json({ success: true });
     } catch (error) { res.status(500).json({ error: error.message }); }
 });
