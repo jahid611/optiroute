@@ -32,82 +32,70 @@ const COLORS = {
 const PILL_RADIUS = '38px'; 
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
-const NAV_HEIGHT = '80px'; // Plus haut pour être confortable sur mobile
+const NAV_HEIGHT = '70px';
 
-// --- NOUVELLE ARCHITECTURE CSS (MOBILE SOLID) ---
+// --- STYLES CSS-IN-JS ---
 
-// Conteneur Global : Flex Vertical pour coincer la Nav en bas
 const rootContainerStyle = (isMobile) => ({ 
     display: 'flex', 
-    flexDirection: isMobile ? 'column' : 'row', 
-    height: '100vh', // Utilise 100dvh si supporté par ton navigateur, sinon 100vh
-    width: '100vw',
+    flexDirection: isMobile ? 'column' : 'row', // Mobile = Colonne, Desktop = Ligne
+    position: 'fixed', 
+    top: 0, left: 0, right: 0, bottom: 0,
     fontFamily: "'Inter', sans-serif", 
     backgroundColor: COLORS.BG_LIGHT, 
-    overflow: 'hidden' 
-});
-
-// Zone de Contenu (Map + Panel) : Prend tout l'espace restant au dessus de la Nav
-const mainContentAreaStyle = (isMobile) => ({
-    flex: 1,
-    position: 'relative',
     overflow: 'hidden',
-    display: 'flex',
-    flexDirection: isMobile ? 'column' : 'row',
-    width: '100%'
+    zIndex: 1
 });
 
-// Carte : Prend 100% de la zone de contenu
+// MAP : A DROITE sur Desktop, FOND sur Mobile
 const mapContainerStyle = (isMobile, showMap) => ({ 
     flex: 1, 
     height: '100%', 
     width: '100%',
-    // Sur mobile : Si on affiche pas la map, on la cache visuellement mais elle reste en mémoire (display block mais z-index bas)
-    display: (isMobile && !showMap) ? 'none' : 'block',
-    zIndex: 0
+    order: isMobile ? 1 : 2, // Desktop : Map à droite (2)
+    borderLeft: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, 
+    zIndex: 0,
+    position: isMobile ? 'absolute' : 'relative',
+    top: 0, left: 0, right: 0, 
+    bottom: isMobile ? '60px' : 0, 
+    display: (isMobile && !showMap) ? 'none' : 'block'
 });
 
-// Panneau : Prend 100% de la zone de contenu sur mobile si actif
+// PANEL : A GAUCHE sur Desktop, DESSUS sur Mobile
 const panelContainerStyle = (isMobile, showPanel) => ({ 
     width: isMobile ? '100%' : '450px', 
     height: '100%', 
-    backgroundColor: 'rgba(255, 255, 255, 0.98)', 
+    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
     backdropFilter: 'blur(20px)', 
-    padding: isMobile ? '20px' : '30px', 
+    padding: isMobile ? '20px 20px 150px 20px' : '30px', 
     boxSizing: 'border-box', 
     display: (isMobile && !showPanel) ? 'none' : 'flex', 
     flexDirection: 'column', 
-    zIndex: 10, // Au dessus de la map
-    borderRight: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, 
+    order: isMobile ? 2 : 1, // Desktop : Panel à GAUCHE (1)
+    zIndex: 1000, 
+    borderRight: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, // Bordure à droite sur Desktop
     boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)',
-    overflowY: 'auto',
-    WebkitOverflowScrolling: 'touch'
+    overflowY: 'auto', 
+    WebkitOverflowScrolling: 'touch',
+    position: isMobile ? 'absolute' : 'relative',
+    top: 0, left: 0, right: 0, 
+    bottom: isMobile ? NAV_HEIGHT : 0
 });
 
-// Barre de Navigation Mobile (Fixée en bas du Flex)
 const mobileBottomNavStyle = {
-    height: NAV_HEIGHT,
-    minHeight: NAV_HEIGHT, // Force la hauteur
-    backgroundColor: COLORS.WHITE, 
-    borderTop: '1px solid ' + COLORS.BORDER,
-    display: 'flex', 
-    justifyContent: 'space-around', 
-    alignItems: 'center',
-    zIndex: 9999,
-    paddingBottom: '10px', // Pour les écrans sans bouton home
-    boxShadow: '0 -5px 20px rgba(0,0,0,0.05)',
-    flexShrink: 0 // Empêche d'être écrasé
+    position: 'fixed', bottom: 0, left: 0, right: 0, height: NAV_HEIGHT,
+    backgroundColor: COLORS.WHITE, borderTop: '1px solid ' + COLORS.BORDER,
+    display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+    zIndex: 99999, paddingBottom: '10px',
+    boxShadow: '0 -2px 10px rgba(0,0,0,0.05)'
 };
 
 const mobileNavItemStyle = (isActive) => ({
     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-    color: isActive ? COLORS.BLUE : COLORS.GRAY_TEXT, fontSize: '11px', fontWeight: 'bold',
-    cursor: 'pointer', flex: 1, height: '100%', 
-    borderTop: isActive ? '4px solid '+COLORS.BLUE : '4px solid transparent',
-    transition: '0.2s'
+    color: isActive ? COLORS.BLUE : COLORS.GRAY_TEXT, fontSize: '10px', fontWeight: 'bold',
+    cursor: 'pointer', flex: 1, height: '100%', borderTop: isActive ? '3px solid '+COLORS.BLUE : '3px solid transparent'
 });
 
-// Styles Composants
 const panelHeaderStyle = { marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid ' + COLORS.DARK };
 const proTagStyle = { fontSize: '0.4em', backgroundColor: COLORS.BLUE, color: COLORS.WHITE, padding: '3px 6px', verticalAlign: 'top', marginLeft: '8px', fontFamily: "'Inter', sans-serif", fontWeight: '700', borderRadius: '4px' };
 const cardStyle = { marginBottom: '25px', flexShrink: 0 }; 
@@ -143,7 +131,7 @@ const landingContainerStyle = { minHeight: '100vh', backgroundColor: COLORS.BG_L
 const navStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER };
 const heroSectionStyle = { padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' };
 const heroTitleStyle = { fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(30px, 5vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px' };
-const heroSubtitleStyle = { fontSize: '16px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6' };
+const heroSubtitleStyle = { fontSize: '18px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6' };
 const ctaButtonStyle = { padding: '18px 40px', fontSize: '16px', fontWeight: '700', color: COLORS.WHITE, backgroundColor: COLORS.BLUE, border: 'none', borderRadius: PILL_RADIUS, cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", letterSpacing: '1px', boxShadow: '0 10px 25px rgba(43, 121, 194, 0.4)', transition: 'transform 0.2s' };
 const featuresGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '30px', padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' };
 const featureCardStyle = (color) => ({ backgroundColor: COLORS.WHITE, padding: '30px', borderRadius: '24px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, position: 'relative', overflow: 'hidden' });
@@ -164,8 +152,10 @@ const Icons = {
 };
 
 // --- 3. COMPOSANTS UTILITAIRES ---
-// Helper indispensable
-const isValidCoord = (n) => !isNaN(n) && n !== null && n !== undefined && isFinite(n);
+// HELPER CRUCIAL : Vérifie si une coordonnée est un Nombre Valide (pas NaN, pas null)
+const isValidCoord = (n) => {
+    return !isNaN(parseFloat(n)) && isFinite(n) && n !== null;
+};
 
 const formatDuration = (minutes) => {
     if (!minutes) return "";
@@ -268,22 +258,21 @@ const AddressInput = ({ placeholder, value, onChange }) => {
     );
 };
 
-// MAP CONTROLLER (CORRIGÉ POUR RECHARGER LA MAP)
+// MAP CONTROLLER : Version Blindée
 function MapController({ center, bounds }) {
     const map = useMap();
-    
-    // Astuce : Force un redimensionnement quand la vue change pour éviter le gris
     useEffect(() => {
-        setTimeout(() => { map.invalidateSize(); }, 100);
-    });
-
-    useEffect(() => {
-        if (bounds && bounds.length > 0) {
-            const validBounds = bounds.filter(p => p && isValidCoord(p[0]) && isValidCoord(p[1]));
-            if(validBounds.length > 0) map.fitBounds(validBounds, { padding: [50, 50] });
-        } else if (center && isValidCoord(center[0]) && isValidCoord(center[1])) {
-            map.flyTo(center, 13, { duration: 1.5 });
-        }
+        try {
+            // On filtre les points invalides pour être sûr à 100%
+            if (bounds && bounds.length > 0) {
+                const cleanBounds = bounds.filter(p => p && isValidCoord(p[0]) && isValidCoord(p[1]));
+                if(cleanBounds.length > 0) {
+                    map.fitBounds(cleanBounds, { padding: [50, 50] });
+                }
+            } else if (center && isValidCoord(center[0]) && isValidCoord(center[1])) {
+                map.flyTo(center, 13, { duration: 1.5 });
+            }
+        } catch(e) { console.error("Erreur Map", e); }
     }, [center, bounds, map]);
     return null;
 }
@@ -376,11 +365,8 @@ function App() {
     const [showLanding, setShowLanding] = useState(!token);
     const [showTutorial, setShowTutorial] = useState(false);
 
-    // TABS : 0=Saisie/Map (Mobile split), 1=Liste, 2=Historique
     const [activeTab, setActiveTab] = useState(0);
-    // MOBILE : 0=Map, 1=Liste/Saisie, 2=Historique
-    // MODIF : DÉFAUT SUR LISTE (1) POUR EVITER ECRAN VIDE
-    const [mobileTab, setMobileTab] = useState(1); 
+    const [mobileTab, setMobileTab] = useState(1);
 
     const [isLoginView, setIsLoginView] = useState(true);
     const [authEmail, setAuthEmail] = useState("");
@@ -410,7 +396,6 @@ function App() {
     const [newTechPass, setNewTechPass] = useState("");
     const [isAddingTech, setIsAddingTech] = useState(false);
 
-    // FIX MAP CENTER : Default to Paris
     const [mapCenter, setMapCenter] = useState([48.8675, 2.3639]); 
     const [mapBounds, setMapBounds] = useState(null);
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
@@ -458,8 +443,7 @@ function App() {
                     id: m.id, step: m.route_order, client: m.client_name, time_slot: m.time_slot, address: m.address, lat: parseFloat(m.lat), lng: parseFloat(m.lng), technician_name: m.technician_name, phone: m.phone, comments: m.comments, status: m.status, signature: m.signature, distance_km: "0" 
                 }));
                 setRoute(mappedRoute);
-                setActiveTab(1); 
-                // NE PAS FORCER LA MAP SUR MOBILE, RESTER SUR LISTE
+                setActiveTab(1); setMobileTab(0); // MOBILE: GO MAP DIRECT
                 
                 if (savedPath) {
                     try {
@@ -813,6 +797,7 @@ function App() {
                         </form>
                     </div>
                     {pendingMissions.length > 0 && (<div style={{marginBottom: '20px', border: `1px dashed ${COLORS.BLUE}`, borderRadius: STANDARD_RADIUS, padding: '15px', backgroundColor: 'rgba(43, 121, 194, 0.05)'}}><div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}><h5 style={{margin:0, color:COLORS.BLUE, fontFamily:"'Oswald', sans-serif", fontSize:'14px'}}>EN ATTENTE ({pendingMissions.length})</h5></div><div style={{maxHeight:'80px', overflowY:'auto'}}>{pendingMissions.map((pm, idx) => (<div key={idx} style={{fontSize:'12px', marginBottom:'4px', display:'flex', alignItems:'center', fontFamily:"'Inter', sans-serif"}}><div style={{width:'6px', height:'6px', borderRadius:'50%', background:COLORS.BLUE, marginRight:'8px'}}></div><span style={{fontWeight:'600', marginRight:'5px', color:COLORS.DARK}}>{pm.name}</span> <span style={{color:COLORS.GRAY_TEXT}}>({formatDuration(pm.time)})</span></div>))}</div></div>)}
+                    
                     <div style={actionButtonsContainerStyle}>
                         <div style={buttonsRowStyle}>
                             <button onClick={handleOptimize} disabled={loading} style={optimizeButtonStyle}>{loading ? (<div style={{display:'flex', flexDirection:'column', alignItems:'center'}}><img src="/logo-truck.svg" alt="..." style={{width:'60px', opacity:0.5}} /><span style={{fontSize: '12px', color: COLORS.BLUE, fontWeight: 'bold', fontFamily: "'Oswald', sans-serif", marginTop:'5px'}}>OPTIMISATION...</span></div>) : (<div style={{position:'relative'}}><img src="/logo-truck.svg" alt="Optimize" style={{ width:'100px', height:'auto', filter: 'drop-shadow(0px 5px 10px rgba(0,0,0,0.2))' }} />{pendingMissions.length > 0 && <div style={{position:'absolute', top:'-5px', right:'-5px', background:COLORS.RED, color:'white', borderRadius:'50%', width:'24px', height:'24px', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', border:'2px solid white', boxShadow:'0 2px 5px rgba(0,0,0,0.2)'}}>{pendingMissions.length}</div>}</div>)}</button>
