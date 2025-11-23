@@ -34,12 +34,12 @@ const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 const NAV_HEIGHT = '70px';
 
-// --- STYLES CSS-IN-JS ---
+// --- 3. STYLES CSS-IN-JS ---
 
 const rootContainerStyle = (isMobile) => ({ 
     display: 'flex', 
-    flexDirection: isMobile ? 'column' : 'row', // Mobile = Colonne, Desktop = Ligne
-    position: 'fixed', 
+    flexDirection: isMobile ? 'column' : 'row', 
+    position: 'fixed', // Force le plein écran
     top: 0, left: 0, right: 0, bottom: 0,
     fontFamily: "'Inter', sans-serif", 
     backgroundColor: COLORS.BG_LIGHT, 
@@ -47,41 +47,47 @@ const rootContainerStyle = (isMobile) => ({
     zIndex: 1
 });
 
-// MAP : A DROITE sur Desktop, FOND sur Mobile
+// MAP : TOUJOURS VISIBLE EN FOND D'ECRAN (Z=0)
 const mapContainerStyle = (isMobile, showMap) => ({ 
     flex: 1, 
     height: '100%', 
     width: '100%',
-    order: isMobile ? 1 : 2, // Desktop : Map à droite (2)
-    borderLeft: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, 
-    zIndex: 0,
+    order: isMobile ? 1 : 2, 
+    borderLeft: '1px solid ' + COLORS.BORDER, 
+    zIndex: 0, 
     position: isMobile ? 'absolute' : 'relative',
     top: 0, left: 0, right: 0, 
-    bottom: isMobile ? '60px' : 0, 
+    bottom: isMobile ? NAV_HEIGHT : 0, 
+    // Sur mobile, on cache visuellement si on n'est pas sur l'onglet map, mais on garde le DOM
     display: (isMobile && !showMap) ? 'none' : 'block'
 });
 
-// PANEL : A GAUCHE sur Desktop, DESSUS sur Mobile
+// PANEL : SE SUPERPOSE SUR MOBILE (Z=10)
 const panelContainerStyle = (isMobile, showPanel) => ({ 
     width: isMobile ? '100%' : '450px', 
-    height: '100%', 
-    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+    height: isMobile ? '100%' : '100%', 
+    backgroundColor: 'rgba(255, 255, 255, 0.98)', 
     backdropFilter: 'blur(20px)', 
+    // Gros padding en bas pour le scroll mobile
     padding: isMobile ? '20px 20px 150px 20px' : '30px', 
     boxSizing: 'border-box', 
-    display: (isMobile && !showPanel) ? 'none' : 'flex', 
+    
+    display: (isMobile && !showPanel) ? 'none' : 'flex',
+    
     flexDirection: 'column', 
-    order: isMobile ? 2 : 1, // Desktop : Panel à GAUCHE (1)
-    zIndex: 1000, 
-    borderRight: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, // Bordure à droite sur Desktop
+    order: isMobile ? 2 : 1, 
+    zIndex: 10, 
+    borderTop: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, 
     boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)',
-    overflowY: 'auto', 
+    overflowY: 'auto', // Scroll activé
     WebkitOverflowScrolling: 'touch',
+    
     position: isMobile ? 'absolute' : 'relative',
     top: 0, left: 0, right: 0, 
     bottom: isMobile ? NAV_HEIGHT : 0
 });
 
+// NAVIGATION MOBILE
 const mobileBottomNavStyle = {
     position: 'fixed', bottom: 0, left: 0, right: 0, height: NAV_HEIGHT,
     backgroundColor: COLORS.WHITE, borderTop: '1px solid ' + COLORS.BORDER,
@@ -131,7 +137,7 @@ const landingContainerStyle = { minHeight: '100vh', backgroundColor: COLORS.BG_L
 const navStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER };
 const heroSectionStyle = { padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' };
 const heroTitleStyle = { fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(30px, 5vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px' };
-const heroSubtitleStyle = { fontSize: '18px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6' };
+const heroSubtitleStyle = { fontSize: '16px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6' };
 const ctaButtonStyle = { padding: '18px 40px', fontSize: '16px', fontWeight: '700', color: COLORS.WHITE, backgroundColor: COLORS.BLUE, border: 'none', borderRadius: PILL_RADIUS, cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", letterSpacing: '1px', boxShadow: '0 10px 25px rgba(43, 121, 194, 0.4)', transition: 'transform 0.2s' };
 const featuresGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '30px', padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' };
 const featureCardStyle = (color) => ({ backgroundColor: COLORS.WHITE, padding: '30px', borderRadius: '24px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, position: 'relative', overflow: 'hidden' });
@@ -258,12 +264,12 @@ const AddressInput = ({ placeholder, value, onChange }) => {
     );
 };
 
-// MAP CONTROLLER : Version Blindée
+// MAP CONTROLLER BLINDÉ
 function MapController({ center, bounds }) {
     const map = useMap();
     useEffect(() => {
         try {
-            // On filtre les points invalides pour être sûr à 100%
+            // On vérifie chaque point des bounds pour ne JAMAIS passer de NaN
             if (bounds && bounds.length > 0) {
                 const cleanBounds = bounds.filter(p => p && isValidCoord(p[0]) && isValidCoord(p[1]));
                 if(cleanBounds.length > 0) {
@@ -396,6 +402,7 @@ function App() {
     const [newTechPass, setNewTechPass] = useState("");
     const [isAddingTech, setIsAddingTech] = useState(false);
 
+    // FIX MAP CENTER : Default to Paris
     const [mapCenter, setMapCenter] = useState([48.8675, 2.3639]); 
     const [mapBounds, setMapBounds] = useState(null);
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
@@ -443,7 +450,7 @@ function App() {
                     id: m.id, step: m.route_order, client: m.client_name, time_slot: m.time_slot, address: m.address, lat: parseFloat(m.lat), lng: parseFloat(m.lng), technician_name: m.technician_name, phone: m.phone, comments: m.comments, status: m.status, signature: m.signature, distance_km: "0" 
                 }));
                 setRoute(mappedRoute);
-                setActiveTab(1); setMobileTab(0); // MOBILE: GO MAP DIRECT
+                setActiveTab(1); setMobileTab(0); 
                 
                 if (savedPath) {
                     try {
