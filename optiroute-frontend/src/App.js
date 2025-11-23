@@ -21,7 +21,7 @@ L.Icon.Default.mergeOptions({
     shadowUrl: shadowUrl,
 });
 
-// --- 2. CONSTANTES & STYLES ---
+// --- 2. CONSTANTES ---
 const COLORS = {
     DARK: '#3b4651', BLUE: '#2b79c2', PASTEL_BLUE: '#A0C4FF', 
     PASTEL_GREEN: '#B9FBC0', PASTEL_RED: '#FFADAD', WHITE: '#ffffff', 
@@ -33,45 +33,37 @@ const PILL_RADIUS = '38px';
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 
-// --- STYLES CORRIGÉS POUR MOBILE ---
+// --- 3. STYLES (DÉFINIS EN PREMIER POUR ÉVITER LES ERREURS) ---
 
-// 1. Conteneur Principal : On force le plein écran avec 'fixed'
+// FIX CRITIQUE MOBILE : On utilise 'fixed' et 'inset: 0' pour forcer le plein écran
 const rootContainerStyle = (isMobile) => ({ 
     display: 'flex', 
     flexDirection: isMobile ? 'column' : 'row', 
-    position: 'fixed', // <--- Changement crucial
-    top: 0, left: 0, right: 0, bottom: 0, // Prend tout l'écran
+    position: 'fixed', // Force le plein écran
+    top: 0, left: 0, right: 0, bottom: 0,
     fontFamily: "'Inter', sans-serif", 
     backgroundColor: COLORS.BG_LIGHT, 
     overflow: 'hidden',
     zIndex: 1
 });
 
-// 2. Map : On ne la met jamais en 'display: none' pour éviter le crash Leaflet
-const mapContainerStyle = (isMobile, showMap) => ({ 
+const mapContainerStyle = (isMobile) => ({ 
     flex: 1, 
     height: isMobile ? '100%' : '100%', 
-    width: '100%',
     order: isMobile ? 1 : 2, 
     borderLeft: '1px solid ' + COLORS.BORDER, 
     zIndex: 0,
-    // Astuce Mobile : Si on doit la cacher, on la sort de l'écran ou on met z-index négatif
-    // au lieu de display:none qui fait planter
-    position: 'relative',
-    visibility: (isMobile && !showMap) ? 'hidden' : 'visible',
-    display: (isMobile && !showMap) ? 'none' : 'block' // On tente le display block quand même, sinon visibility
+    position: 'relative'
 });
 
-// 3. Panel : Ajusté pour mobile
-const panelContainerStyle = (isMobile, showPanel) => ({ 
+const panelContainerStyle = (isMobile) => ({ 
     width: isMobile ? '100%' : '450px', 
     height: isMobile ? '100%' : '100%', 
     backgroundColor: 'rgba(255, 255, 255, 0.95)', 
     backdropFilter: 'blur(20px)', 
-    WebkitBackdropFilter: 'blur(20px)', 
     padding: isMobile ? '20px 20px 80px 20px' : '30px', 
     boxSizing: 'border-box', 
-    display: (isMobile && !showPanel) ? 'none' : 'flex', 
+    display: 'flex', 
     flexDirection: 'column', 
     order: isMobile ? 2 : 1, 
     zIndex: 1000, 
@@ -80,14 +72,28 @@ const panelContainerStyle = (isMobile, showPanel) => ({
     overflowY: 'hidden' 
 });
 
+// Navigation Mobile
+const mobileBottomNavStyle = {
+    position: 'fixed', bottom: 0, left: 0, right: 0, height: '70px',
+    backgroundColor: COLORS.WHITE, borderTop: '1px solid '+COLORS.BORDER,
+    display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+    zIndex: 20000, paddingBottom: '15px' 
+};
+
+const mobileNavItemStyle = (isActive) => ({
+    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+    color: isActive ? COLORS.BLUE : COLORS.GRAY_TEXT, fontSize: '10px', fontWeight: 'bold',
+    cursor: 'pointer', flex: 1, height: '100%', borderTop: isActive ? '3px solid '+COLORS.BLUE : '3px solid transparent'
+});
+
 const panelHeaderStyle = { marginBottom: '25px', paddingBottom: '20px', borderBottom: '2px solid ' + COLORS.DARK };
 const proTagStyle = { fontSize: '0.4em', backgroundColor: COLORS.BLUE, color: COLORS.WHITE, padding: '3px 6px', verticalAlign: 'top', marginLeft: '8px', fontFamily: "'Inter', sans-serif", fontWeight: '700', borderRadius: '4px' };
-const cardStyle = { marginBottom: '25px' };
+const cardStyle = { marginBottom: '25px', flex: 1, display:'flex', flexDirection:'column', overflow:'hidden' }; 
 const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK };
-const inputStyle = { width: '100%', padding: '14px 20px', marginBottom: '10px', borderRadius: PILL_RADIUS, border: '1px solid transparent', backgroundColor: COLORS.WHITE, fontSize: '16px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: '0.2s' }; // 16px pour éviter zoom iOS
+const inputStyle = { width: '100%', padding: '16px 20px', marginBottom: '10px', borderRadius: PILL_RADIUS, border: '1px solid transparent', backgroundColor: COLORS.WHITE, fontSize: '16px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }; // Font 16px pour éviter zoom iOS
 const dropdownItemStyle = { padding: '12px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, fontWeight: '600', transition: 'background 0.2s' };
 const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
-const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px', marginTop: 'auto' };
+const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 'auto', paddingBottom:'10px' };
 const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%' };
 const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
 const resetButtonStyle = { padding: '10px', backgroundColor: 'white', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', width: '50px', height: '50px' };
@@ -103,23 +109,11 @@ const navArrowStyle = { cursor: 'pointer', padding: '10px', background: COLORS.B
 const pdfButtonStyle = { marginTop:'10px', padding:'8px 15px', fontSize:'11px', borderRadius:'20px', border:'1px solid #ddd', background:'white', cursor:'pointer', display:'flex', alignItems:'center', fontWeight:'bold', color:COLORS.DARK, fontFamily:"'Inter', sans-serif", width: '100%', justifyContent: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' };
 const tripCardStyle = { backgroundColor: COLORS.WHITE, padding: '20px', borderRadius: STANDARD_RADIUS, marginBottom: '15px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, cursor: 'pointer' };
 
-// Navigation Mobile
-const mobileBottomNavStyle = {
-    position: 'fixed', bottom: 0, left: 0, right: 0, height: '60px',
-    backgroundColor: COLORS.WHITE, borderTop: '1px solid '+COLORS.BORDER,
-    display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-    zIndex: 20000, paddingBottom: 'safe-area-inset-bottom'
-};
-const mobileNavItemStyle = (isActive) => ({
-    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-    color: isActive ? COLORS.BLUE : COLORS.GRAY_TEXT, fontSize: '10px', fontWeight: 'bold',
-    cursor: 'pointer', flex: 1, height: '100%', borderTop: isActive ? '3px solid '+COLORS.BLUE : '3px solid transparent'
-});
-
-const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.4)', backdropFilter: 'blur(8px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' };
-const modalContentStyle = { background: COLORS.WHITE, padding: '30px', borderRadius: '24px', width: '90%', maxWidth: '400px', textAlign: 'center', border: 'none', boxSizing: 'border-box', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' };
-const modalTitleStyle = { marginTop: 0, marginBottom: '10px', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '22px', letterSpacing: '1px' };
-const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', padding: '15px', backgroundColor: '#fff', color: COLORS.DARK, textDecoration: 'none', borderRadius: STANDARD_RADIUS, border: '1px solid #eee', fontWeight: '700', fontSize: '14px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px', boxSizing: 'border-box', boxShadow:'0 2px 5px rgba(0,0,0,0.02)' };
+// Modales
+const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.6)', backdropFilter: 'blur(5px)', zIndex: 20000, display: 'flex', alignItems: 'center', justifyContent: 'center' };
+const modalContentStyle = { background: COLORS.WHITE, padding: '40px', borderRadius: '24px', width: '90%', maxWidth: '400px', textAlign: 'center', border: 'none', boxSizing: 'border-box', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' };
+const modalTitleStyle = { marginTop: 0, marginBottom: '15px', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '20px', letterSpacing: '1px' };
+const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', padding: '15px', backgroundColor: '#f8f9fa', color: COLORS.DARK, textDecoration: 'none', borderRadius: STANDARD_RADIUS, border: '1px solid #eee', fontWeight: '700', fontSize: '14px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px', boxSizing: 'border-box' };
 const gpsIconStyle = { width: '24px', height: '24px', objectFit: 'contain', marginRight: '15px' };
 const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', border: 'none', background: 'transparent', color: COLORS.GRAY_TEXT, fontWeight: '600', cursor: 'pointer', borderRadius: PILL_RADIUS, fontFamily: "'Inter', sans-serif", fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' };
 
@@ -127,7 +121,7 @@ const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', b
 const landingContainerStyle = { minHeight: '100vh', backgroundColor: COLORS.BG_LIGHT, fontFamily: "'Inter', sans-serif", color: COLORS.DARK, overflowX: 'hidden', display:'flex', flexDirection:'column' };
 const navStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER };
 const heroSectionStyle = { padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' };
-const heroTitleStyle = { fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(30px, 5vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px' }; // Clamp pour mobile
+const heroTitleStyle = { fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(30px, 5vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px' };
 const heroSubtitleStyle = { fontSize: '16px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6' };
 const ctaButtonStyle = { padding: '18px 40px', fontSize: '16px', fontWeight: '700', color: COLORS.WHITE, backgroundColor: COLORS.BLUE, border: 'none', borderRadius: PILL_RADIUS, cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", letterSpacing: '1px', boxShadow: '0 10px 25px rgba(43, 121, 194, 0.4)', transition: 'transform 0.2s' };
 const featuresGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '30px', padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' };
@@ -137,12 +131,12 @@ const tutorialHeaderStyle = { maxWidth: '800px', margin: '0 auto 40px', textAlig
 const tutorialSectionStyle = { maxWidth: '800px', margin: '0 auto 30px', backgroundColor: 'white', padding: '30px', borderRadius: '20px', boxShadow: SHADOW };
 const stepNumberStyle = { display: 'inline-block', backgroundColor: COLORS.BLUE, color: 'white', width: '25px', height: '25px', borderRadius: '50%', textAlign: 'center', lineHeight: '25px', marginRight: '10px', fontWeight: 'bold', fontSize: '14px' };
 
-// --- 4. SVG ICONS ---
+// --- 4. ICONS ---
 const Icons = {
     User: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
     Truck: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>,
-    Help: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
-    Map: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
+    Help: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
+    Map: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
     Check: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
     History: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>,
     List: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
@@ -164,10 +158,10 @@ const generatePDF = async (mission, technicianName, companyName) => {
         const pages = pdfDoc.getPages();
         const firstPage = pages[0];
         const { width, height } = firstPage.getSize(); 
+        
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-        // Calibrage
         const row1_Y = height - 252;
         firstPage.drawText(mission.client || "", { x: 100, y: row1_Y, size: 11, font: fontBold });
         firstPage.drawText(mission.address || "", { x: 370, y: row1_Y, size: 10, font: font, maxWidth: 200, lineHeight: 12 });
@@ -254,8 +248,11 @@ const AddressInput = ({ placeholder, value, onChange }) => {
 function MapController({ center, bounds }) {
     const map = useMap();
     useEffect(() => {
-        if (bounds && bounds.length > 0) { map.fitBounds(bounds, { padding: [50, 50] }); } 
-        else if (center) { map.flyTo(center, 13, { duration: 1.5 }); }
+        if (bounds && bounds.length > 0) {
+            map.fitBounds(bounds, { padding: [50, 50] });
+        } else if (center) {
+            map.flyTo(center, 13, { duration: 1.5 });
+        }
     }, [center, bounds, map]);
     return null;
 }
@@ -303,7 +300,8 @@ const TutorialPage = ({ onClose }) => (
     <div style={tutorialContainerStyle}>
         <div style={tutorialHeaderStyle}>
             <img src="/logo-truck.svg" alt="Logo" style={{height:'60px', marginBottom:'20px'}} />
-            <h1 style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase', color:COLORS.DARK, fontSize:'36px'}}>Guide d'Utilisation</h1>
+            <h1 style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase', color:COLORS.DARK, fontSize:'36px'}}>Guide d'Utilisation Complet</h1>
+            <p style={{color:COLORS.GRAY_TEXT, maxWidth:'600px', margin:'0 auto'}}>Maîtrisez OptiRoute Pro en 5 minutes.</p>
         </div>
         <div style={tutorialSectionStyle}><div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}><Icons.User /><h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>1. RÔLE ADMINISTRATEUR (PATRON)</h2></div><p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}><strong><span style={stepNumberStyle}>A</span> Gérer l'Équipe :</strong> Cliquez sur "GÉRER L'ÉQUIPE" pour ajouter des techniciens.<br/><strong><span style={stepNumberStyle}>B</span> Créer des Missions :</strong> Sélectionnez d'abord un technicien dans la liste. Le formulaire s'active. Renseignez l'adresse (auto-complétion).<br/><strong><span style={stepNumberStyle}>C</span> Optimiser :</strong> Cliquez sur le CAMION pour calculer le meilleur trajet.</p></div>
         <div style={tutorialSectionStyle}><div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}><Icons.Truck /><h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>2. RÔLE TECHNICIEN</h2></div><p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}><strong><span style={stepNumberStyle}>A</span> Connexion :</strong> Identifiants fournis par l'admin.<br/><strong><span style={stepNumberStyle}>B</span> Navigation :</strong> Cliquez sur la boussole pour GPS.<br/><strong><span style={stepNumberStyle}>C</span> Validation :</strong> "DÉMARRER" puis "TERMINER & SIGNER".</p></div>
@@ -348,10 +346,10 @@ function App() {
     const [showLanding, setShowLanding] = useState(!token);
     const [showTutorial, setShowTutorial] = useState(false);
 
-    // TABS : 0=Saisie/Map, 1=Liste, 2=Historique
+    // TABS : 0=Saisie/Map (Mobile split), 1=Liste, 2=Historique
     const [activeTab, setActiveTab] = useState(0);
     // MOBILE : 0=Map, 1=Liste/Saisie, 2=Historique
-    const [mobileTab, setMobileTab] = useState(1); // Par défaut sur liste
+    const [mobileTab, setMobileTab] = useState(1);
 
     const [isLoginView, setIsLoginView] = useState(true);
     const [authEmail, setAuthEmail] = useState("");
@@ -478,7 +476,7 @@ function App() {
                     if (decoded.role === 'tech') setSelectedTechId(decoded.id);
                     
                     await fetchTechnicians();
-                    await fetchCurrentTrip();
+                    await fetchCurrentTrip(); // CHARGEMENT PERSISTANT
                     
                 } catch (e) { handleLogout(); }
             }
@@ -663,7 +661,6 @@ function App() {
             {showEmptyModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowEmptyModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} /><h3 style={modalTitleStyle}>OPTIROUTE</h3><button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button></div></div>}
             {showUnassignedModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowUnassignedModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3><div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>{unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}</div><button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button></div></div>}
 
-            {/* LAYOUT RESPONSIVE */}
             <div style={mapContainerStyle(isMobileView, mobileTab === 0)}>
                 <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
@@ -704,9 +701,7 @@ function App() {
                     </div>
                 </div>
 
-                {/* CONTENT (Switched by activeTab for Desktop, or mobileTab for Mobile) */}
-                
-                {/* VIEW 0: SAISIE & OPTIMISATION */}
+                {/* TAB 0: SAISIE */}
                 {((!isMobileView && activeTab === 0) || (isMobileView && mobileTab === 1)) && (
                 <>
                     <div style={cardStyle}>
@@ -715,12 +710,25 @@ function App() {
                             <button onClick={() => setShowTeamModal(true)} style={{background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '12px', color: COLORS.BLUE, fontFamily: "'Inter', sans-serif", fontWeight: '600', textDecoration: 'underline'}}>{userRole === 'admin' ? "GÉRER L'ÉQUIPE" : "VOIR L'ÉQUIPE"}</button>
                         </div>
                         
+                        {/* SELECTEUR HORS DU FORMULAIRE */}
                         {userRole === 'admin' && (
                             <div style={{marginBottom:'15px'}}>
                                 <div style={{fontSize:'11px', fontWeight:'bold', color:COLORS.GRAY_TEXT, marginBottom:'5px'}}>AFFECTER À :</div>
                                 <div style={{display:'flex', gap:'10px', overflowX:'auto', paddingBottom:'5px'}}>
                                     {technicians.map(t => (
-                                        <div key={t.id} onClick={() => { setSelectedTechId(t.id); setMapCenter([parseFloat(t.start_lat), parseFloat(t.start_lng)]); setMapBounds(null); }} style={{ padding:'8px 15px', borderRadius:PILL_RADIUS, cursor:'pointer', fontSize:'12px', fontWeight:'bold', whiteSpace:'nowrap', backgroundColor: selectedTechId === t.id ? COLORS.DARK : COLORS.WHITE, color: selectedTechId === t.id ? COLORS.WHITE : COLORS.DARK, border: '1px solid ' + (selectedTechId === t.id ? COLORS.DARK : COLORS.BORDER), transition: '0.2s' }}>{t.name}</div>
+                                        <div key={t.id} onClick={() => {
+                                            setSelectedTechId(t.id);
+                                            setMapCenter([parseFloat(t.start_lat), parseFloat(t.start_lng)]);
+                                            setMapBounds(null);
+                                        }} style={{
+                                            padding:'8px 15px', borderRadius:PILL_RADIUS, cursor:'pointer', fontSize:'12px', fontWeight:'bold', whiteSpace:'nowrap',
+                                            backgroundColor: selectedTechId === t.id ? COLORS.DARK : COLORS.WHITE,
+                                            color: selectedTechId === t.id ? COLORS.WHITE : COLORS.DARK,
+                                            border: '1px solid ' + (selectedTechId === t.id ? COLORS.DARK : COLORS.BORDER),
+                                            transition: '0.2s'
+                                        }}>
+                                            {t.name}
+                                        </div>
                                     ))}
                                 </div>
                                 {!selectedTechId && <div style={{fontSize:'11px', color:COLORS.RED, marginTop:'5px'}}>* Sélectionnez un technicien</div>}
@@ -797,7 +805,7 @@ function App() {
                     </div>
                 )}
 
-                {/* VIEW 2: HISTORIQUE (Desktop: Tab 2, Mobile: Tab 2) */}
+                {/* TAB 2: HISTORIQUE */}
                 {((!isMobileView && activeTab === 2) || (isMobileView && mobileTab === 2)) && (
                     <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', height:'100%'}}>
                         <h4 style={{...cardTitleStyle, marginBottom: '15px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '16px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>HISTORIQUE DES TRAJETS</h4>
