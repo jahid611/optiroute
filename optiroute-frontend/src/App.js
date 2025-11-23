@@ -8,12 +8,11 @@ import SignatureCanvas from 'react-signature-canvas';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { Crisp } from "crisp-sdk-web";
 
-// --- FIX POUR VERCEL ---
+// --- FIX LEAFLET ---
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 
-// --- 1. CONFIGURATION LEAFLET ---
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: iconRetinaUrl,
@@ -33,7 +32,7 @@ const PILL_RADIUS = '38px';
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 
-// --- STYLES CSS-IN-JS ---
+// --- STYLES CSS-IN-JS (MOBILE PERFECT) ---
 
 const rootContainerStyle = (isMobile) => ({ 
     display: 'flex', 
@@ -46,49 +45,57 @@ const rootContainerStyle = (isMobile) => ({
     zIndex: 1
 });
 
-const mapContainerStyle = (isMobile, showMap) => ({ 
+// LA CARTE EST TOUJOURS LÀ (Z-INDEX 0)
+const mapContainerStyle = (isMobile) => ({ 
     flex: 1, 
-    height: isMobile ? '100%' : '100%', 
+    height: '100%', 
     width: '100%',
-    order: isMobile ? 1 : 2, 
-    borderLeft: '1px solid ' + COLORS.BORDER, 
+    order: isMobile ? 1 : 2, // Sur mobile, elle est en premier (fond)
+    borderLeft: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, 
     zIndex: 0,
-    position: isMobile ? 'absolute' : 'relative',
+    position: isMobile ? 'absolute' : 'relative', // Absolute sur mobile pour être en fond
     top: 0, left: 0, right: 0, 
-    bottom: isMobile ? '60px' : 0, 
-    display: (isMobile && !showMap) ? 'none' : 'block'
+    bottom: isMobile ? '60px' : 0 // S'arrête avant la barre de nav
 });
 
+// LE PANEL VIENT SE POSER DESSUS (Z-INDEX 10)
 const panelContainerStyle = (isMobile, showPanel) => ({ 
     width: isMobile ? '100%' : '450px', 
     height: isMobile ? '100%' : '100%', 
     backgroundColor: 'rgba(255, 255, 255, 0.95)', 
     backdropFilter: 'blur(20px)', 
-    WebkitBackdropFilter: 'blur(20px)', 
     padding: isMobile ? '20px 20px 150px 20px' : '30px', 
     boxSizing: 'border-box', 
-    display: (isMobile && !showPanel) ? 'none' : 'flex', 
+    display: 'flex',
+    // SUR MOBILE : Si showPanel est false, on cache le panel (display none) pour voir la map dessous
+    // SUR DESKTOP : Toujours flex
+    visibility: (isMobile && !showPanel) ? 'hidden' : 'visible', 
+    pointerEvents: (isMobile && !showPanel) ? 'none' : 'auto', // Clic traverse si caché
     flexDirection: 'column', 
     order: isMobile ? 2 : 1, 
     zIndex: 1000, 
     borderTop: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, 
     boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)',
     overflowY: 'auto', 
-    WebkitOverflowScrolling: 'touch'
+    WebkitOverflowScrolling: 'touch',
+    position: isMobile ? 'absolute' : 'relative',
+    top: 0, left: 0, right: 0, bottom: isMobile ? '60px' : 0
 });
 
+// NAVIGATION TOUJOURS AU DESSUS (Z-INDEX 99999)
 const mobileBottomNavStyle = {
-    position: 'fixed', bottom: 0, left: 0, right: 0, height: '60px',
+    position: 'fixed', bottom: 0, left: 0, right: 0, height: '70px',
     backgroundColor: COLORS.WHITE, borderTop: '1px solid ' + COLORS.BORDER,
     display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-    zIndex: 99999, paddingBottom: 'safe-area-inset-bottom',
-    boxShadow: '0 -2px 10px rgba(0,0,0,0.05)'
+    zIndex: 99999, paddingBottom: '15px', // Padding pour les écrans sans boutons physiques
+    boxShadow: '0 -5px 20px rgba(0,0,0,0.1)'
 };
 
 const mobileNavItemStyle = (isActive) => ({
     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
     color: isActive ? COLORS.BLUE : COLORS.GRAY_TEXT, fontSize: '10px', fontWeight: 'bold',
-    cursor: 'pointer', flex: 1, height: '100%', borderTop: isActive ? '3px solid '+COLORS.BLUE : '3px solid transparent'
+    cursor: 'pointer', flex: 1, height: '100%', borderTop: isActive ? '3px solid '+COLORS.BLUE : '3px solid transparent',
+    transition: '0.2s'
 });
 
 const panelHeaderStyle = { marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid ' + COLORS.DARK };
@@ -147,7 +154,6 @@ const Icons = {
 };
 
 // --- 3. COMPOSANTS UTILITAIRES ---
-// Helper indispensable pour éviter le crash NaN
 const isValidCoord = (n) => !isNaN(n) && n !== null && n !== undefined;
 
 const formatDuration = (minutes) => {
@@ -165,7 +171,6 @@ const generatePDF = async (mission, technicianName, companyName) => {
         const pages = pdfDoc.getPages();
         const firstPage = pages[0];
         const { width, height } = firstPage.getSize(); 
-        
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
@@ -252,22 +257,26 @@ const AddressInput = ({ placeholder, value, onChange }) => {
     );
 };
 
-// MAP CONTROLLER BLINDÉ
+// FIX: MapReSizer pour forcer le rendu sur mobile quand on change d'onglet
+function MapReSizer({ isVisible }) {
+    const map = useMap();
+    useEffect(() => {
+        if(isVisible) {
+            setTimeout(() => { map.invalidateSize(); }, 200);
+        }
+    }, [isVisible, map]);
+    return null;
+}
+
 function MapController({ center, bounds }) {
     const map = useMap();
     useEffect(() => {
-        try {
-            // On vérifie chaque point des bounds pour ne JAMAIS passer de NaN
-            if (bounds && bounds.length > 0) {
-                const cleanBounds = bounds.filter(p => p && isValidCoord(p[0]) && isValidCoord(p[1]));
-                if(cleanBounds.length > 0) {
-                    map.fitBounds(cleanBounds, { padding: [50, 50] });
-                }
-            } else if (center && isValidCoord(center[0]) && isValidCoord(center[1])) {
-                map.flyTo(center, 13, { duration: 1.5 });
-            }
-        } catch(e) {
-            console.error("Erreur Map Move:", e);
+        if (bounds && bounds.length > 0) {
+            // Filter invalid points
+            const validBounds = bounds.filter(p => p && isValidCoord(p[0]) && isValidCoord(p[1]));
+            if(validBounds.length > 0) map.fitBounds(validBounds, { padding: [50, 50] });
+        } else if (center && isValidCoord(center[0]) && isValidCoord(center[1])) {
+            map.flyTo(center, 13, { duration: 1.5 });
         }
     }, [center, bounds, map]);
     return null;
@@ -316,8 +325,7 @@ const TutorialPage = ({ onClose }) => (
     <div style={tutorialContainerStyle}>
         <div style={tutorialHeaderStyle}>
             <img src="/logo-truck.svg" alt="Logo" style={{height:'60px', marginBottom:'20px'}} />
-            <h1 style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase', color:COLORS.DARK, fontSize:'36px'}}>Guide d'Utilisation Complet</h1>
-            <p style={{color:COLORS.GRAY_TEXT, maxWidth:'600px', margin:'0 auto'}}>Maîtrisez OptiRoute Pro en 5 minutes.</p>
+            <h1 style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase', color:COLORS.DARK, fontSize:'36px'}}>Guide d'Utilisation</h1>
         </div>
         <div style={tutorialSectionStyle}><div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}><Icons.User /><h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>1. RÔLE ADMINISTRATEUR</h2></div><p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}>Gérez votre équipe, assignez, optimisez.</p></div>
         <div style={tutorialSectionStyle}><div style={{display:'flex', alignItems:'center', marginBottom:'15px'}}><Icons.Truck /><h2 style={{marginLeft:'10px', fontFamily:"'Oswald', sans-serif", margin:0, fontSize:'20px'}}>2. RÔLE TECHNICIEN</h2></div><p style={{color:COLORS.GRAY_TEXT, fontSize:'14px', lineHeight:'1.6'}}>Naviguez, validez, signez.</p></div>
@@ -353,7 +361,6 @@ const LandingPage = ({ onStart }) => (
 function App() {
     const API_URL = "https://optiroute-wxaz.onrender.com";
 
-    // States
     const [token, setToken] = useState(localStorage.getItem('optiroute_token'));
     const [userRole, setUserRole] = useState(null);
     const [userId, setUserId] = useState(null);
@@ -363,9 +370,8 @@ function App() {
     const [showLanding, setShowLanding] = useState(!token);
     const [showTutorial, setShowTutorial] = useState(false);
 
-    // TABS : 0=Saisie/Map, 1=Liste, 2=Historique
     const [activeTab, setActiveTab] = useState(0);
-    const [mobileTab, setMobileTab] = useState(1);
+    const [mobileTab, setMobileTab] = useState(1); // Default list
 
     const [isLoginView, setIsLoginView] = useState(true);
     const [authEmail, setAuthEmail] = useState("");
@@ -395,8 +401,8 @@ function App() {
     const [newTechPass, setNewTechPass] = useState("");
     const [isAddingTech, setIsAddingTech] = useState(false);
 
-    // FIX MAP CENTER : Default to Paris to avoid NaN crash
-    const [mapCenter, setMapCenter] = useState([48.8675, 2.3639]); 
+    // FIX: Coordonnées par défaut valides
+    const [mapCenter, setMapCenter] = useState([48.8566, 2.3522]); // Paris
     const [mapBounds, setMapBounds] = useState(null);
     const [screenWidth, setScreenWidth] = useState(window.innerWidth);
     const [loading, setLoading] = useState(false);
@@ -470,11 +476,9 @@ function App() {
         } catch (e) { console.error("Erreur history"); }
     };
 
-    // INIT APP
     useEffect(() => {
         const handleResize = () => setScreenWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
-        
         Crisp.configure("3a2abcb6-a8fd-4fc5-b856-a99c36e6ad0b");
         try { if (window.$crisp) window.$crisp.push(["do", "chat:show"]); } catch(e) {}
 
@@ -485,10 +489,8 @@ function App() {
                     const decoded = jwtDecode(token);
                     setUserRole(decoded.role); setUserId(decoded.id); setUserName(decoded.name);
                     if (decoded.role === 'tech') setSelectedTechId(decoded.id);
-                    
                     await fetchTechnicians();
                     await fetchCurrentTrip();
-                    
                 } catch (e) { handleLogout(); }
             }
         };
@@ -575,10 +577,7 @@ function App() {
                 if (userRole === 'tech') myRoute = myRoute.filter(step => step.technician_name === userName);
                 myRoute = myRoute.map(step => ({...step, status: step.status || 'assigned'}));
                 setRoute(myRoute); setRoutePath(response.data.path); setPendingMissions([]); 
-                
-                // SAUVEGARDE
                 localStorage.setItem('saved_route_path', JSON.stringify(response.data.path));
-                
                 if (response.data.path.length > 0) {
                      const validPoints = response.data.path.filter(p => isValidCoord(p[0]) && isValidCoord(p[1]));
                      if(validPoints.length > 0) setMapBounds(validPoints);
@@ -664,37 +663,15 @@ function App() {
 
             {showResetModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowResetModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/icon-trash.svg" alt="!" style={{width:'40px', marginBottom:'15px'}}/ ><h3 style={modalTitleStyle}>VIDER ?</h3><div style={{display:'flex', gap:'10px'}}><button onClick={()=>setShowResetModal(false)} style={{...cancelButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`, marginTop:0}}>ANNULER</button><button onClick={confirmResetMissions} style={{...submitButtonStyle, marginTop:0, backgroundColor:COLORS.DARK}}>{loading ? "..." : "CONFIRMER"}</button></div></div></div>}
 
-            {/* MODAL IMPOSSIBLE MISSIONS */}
-            {showUnassignedModal && (
-                <div style={modalOverlayStyle} onClick={() => setShowUnassignedModal(false)}>
-                    <div style={modalContentStyle} onClick={e => e.stopPropagation()}>
-                        <h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3>
-                        <div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>
-                            {unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}
-                        </div>
-                        <button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button>
-                    </div>
-                </div>
-            )}
-            
-            {/* MODAL EMPTY */}
-            {showEmptyModal && (
-                <div style={modalOverlayStyle} onClick={() => setShowEmptyModal(false)}>
-                    <div style={modalContentStyle} onClick={e => e.stopPropagation()}>
-                        <img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} />
-                        <h3 style={modalTitleStyle}>OPTIROUTE</h3>
-                        <p style={{color:COLORS.GRAY_TEXT}}>Ajoutez des missions avant de lancer le calcul.</p>
-                        <button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button>
-                    </div>
-                </div>
-            )}
-
-            {/* MOBILE NAVIGATION */}
             {navModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setNavModal(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={modalTitleStyle}>NAVIGATION</h3><div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}><a href={`https://waze.com/ul?ll=${navModal.lat},${navModal.lng}&navigate=yes`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/waze.png" alt="W" style={gpsIconStyle}/>Waze</a><a href={`http://googleusercontent.com/maps.google.com/?q=${navModal.lat},${navModal.lng}`} target="_blank" rel="noreferrer" style={gpsLinkStyle}><img src="/google.png" alt="G" style={gpsIconStyle}/>Google Maps</a></div><button onClick={() => setNavModal(null)} style={cancelButtonStyle}>FERMER</button></div></div>}
+            {showEmptyModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowEmptyModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} /><h3 style={modalTitleStyle}>OPTIROUTE</h3><button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button></div></div>}
+            {showUnassignedModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowUnassignedModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3><div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>{unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}</div><button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button></div></div>}
 
             <div style={mapContainerStyle(isMobileView, mobileTab === 0)}>
                 <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+                    {/* MapReSizer pour forcer le rendu mobile */}
+                    <MapReSizer isVisible={isMobileView && mobileTab === 0} />
                     <MapController center={mapCenter} bounds={mapBounds} />
                     {technicians.map(t => {
                         const lat = parseFloat(t.start_lat);
