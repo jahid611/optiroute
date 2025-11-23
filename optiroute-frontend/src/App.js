@@ -33,8 +33,7 @@ const PILL_RADIUS = '38px';
 const STANDARD_RADIUS = '12px';
 const SHADOW = '0 8px 20px rgba(0,0,0,0.08)';
 
-// --- STYLES CSS-IN-JS (DÉFINIS ICI POUR ÉVITER LES ERREURS) ---
-
+// Styles
 const rootContainerStyle = (isMobile) => ({ display: 'flex', flexDirection: isMobile ? 'column' : 'row', height: '100vh', fontFamily: "'Inter', sans-serif", backgroundColor: COLORS.BG_LIGHT, overflow: 'hidden' });
 const mapContainerStyle = (isMobile) => ({ flex: 1, height: isMobile ? '40vh' : '100%', order: isMobile ? 1 : 2, borderLeft: '1px solid ' + COLORS.BORDER, zIndex: 0 });
 const panelContainerStyle = (isMobile) => ({ width: isMobile ? '100%' : '450px', height: isMobile ? 'auto' : '100%', minHeight: isMobile ? '60vh' : '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', padding: '30px', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', order: isMobile ? 2 : 1, zIndex: 1000, borderTop: isMobile ? '1px solid ' + COLORS.BORDER : 'none', boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)' });
@@ -59,6 +58,7 @@ const phoneButtonStyle = { backgroundColor: COLORS.PASTEL_GREEN, border: 'none',
 const statusButtonStyle = { marginTop: '12px', width: '100%', padding: '10px', borderRadius: PILL_RADIUS, border: 'none', fontWeight: '700', fontSize: '12px', cursor: 'pointer', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', letterSpacing: '1px', transition: '0.2s' };
 const navArrowStyle = { cursor: 'pointer', padding: '10px', background: COLORS.BG_LIGHT, borderRadius: '50%', border: '1px solid '+COLORS.BORDER, display: 'flex', alignItems: 'center', justifyContent: 'center', width: '30px', height: '30px', marginLeft: '10px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', transition: '0.2s' };
 const pdfButtonStyle = { marginTop:'10px', padding:'8px 15px', fontSize:'11px', borderRadius:'20px', border:'1px solid #ddd', background:'white', cursor:'pointer', display:'flex', alignItems:'center', fontWeight:'bold', color:COLORS.DARK, fontFamily:"'Inter', sans-serif", width: '100%', justifyContent: 'center', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' };
+const tripCardStyle = { backgroundColor: COLORS.WHITE, padding: '20px', borderRadius: STANDARD_RADIUS, marginBottom: '15px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, cursor: 'pointer' };
 
 const modalOverlayStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(59, 70, 81, 0.4)', backdropFilter: 'blur(8px)', zIndex: 10000, display: 'flex', alignItems: 'center', justifyContent: 'center' };
 const modalContentStyle = { background: COLORS.WHITE, padding: '40px', borderRadius: '24px', width: '90%', maxWidth: '400px', textAlign: 'center', border: 'none', boxSizing: 'border-box', boxShadow: '0 20px 50px rgba(0,0,0,0.2)' };
@@ -67,7 +67,7 @@ const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', pad
 const gpsIconStyle = { width: '24px', height: '24px', objectFit: 'contain', marginRight: '15px' };
 const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', border: 'none', background: 'transparent', color: COLORS.GRAY_TEXT, fontWeight: '600', cursor: 'pointer', borderRadius: PILL_RADIUS, fontFamily: "'Inter', sans-serif", fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' };
 
-// Styles Landing & Tuto
+// --- Styles Tutoriel ---
 const landingContainerStyle = { minHeight: '100vh', backgroundColor: COLORS.BG_LIGHT, fontFamily: "'Inter', sans-serif", color: COLORS.DARK, overflowX: 'hidden' };
 const navStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER };
 const heroSectionStyle = { padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' };
@@ -101,7 +101,6 @@ const generatePDF = async (mission, technicianName, companyName) => {
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-        // Calibrage
         const row1_Y = height - 252;
         firstPage.drawText(mission.client || "", { x: 100, y: row1_Y, size: 11, font: fontBold });
         firstPage.drawText(mission.address || "", { x: 370, y: row1_Y, size: 10, font: font, maxWidth: 200, lineHeight: 12 });
@@ -134,14 +133,13 @@ const generatePDF = async (mission, technicianName, companyName) => {
         link.click();
     } catch (error) {
         console.error("Erreur PDF", error);
-        alert("Erreur de génération PDF. Vérifiez 'template_rapport.pdf' dans public/.");
+        alert("Erreur de génération PDF. Vérifiez 'template_rapport.pdf'.");
     }
 };
 
 const AddressInput = ({ placeholder, value, onChange }) => {
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
-
     useEffect(() => {
         const delayDebounceFn = setTimeout(async () => {
             if (value.length > 3 && showSuggestions) {
@@ -156,28 +154,13 @@ const AddressInput = ({ placeholder, value, onChange }) => {
         }, 300);
         return () => clearTimeout(delayDebounceFn);
     }, [value, showSuggestions]);
-
     return (
         <div style={{ position: 'relative', width: '100%' }}>
-            <input 
-                type="text" 
-                placeholder={placeholder} 
-                value={value} 
-                onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }} 
-                style={inputStyle} 
-            />
+            <input type="text" placeholder={placeholder} value={value} onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }} style={inputStyle} />
             {suggestions.length > 0 && showSuggestions && (
                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', borderRadius: '12px', boxShadow: SHADOW, zIndex: 1000, overflow: 'hidden', marginTop: '-5px', border: '1px solid ' + COLORS.BORDER }}>
                     {suggestions.map((s, i) => (
-                        <div 
-                            key={i} 
-                            onClick={() => { onChange(s.properties.label); setShowSuggestions(false); }} 
-                            style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px', textAlign:'left', fontFamily:"'Inter', sans-serif" }}
-                            onMouseEnter={(e) => e.target.style.backgroundColor = COLORS.BG_LIGHT}
-                            onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
-                        >
-                            📍 {s.properties.label}
-                        </div>
+                        <div key={i} onClick={() => { onChange(s.properties.label); setShowSuggestions(false); }} style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px', textAlign:'left', fontFamily:"'Inter', sans-serif" }} onMouseEnter={(e) => e.target.style.backgroundColor = COLORS.BG_LIGHT} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>📍 {s.properties.label}</div>
                     ))}
                 </div>
             )}
@@ -188,33 +171,19 @@ const AddressInput = ({ placeholder, value, onChange }) => {
 function MapController({ center, bounds }) {
     const map = useMap();
     useEffect(() => {
-        if (bounds && bounds.length > 0) {
-            map.fitBounds(bounds, { padding: [50, 50] });
-        } else if (center) {
-            map.flyTo(center, 13, { duration: 1.5 });
-        }
+        if (bounds && bounds.length > 0) { map.fitBounds(bounds, { padding: [50, 50] }); } 
+        else if (center) { map.flyTo(center, 13, { duration: 1.5 }); }
     }, [center, bounds, map]);
     return null;
 }
 
 const createCustomIcon = (index, total, status, isMyMission) => {
-    let bgColor = '#e0e0e0'; 
-    let textColor = COLORS.DARK;
+    let bgColor = '#e0e0e0'; let textColor = COLORS.DARK;
     if (isMyMission) {
-        if (status === 'done') { 
-            bgColor = COLORS.PASTEL_RED; 
-            textColor = COLORS.GRAY_TEXT; 
-        } else { 
-            bgColor = COLORS.PASTEL_BLUE; 
-            if (index === 0) bgColor = COLORS.PASTEL_GREEN; 
-            if (index === total - 1) bgColor = COLORS.PASTEL_RED; 
-        }
+        if (status === 'done') { bgColor = COLORS.PASTEL_RED; textColor = COLORS.GRAY_TEXT; } 
+        else { bgColor = COLORS.PASTEL_BLUE; if (index === 0) bgColor = COLORS.PASTEL_GREEN; if (index === total - 1) bgColor = COLORS.PASTEL_RED; }
     }
-    return L.divIcon({
-        className: 'custom-marker',
-        html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`,
-        iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14]
-    });
+    return L.divIcon({ className: 'custom-marker', html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14] });
 };
 
 const getStepColor = (index, total, status) => {
@@ -225,14 +194,8 @@ const getStepColor = (index, total, status) => {
 };
 
 const renderClientName = (name, slot) => {
-    let iconSrc = "/icon-morning.svg"; 
-    if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
-    return (
-        <div style={{display: 'flex', alignItems: 'center'}}>
-            <img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} />
-            <span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span>
-        </div>
-    );
+    let iconSrc = "/icon-morning.svg"; if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
+    return (<div style={{display: 'flex', alignItems: 'center'}}><img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} /><span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span></div>);
 };
 
 // --- 4. SVG ICONS ---
@@ -242,6 +205,7 @@ const Icons = {
     Help: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
     Map: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
     Check: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
+    History: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
 };
 
 // --- PAGES ---
@@ -286,7 +250,6 @@ const LandingPage = ({ onStart }) => (
 function App() {
     const API_URL = "https://optiroute-wxaz.onrender.com";
 
-    // States
     const [token, setToken] = useState(localStorage.getItem('optiroute_token'));
     const [userRole, setUserRole] = useState(null);
     const [userId, setUserId] = useState(null);
@@ -309,6 +272,7 @@ function App() {
     const [route, setRoute] = useState([]);
     const [routePath, setRoutePath] = useState([]); 
     const [pendingMissions, setPendingMissions] = useState([]);
+    const [historyTrips, setHistoryTrips] = useState([]);
 
     const [newName, setNewName] = useState("");
     const [newAddress, setNewAddress] = useState("");
@@ -347,6 +311,7 @@ function App() {
 
     const getAuthHeaders = () => ({ headers: { Authorization: `Bearer ${token}` } });
 
+    // FONCTIONS
     const handleLogout = () => {
         localStorage.removeItem('optiroute_token'); localStorage.removeItem('optiroute_company');
         setToken(null); setUserRole(null); setRoute([]); setPendingMissions([]);
@@ -359,14 +324,47 @@ function App() {
             setTechnicians(res.data); return res.data;
         } catch (e) { if(e.response?.status === 401) handleLogout(); return []; }
     };
+    
+    const fetchCurrentTrip = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/trips/current`, getAuthHeaders());
+            if(res.data && res.data.length > 0) {
+                const mappedRoute = res.data.map(m => ({
+                    id: m.id,
+                    step: m.route_order,
+                    client: m.client_name,
+                    time_slot: m.time_slot,
+                    address: m.address,
+                    lat: parseFloat(m.lat),
+                    lng: parseFloat(m.lng),
+                    technician_name: m.technician_name,
+                    phone: m.phone,
+                    comments: m.comments,
+                    status: m.status,
+                    signature: m.signature,
+                    distance_km: "0" 
+                }));
+                setRoute(mappedRoute);
+                setActiveTab(1); 
+                if (mappedRoute.length > 0) {
+                     const points = mappedRoute.map(p => [p.lat, p.lng]);
+                     setMapBounds(points);
+                }
+            }
+        } catch (e) {}
+    };
 
-    // INIT APP
+    const fetchHistory = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/trips/history`, getAuthHeaders());
+            setHistoryTrips(res.data);
+        } catch (e) { console.error("Erreur history"); }
+    };
+
     useEffect(() => {
         const handleResize = () => setScreenWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
-        
-        // 👇 CONFIGURATION CRISP 👇
-        Crisp.configure("3a2abcb6-a8fd-4fc5-b856-a99c36e6ad0b");
+        try { if (window.$crisp) window.$crisp.push(["do", "chat:show"]); } catch(e) {}
 
         const initApp = async () => {
             if (token) {
@@ -375,10 +373,8 @@ function App() {
                     const decoded = jwtDecode(token);
                     setUserRole(decoded.role); setUserId(decoded.id); setUserName(decoded.name);
                     if (decoded.role === 'tech') setSelectedTechId(decoded.id);
-                    try {
-                        const res = await axios.get(`${API_URL}/technicians`, { headers: { Authorization: `Bearer ${token}` } });
-                        setTechnicians(res.data);
-                    } catch (err) { if(err.response && err.response.status === 401) handleLogout(); }
+                    await fetchTechnicians();
+                    await fetchCurrentTrip();
                 } catch (e) { handleLogout(); }
             }
         };
@@ -388,7 +384,6 @@ function App() {
     }, [token]);
 
     useEffect(() => { if (toast) setTimeout(() => setToast(null), 3000); }, [toast]);
-
 
     const handleAuth = async (e) => {
         e.preventDefault();
@@ -402,6 +397,7 @@ function App() {
                 const compName = res.data.name || ''; localStorage.setItem('optiroute_company', compName);
                 setToken(res.data.token); setUserCompany(compName);
                 setShowLanding(false);
+                setTimeout(() => { fetchTechnicians(); fetchCurrentTrip(); }, 500);
             } else { setToast({message: "Compte créé.", type: "success"}); setIsLoginView(true); }
         } catch (err) { setAuthError(err.response?.data?.message || "Erreur."); } 
         finally { setAuthLoading(false); }
@@ -416,11 +412,7 @@ function App() {
             setNewTechName(""); setNewTechAddress(""); setNewTechEmail(""); setNewTechPass("");
             const updatedList = await fetchTechnicians();
             const added = updatedList[updatedList.length - 1];
-            if (added) { 
-                setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); 
-                setMapBounds(null);
-                setSelectedTechId(added.id); 
-            }
+            if (added) { setMapCenter([parseFloat(added.start_lat), parseFloat(added.start_lng)]); setMapBounds(null); setSelectedTechId(added.id); }
             setToast({ message: "Technicien ajouté", type: "success" }); setShowTeamModal(false);
         } catch (error) { alert("Erreur ajout"); }
         finally { setIsAddingTech(false); }
@@ -464,7 +456,7 @@ function App() {
                 myRoute = myRoute.map(step => ({...step, status: step.status || 'assigned'}));
                 setRoute(myRoute); setRoutePath(response.data.path); setPendingMissions([]); 
                 if (response.data.path.length > 0) setMapBounds(response.data.path);
-                setActiveTab(1); // AUTO SWITCH
+                setActiveTab(1); 
             } else { setRoute([]); }
             if (response.data.unassigned?.length > 0) { setUnassignedList(response.data.unassigned); setShowUnassignedModal(true); }
         } catch (error) { console.error(error); alert("Erreur"); }
@@ -503,19 +495,14 @@ function App() {
         try {
             await axios.delete(`${API_URL}/missions/reset`, getAuthHeaders()); 
             setRoute([]); setRoutePath([]); setUnassignedList([]); setPendingMissions([]);
-            setShowResetModal(false); setToast({ message: "Missions supprimées", type: "info" });
+            setShowResetModal(false); setToast({ message: "Missions archivées", type: "info" });
+            setActiveTab(0); 
         } catch (error) { alert("Erreur"); }
         finally { setLoading(false); }
     };
 
-    // --- CONDITIONAL RENDERING ---
-    if (showTutorial) {
-        return <TutorialPage onClose={() => setShowTutorial(false)} />;
-    }
-
-    if (showLanding && !token) {
-        return <LandingPage onStart={() => setShowLanding(false)} />;
-    }
+    if (showTutorial) return <TutorialPage onClose={() => setShowTutorial(false)} />;
+    if (showLanding && !token) return <LandingPage onStart={() => setShowLanding(false)} />;
 
     if (!token) return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: COLORS.DARK, color: 'white', fontFamily: "'Inter', sans-serif" }}>
@@ -545,12 +532,7 @@ function App() {
 
             {techToDelete && <div style={{...modalOverlayStyle, zIndex: 10002}} onClick={() => !isDeletingTech && setTechToDelete(null)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/icon-trash.svg" alt="Del" style={{width:'40px', marginBottom:'15px'}} /><h3 style={{...modalTitleStyle, color: COLORS.DARK}}>SUPPRIMER ?</h3><div style={{display:'flex', gap:'10px'}}><button onClick={() => setTechToDelete(null)} style={{...cancelButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`, marginTop:0}}>NON</button><button onClick={executeDeleteTech} style={{...submitButtonStyle, marginTop:0, backgroundColor:COLORS.RED}}>{isDeletingTech ? "..." : "OUI"}</button></div></div></div>}
 
-            {showTeamModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowTeamModal(false)}><div style={{...modalContentStyle, maxWidth:'450px', padding:'40px'}} onClick={e => e.stopPropagation()}><div style={{display:'flex', alignItems:'center', marginBottom:'20px', borderBottom:`2px solid ${COLORS.DARK}`, paddingBottom:'15px'}}><h3 style={{margin:0, fontFamily:"'Oswald', sans-serif", fontSize:'24px', textTransform:'uppercase'}}>MON ÉQUIPE</h3></div><div style={{maxHeight: '250px', overflowY: 'auto', marginBottom: '30px'}}>{technicians.map(t => (<div key={t.id} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'15px', marginBottom:'10px', border:`1px solid ${COLORS.BORDER}`, borderRadius:STANDARD_RADIUS, backgroundColor: COLORS.BG_LIGHT}}>
-                <div style={{display:'flex', alignItems:'center'}}>
-                    <div style={{width:'35px', height:'35px', borderRadius:'50%', backgroundColor:COLORS.BLUE, color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', marginRight:'15px', fontSize:'14px'}}>{t.name.charAt(0)}</div>
-                    <div><div style={{fontWeight:'700', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", fontSize:'16px'}}>{t.name}</div><div style={{fontSize:'12px', color: COLORS.GRAY_TEXT}}>{t.email}</div></div>
-                </div>
-                {userRole === 'admin' && (<button onClick={() => setTechToDelete(t.id)} style={{background:'transparent', border:'none', cursor:'pointer', opacity:0.6}}><img src="/icon-trash.svg" alt="Del" style={{width:'20px'}} /></button>)}</div>))}</div>{userRole === 'admin' && (<form onSubmit={handleAddTech}><input type="text" placeholder="Nom" value={newTechName} onChange={(e) => setNewTechName(e.target.value)} style={inputStyle} /><AddressInput placeholder="Adresse (Départ)" value={newTechAddress} onChange={setNewTechAddress} /><input type="email" placeholder="Email" value={newTechEmail} onChange={(e) => setNewTechEmail(e.target.value)} style={inputStyle} /><input type="password" placeholder="Mot de passe" value={newTechPass} onChange={(e) => setNewTechPass(e.target.value)} style={inputStyle} /><button type="submit" disabled={isAddingTech} style={{...submitButtonStyle, marginTop: '10px'}}>{isAddingTech ? "..." : "CRÉER LE COMPTE"}</button></form>)}<button onClick={() => setShowTeamModal(false)} style={{...cancelButtonStyle, border:'none', marginTop:'10px'}}>FERMER</button></div></div>}
+            {showTeamModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowTeamModal(false)}><div style={{...modalContentStyle, maxWidth:'450px', padding:'40px'}} onClick={e => e.stopPropagation()}><div style={{display:'flex', alignItems:'center', marginBottom:'20px', borderBottom:`2px solid ${COLORS.DARK}`, paddingBottom:'15px'}}><h3 style={{margin:0, fontFamily:"'Oswald', sans-serif", fontSize:'24px', textTransform:'uppercase'}}>MON ÉQUIPE</h3></div><div style={{maxHeight: '250px', overflowY: 'auto', marginBottom: '30px'}}>{technicians.map(t => (<div key={t.id} style={{display:'flex', justifyContent:'space-between', alignItems:'center', padding:'15px', marginBottom:'10px', border:`1px solid ${COLORS.BORDER}`, borderRadius:STANDARD_RADIUS, backgroundColor: COLORS.BG_LIGHT}}><div style={{display:'flex', alignItems:'center'}}><div style={{width:'35px', height:'35px', borderRadius:'50%', backgroundColor:COLORS.BLUE, color:'white', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', marginRight:'15px', fontSize:'14px'}}>{t.name.charAt(0)}</div><div><div style={{fontWeight:'700', color: COLORS.DARK, fontFamily: "'Oswald', sans-serif", fontSize:'16px'}}>{t.name}</div><div style={{fontSize:'12px', color: COLORS.GRAY_TEXT}}>{t.email}</div></div></div>{userRole === 'admin' && (<button onClick={() => setTechToDelete(t.id)} style={{background:'transparent', border:'none', cursor:'pointer', opacity:0.6}}><img src="/icon-trash.svg" alt="Del" style={{width:'20px'}} /></button>)}</div>))}</div>{userRole === 'admin' && (<form onSubmit={handleAddTech}><input type="text" placeholder="Nom" value={newTechName} onChange={(e) => setNewTechName(e.target.value)} style={inputStyle} /><AddressInput placeholder="Adresse (Départ)" value={newTechAddress} onChange={setNewTechAddress} /><input type="email" placeholder="Email" value={newTechEmail} onChange={(e) => setNewTechEmail(e.target.value)} style={inputStyle} /><input type="password" placeholder="Mot de passe" value={newTechPass} onChange={(e) => setNewTechPass(e.target.value)} style={inputStyle} /><button type="submit" disabled={isAddingTech} style={{...submitButtonStyle, marginTop: '10px'}}>{isAddingTech ? "..." : "CRÉER LE COMPTE"}</button></form>)}<button onClick={() => setShowTeamModal(false)} style={{...cancelButtonStyle, border:'none', marginTop:'10px'}}>FERMER</button></div></div>}
 
             {showResetModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowResetModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/icon-trash.svg" alt="!" style={{width:'40px', marginBottom:'15px'}}/ ><h3 style={modalTitleStyle}>VIDER ?</h3><div style={{display:'flex', gap:'10px'}}><button onClick={()=>setShowResetModal(false)} style={{...cancelButtonStyle, backgroundColor:'white', color:COLORS.DARK, border:`1px solid ${COLORS.BORDER}`, marginTop:0}}>ANNULER</button><button onClick={confirmResetMissions} style={{...submitButtonStyle, marginTop:0, backgroundColor:COLORS.DARK}}>{loading ? "..." : "CONFIRMER"}</button></div></div></div>}
 
@@ -583,6 +565,13 @@ function App() {
                         <div style={{display:'flex', alignItems:'center'}}>
                             {activeTab === 0 && <div onClick={() => setActiveTab(1)} style={navArrowStyle}><img src="/arrow.svg" alt="Go" style={{width:'14px', height:'14px'}} /></div>}
                             {activeTab === 1 && <div onClick={() => setActiveTab(0)} style={{...navArrowStyle, transform:'rotate(180deg)'}}><img src="/arrow.svg" alt="Back" style={{width:'14px', height:'14px'}} /></div>}
+                            {activeTab === 2 && <div onClick={() => setActiveTab(0)} style={{...navArrowStyle, transform:'rotate(180deg)'}}><img src="/arrow.svg" alt="Back" style={{width:'14px', height:'14px'}} /></div>}
+                            
+                            {/* Bouton Historique */}
+                            <div onClick={() => { fetchHistory(); setActiveTab(2); }} style={{cursor:'pointer', marginLeft:'10px'}} title="Historique des trajets">
+                                <Icons.History />
+                            </div>
+
                             {/* Bouton Tuto */}
                             <div onClick={() => setShowTutorial(true)} style={{cursor:'pointer', marginLeft:'10px'}}><Icons.Help/></div>
                             <button onClick={handleLogout} style={{background: 'transparent', border: 'none', color: COLORS.RED, cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', textDecoration:'underline', fontFamily:"'Inter', sans-serif", marginLeft:'15px'}}>DÉCO</button>
@@ -590,9 +579,7 @@ function App() {
                     </div>
                 </div>
 
-                {/* SLIDER CONTENT */}
-                
-                {/* FACE A : SAISIE */}
+                {/* TAB 0: SAISIE */}
                 {activeTab === 0 && (
                 <>
                     <div style={cardStyle}>
@@ -627,16 +614,10 @@ function App() {
                         )}
 
                         <form onSubmit={handleAddMission} style={{opacity: (userRole === 'admin' && !selectedTechId) ? 0.5 : 1, pointerEvents: (userRole === 'admin' && !selectedTechId) ? 'none' : 'auto', transition: '0.3s'}}>
-                            
                             <input type="text" placeholder="CLIENT" value={newName} onChange={(e) => setNewName(e.target.value)} style={inputStyle} />
-                            
-                            {/* NOUVEAU : AUTO-COMPLÉTION ADRESSE */}
                             <AddressInput placeholder="ADRESSE" value={newAddress} onChange={setNewAddress} />
-                            
-                            {/* CHAMPS TÉLÉPHONE & COMMENTAIRE */}
                             <input type="text" placeholder="TÉLÉPHONE (Optionnel)" value={newPhone} onChange={(e) => setNewPhone(e.target.value)} style={inputStyle} />
                             <input type="text" placeholder="COMMENTAIRE (Digicode, etc.)" value={newComments} onChange={(e) => setNewComments(e.target.value)} style={inputStyle} />
-
                             <div style={{display:'flex', gap:'10px', marginBottom:'5px'}}>
                                 <div style={{position: 'relative', flex: 1, userSelect: 'none'}}>
                                     <div onClick={() => setIsDropdownOpen(!isDropdownOpen)} style={{...inputStyle, display: 'flex', alignItems: 'center', cursor: 'pointer', position: 'relative', marginBottom:0}}><img src={timeSlot === 'morning' ? '/icon-morning.svg' : '/icon-afternoon.svg'} alt="time" style={{width: '18px', marginRight: '10px'}} /><span style={{flex: 1, fontSize:'13px', textTransform:'uppercase', fontWeight:'600'}}>{timeSlot === 'morning' ? 'MATIN' : 'APRÈS-MIDI'}</span></div>
@@ -644,17 +625,11 @@ function App() {
                                 </div>
                                 <div style={{width: '90px', position:'relative'}}><input type="number" min="5" step="5" value={duration} onChange={(e) => setDuration(parseInt(e.target.value) || 30)} style={{...inputStyle, textAlign:'center', marginBottom:0, paddingRight:'25px'}} /><span style={{position:'absolute', right:'10px', top:'50%', transform:'translateY(-50%)', fontSize:'10px', color:COLORS.GRAY_TEXT, fontWeight:'bold'}}>MIN</span></div>
                             </div>
-                            
-                            {/* Aide Durée */}
-                            <div style={{textAlign:'right', fontSize:'11px', color:COLORS.GRAY_TEXT, fontStyle:'italic', marginBottom:'15px'}}>
-                                Temps estimé : <strong>{formatDuration(duration)}</strong>
-                            </div>
-
+                            <div style={{textAlign:'right', fontSize:'11px', color:COLORS.GRAY_TEXT, fontStyle:'italic', marginBottom:'15px'}}>Temps estimé : <strong>{formatDuration(duration)}</strong></div>
                             <button type="submit" disabled={isAddingMission} style={{...submitButtonStyle, opacity: isAddingMission ? 0.7 : 1}}>{isAddingMission ? "..." : "AJOUTER AU TRAJET"}</button>
                         </form>
                     </div>
                     {pendingMissions.length > 0 && (<div style={{marginBottom: '20px', border: `1px dashed ${COLORS.BLUE}`, borderRadius: STANDARD_RADIUS, padding: '15px', backgroundColor: 'rgba(43, 121, 194, 0.05)'}}><div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}><h5 style={{margin:0, color:COLORS.BLUE, fontFamily:"'Oswald', sans-serif", fontSize:'14px'}}>EN ATTENTE ({pendingMissions.length})</h5></div><div style={{maxHeight:'80px', overflowY:'auto'}}>{pendingMissions.map((pm, idx) => (<div key={idx} style={{fontSize:'12px', marginBottom:'4px', display:'flex', alignItems:'center', fontFamily:"'Inter', sans-serif"}}><div style={{width:'6px', height:'6px', borderRadius:'50%', background:COLORS.BLUE, marginRight:'8px'}}></div><span style={{fontWeight:'600', marginRight:'5px', color:COLORS.DARK}}>{pm.name}</span> <span style={{color:COLORS.GRAY_TEXT}}>({formatDuration(pm.time)})</span></div>))}</div></div>)}
-
                     <div style={actionButtonsContainerStyle}>
                         <div style={buttonsRowStyle}>
                             <button onClick={handleOptimize} disabled={loading} style={optimizeButtonStyle}>{loading ? (<div style={{display:'flex', flexDirection:'column', alignItems:'center'}}><img src="/logo-truck.svg" alt="..." style={{width:'60px', opacity:0.5}} /><span style={{fontSize: '12px', color: COLORS.BLUE, fontWeight: 'bold', fontFamily: "'Oswald', sans-serif", marginTop:'5px'}}>OPTIMISATION...</span></div>) : (<div style={{position:'relative'}}><img src="/logo-truck.svg" alt="Optimize" style={{ width:'100px', height:'auto', filter: 'drop-shadow(0px 5px 10px rgba(0,0,0,0.2))' }} />{pendingMissions.length > 0 && <div style={{position:'absolute', top:'-5px', right:'-5px', background:COLORS.RED, color:'white', borderRadius:'50%', width:'24px', height:'24px', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', border:'2px solid white', boxShadow:'0 2px 5px rgba(0,0,0,0.2)'}}>{pendingMissions.length}</div>}</div>)}</button>
@@ -664,7 +639,7 @@ function App() {
                 </>
                 )}
 
-                {/* FACE B : FEUILLE DE ROUTE */}
+                {/* TAB 1: ROUTE */}
                 {activeTab === 1 && (
                     <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', height:'100%'}}>
                         <h4 style={{...cardTitleStyle, marginBottom: '15px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '16px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>FEUILLE DE ROUTE</h4>
@@ -698,6 +673,32 @@ function App() {
                                     </div>
                                 </div>
                             ); }))}
+                        </div>
+                    </div>
+                )}
+
+                {/* TAB 2: HISTORIQUE */}
+                {activeTab === 2 && (
+                    <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', height:'100%'}}>
+                        <h4 style={{...cardTitleStyle, marginBottom: '15px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '16px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>HISTORIQUE DES TRAJETS</h4>
+                        <div style={missionsListStyle}>
+                            {historyTrips.length === 0 ? <div style={{textAlign:'center', marginTop:'20px', color:COLORS.GRAY_TEXT}}>Aucun trajet archivé.</div> : historyTrips.map(trip => (
+                                <div key={trip.id} style={tripCardStyle}>
+                                    <div style={{display:'flex', justifyContent:'space-between'}}>
+                                        <div style={{fontWeight:'bold', fontFamily:"'Oswald', sans-serif"}}>{trip.name}</div>
+                                        <div style={{fontSize:'12px', color:COLORS.GRAY_TEXT}}>{new Date(trip.created_at).toLocaleDateString()}</div>
+                                    </div>
+                                    <div style={{fontSize:'13px', marginTop:'5px'}}>
+                                        🚛 {trip.tech_name || 'Non assigné'} • 📦 {trip.mission_count} Missions
+                                    </div>
+                                    <div style={{marginTop:'10px', fontSize:'12px'}}>
+                                        <span style={{backgroundColor: trip.status === 'active' ? COLORS.PASTEL_BLUE : (trip.status === 'completed' ? COLORS.PASTEL_GREEN : COLORS.BORDER), padding:'3px 8px', borderRadius:'10px', fontWeight:'bold', color:COLORS.DARK}}>
+                                            {trip.status === 'active' ? 'EN COURS' : (trip.status === 'completed' ? 'TERMINÉ ✅' : 'ARCHIVÉ')}
+                                        </span>
+                                        <span style={{marginLeft:'10px', color:COLORS.BLUE, fontWeight:'bold'}}>{trip.total_km} km</span>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}
