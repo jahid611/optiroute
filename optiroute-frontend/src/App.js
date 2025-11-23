@@ -42,7 +42,7 @@ const rootContainerStyle = (isMobile) => ({
     top: 0, left: 0, right: 0, bottom: 0,
     fontFamily: "'Inter', sans-serif", 
     backgroundColor: COLORS.BG_LIGHT, 
-    overflow: 'hidden',
+    overflow: 'hidden', // On gère le scroll dans les enfants
     zIndex: 1
 });
 
@@ -53,20 +53,21 @@ const mapContainerStyle = (isMobile, showMap) => ({
     order: isMobile ? 1 : 2, 
     borderLeft: '1px solid ' + COLORS.BORDER, 
     zIndex: 0,
-    // Sur mobile, la map prend tout l'écran moins la barre du bas (60px)
     position: isMobile ? 'absolute' : 'relative',
     top: 0, left: 0, right: 0, 
     bottom: isMobile ? '60px' : 0, 
     display: (isMobile && !showMap) ? 'none' : 'block'
 });
 
+// CORRECTION SCROLL MOBILE ICI 👇
 const panelContainerStyle = (isMobile, showPanel) => ({ 
     width: isMobile ? '100%' : '450px', 
     height: isMobile ? '100%' : '100%', 
     backgroundColor: 'rgba(255, 255, 255, 0.95)', 
     backdropFilter: 'blur(20px)', 
-    // Padding ajusté pour ne pas être caché par la nav mobile
-    padding: isMobile ? '20px 20px 80px 20px' : '30px', 
+    WebkitBackdropFilter: 'blur(20px)', 
+    // Padding bas énorme pour mobile pour passer au dessus de la navBar
+    padding: isMobile ? '20px 20px 120px 20px' : '30px', 
     boxSizing: 'border-box', 
     display: (isMobile && !showPanel) ? 'none' : 'flex', 
     flexDirection: 'column', 
@@ -74,22 +75,15 @@ const panelContainerStyle = (isMobile, showPanel) => ({
     zIndex: 1000, 
     borderTop: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, 
     boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)',
-    overflowY: 'hidden'
+    overflowY: 'auto', // IMPORTANT : Permet de scroller si le formulaire est long
+    WebkitOverflowScrolling: 'touch' // Fluidité iOS
 });
 
-// Navigation Mobile BLINDÉE (Z-Index Max)
 const mobileBottomNavStyle = {
-    position: 'fixed', 
-    bottom: 0, left: 0, right: 0, 
-    height: '60px',
-    backgroundColor: COLORS.WHITE, 
-    borderTop: '1px solid ' + COLORS.BORDER,
-    display: 'flex', 
-    justifyContent: 'space-around', 
-    alignItems: 'center',
-    zIndex: 99999, // Toujours au-dessus de tout (Map, Panel, Modales)
-    paddingBottom: 'safe-area-inset-bottom',
-    boxShadow: '0 -2px 10px rgba(0,0,0,0.05)'
+    position: 'fixed', bottom: 0, left: 0, right: 0, height: '70px',
+    backgroundColor: COLORS.WHITE, borderTop: '1px solid ' + COLORS.BORDER,
+    display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+    zIndex: 99999, paddingBottom: '10px' // Padding pour iPhone X safe area
 };
 
 const mobileNavItemStyle = (isActive) => ({
@@ -98,18 +92,18 @@ const mobileNavItemStyle = (isActive) => ({
     cursor: 'pointer', flex: 1, height: '100%', borderTop: isActive ? '3px solid '+COLORS.BLUE : '3px solid transparent'
 });
 
-const panelHeaderStyle = { marginBottom: '25px', paddingBottom: '20px', borderBottom: '2px solid ' + COLORS.DARK };
+const panelHeaderStyle = { marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid ' + COLORS.DARK };
 const proTagStyle = { fontSize: '0.4em', backgroundColor: COLORS.BLUE, color: COLORS.WHITE, padding: '3px 6px', verticalAlign: 'top', marginLeft: '8px', fontFamily: "'Inter', sans-serif", fontWeight: '700', borderRadius: '4px' };
-const cardStyle = { marginBottom: '25px', flex: 1, display:'flex', flexDirection:'column', overflow:'hidden' }; 
+const cardStyle = { marginBottom: '20px', flexShrink: 0 }; // flexShrink 0 pour ne pas écraser
 const cardTitleStyle = { margin: 0, fontWeight: '700', color: COLORS.DARK };
-const inputStyle = { width: '100%', padding: '16px 20px', marginBottom: '10px', borderRadius: PILL_RADIUS, border: '1px solid transparent', backgroundColor: COLORS.WHITE, fontSize: '16px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: '0.2s' };
+const inputStyle = { width: '100%', padding: '16px', marginBottom: '12px', borderRadius: PILL_RADIUS, border: '1px solid transparent', backgroundColor: COLORS.WHITE, fontSize: '16px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, outline: 'none', boxSizing: 'border-box', fontWeight: '500', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', transition: '0.2s' };
 const dropdownItemStyle = { padding: '12px 20px', cursor: 'pointer', display: 'flex', alignItems: 'center', fontSize: '13px', fontFamily: "'Inter', sans-serif", color: COLORS.DARK, fontWeight: '600', transition: 'background 0.2s' };
 const submitButtonStyle = { width: '100%', padding: '16px', backgroundColor: COLORS.DARK, color: COLORS.WHITE, border: 'none', borderRadius: PILL_RADIUS, fontWeight: '700', fontSize: '14px', letterSpacing: '1px', cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", transition: 'transform 0.1s', boxShadow: '0 4px 12px rgba(59, 70, 81, 0.3)' };
 const actionButtonsContainerStyle = { display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px', marginTop: 'auto' };
 const buttonsRowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', width: '100%' };
 const optimizeButtonStyle = { padding: '0', backgroundColor: 'transparent', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' };
 const resetButtonStyle = { padding: '10px', backgroundColor: 'white', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', width: '50px', height: '50px' };
-const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'auto', flex: 1, borderRadius: STANDARD_RADIUS, paddingRight: '5px' };
+const missionsListStyle = { display: 'flex', flexDirection: 'column', border: 'none', overflowY: 'visible' }; // Visible pour laisser le parent scroller
 const missionItemStyle = { backgroundColor: COLORS.WHITE, padding: '15px', marginBottom: '10px', borderRadius: STANDARD_RADIUS, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', boxShadow: '0 2px 5px rgba(0,0,0,0.03)', border: '1px solid ' + COLORS.BG_LIGHT };
 const missionInfoStyle = { flex: 1, marginRight: '10px' };
 const missionTitleStyle = { fontWeight: '700', fontSize: '14px', color: COLORS.DARK, display: 'flex', alignItems: 'center', fontFamily: "'Inter', sans-serif" };
@@ -128,30 +122,32 @@ const gpsLinkStyle = { display: 'flex', alignItems: 'center', width: '100%', pad
 const gpsIconStyle = { width: '24px', height: '24px', objectFit: 'contain', marginRight: '15px' };
 const cancelButtonStyle = { marginTop: '15px', padding: '15px', width: '100%', border: 'none', background: 'transparent', color: COLORS.GRAY_TEXT, fontWeight: '600', cursor: 'pointer', borderRadius: PILL_RADIUS, fontFamily: "'Inter', sans-serif", fontSize: '13px', textTransform: 'uppercase', letterSpacing: '1px' };
 
-const landingContainerStyle = { minHeight: '100vh', backgroundColor: COLORS.BG_LIGHT, fontFamily: "'Inter', sans-serif", color: COLORS.DARK, overflowX: 'hidden' };
+// Styles Landing & Tuto
+const landingContainerStyle = { minHeight: '100vh', backgroundColor: COLORS.BG_LIGHT, fontFamily: "'Inter', sans-serif", color: COLORS.DARK, overflowX: 'hidden', display:'flex', flexDirection:'column' };
 const navStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER };
 const heroSectionStyle = { padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' };
-const heroTitleStyle = { fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(40px, 6vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px' };
+const heroTitleStyle = { fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(30px, 5vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px' };
 const heroSubtitleStyle = { fontSize: '18px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6' };
 const ctaButtonStyle = { padding: '18px 40px', fontSize: '16px', fontWeight: '700', color: COLORS.WHITE, backgroundColor: COLORS.BLUE, border: 'none', borderRadius: PILL_RADIUS, cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", letterSpacing: '1px', boxShadow: '0 10px 25px rgba(43, 121, 194, 0.4)', transition: 'transform 0.2s' };
-const featuresGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px', padding: '60px 10%', maxWidth: '1400px', margin: '0 auto' };
-const featureCardStyle = (color) => ({ backgroundColor: COLORS.WHITE, padding: '40px', borderRadius: '24px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, position: 'relative', overflow: 'hidden' });
+const featuresGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '30px', padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' };
+const featureCardStyle = (color) => ({ backgroundColor: COLORS.WHITE, padding: '30px', borderRadius: '24px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, position: 'relative', overflow: 'hidden' });
 const tutorialContainerStyle = { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: COLORS.BG_LIGHT, zIndex: 20000, overflowY: 'auto', padding: '40px 20px' };
 const tutorialHeaderStyle = { maxWidth: '800px', margin: '0 auto 40px', textAlign: 'center' };
 const tutorialSectionStyle = { maxWidth: '800px', margin: '0 auto 30px', backgroundColor: 'white', padding: '30px', borderRadius: '20px', boxShadow: SHADOW };
 const stepNumberStyle = { display: 'inline-block', backgroundColor: COLORS.BLUE, color: 'white', width: '25px', height: '25px', borderRadius: '50%', textAlign: 'center', lineHeight: '25px', marginRight: '10px', fontWeight: 'bold', fontSize: '14px' };
 
+// --- 4. SVG ICONS ---
 const Icons = {
     User: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
     Truck: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>,
-    Help: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
+    Help: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
     Map: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>,
     Check: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
     History: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.GRAY_TEXT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>,
     List: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
 };
 
-// --- 3. UTILS ---
+// --- 3. COMPOSANTS UTILITAIRES ---
 const formatDuration = (minutes) => {
     if (!minutes) return "";
     const h = Math.floor(minutes / 60);
@@ -167,6 +163,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
         const pages = pdfDoc.getPages();
         const firstPage = pages[0];
         const { width, height } = firstPage.getSize(); 
+        
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
@@ -182,7 +179,9 @@ const generatePDF = async (mission, technicianName, companyName) => {
         firstPage.drawText(technicianName || "", { x: 100, y: row3_Y, size: 11, font: font });
         firstPage.drawText("VALIDÉ", { x: 370, y: row3_Y, size: 11, font: fontBold, color: rgb(0, 0.5, 0) });
 
-        if (mission.comments) firstPage.drawText(mission.comments, { x: 75, y: height - 465, size: 10, font: font, maxWidth: 500 });
+        if (mission.comments) {
+            firstPage.drawText(mission.comments, { x: 75, y: height - 465, size: 10, font: font, maxWidth: 500 });
+        }
 
         if (mission.signature) {
             const signatureImage = await pdfDoc.embedPng(mission.signature);
@@ -200,7 +199,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
         link.click();
     } catch (error) {
         console.error("Erreur PDF", error);
-        alert("Erreur de génération PDF. Vérifiez 'template_rapport.pdf'.");
+        alert("Erreur de génération PDF. Vérifiez 'template_rapport.pdf' dans public/.");
     }
 };
 
@@ -209,25 +208,41 @@ const AddressInput = ({ placeholder, value, onChange }) => {
     const [showSuggestions, setShowSuggestions] = useState(false);
 
     useEffect(() => {
-        const delay = setTimeout(async () => {
+        const delayDebounceFn = setTimeout(async () => {
             if (value.length > 3 && showSuggestions) {
                 try {
                     const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${value}&limit=5`);
                     const data = await response.json();
                     setSuggestions(data.features);
-                } catch (e) {}
-            } else { setSuggestions([]); }
+                } catch (e) { console.error(e); }
+            } else {
+                setSuggestions([]);
+            }
         }, 300);
-        return () => clearTimeout(delay);
+        return () => clearTimeout(delayDebounceFn);
     }, [value, showSuggestions]);
 
     return (
         <div style={{ position: 'relative', width: '100%' }}>
-            <input type="text" placeholder={placeholder} value={value} onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }} style={inputStyle} />
+            <input 
+                type="text" 
+                placeholder={placeholder} 
+                value={value} 
+                onChange={(e) => { onChange(e.target.value); setShowSuggestions(true); }} 
+                style={inputStyle} 
+            />
             {suggestions.length > 0 && showSuggestions && (
                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, backgroundColor: 'white', borderRadius: '12px', boxShadow: SHADOW, zIndex: 1000, overflow: 'hidden', marginTop: '-5px', border: '1px solid ' + COLORS.BORDER }}>
                     {suggestions.map((s, i) => (
-                        <div key={i} onClick={() => { onChange(s.properties.label); setShowSuggestions(false); }} style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px', textAlign:'left', fontFamily:"'Inter', sans-serif" }} onMouseEnter={(e) => e.target.style.backgroundColor = COLORS.BG_LIGHT} onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}>📍 {s.properties.label}</div>
+                        <div 
+                            key={i} 
+                            onClick={() => { onChange(s.properties.label); setShowSuggestions(false); }} 
+                            style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #eee', fontSize: '13px', textAlign:'left', fontFamily:"'Inter', sans-serif" }}
+                            onMouseEnter={(e) => e.target.style.backgroundColor = COLORS.BG_LIGHT}
+                            onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                        >
+                            📍 {s.properties.label}
+                        </div>
                     ))}
                 </div>
             )}
@@ -238,19 +253,34 @@ const AddressInput = ({ placeholder, value, onChange }) => {
 function MapController({ center, bounds }) {
     const map = useMap();
     useEffect(() => {
-        if (bounds && bounds.length > 0) { map.fitBounds(bounds, { padding: [50, 50] }); } 
-        else if (center) { map.flyTo(center, 13, { duration: 1.5 }); }
+        // FIX NAN ERROR : Vérifier que les coordonnées sont valides avant de bouger
+        if (bounds && bounds.length > 0 && bounds[0] && !isNaN(bounds[0][0])) {
+            map.fitBounds(bounds, { padding: [50, 50] });
+        } else if (center && !isNaN(center[0]) && !isNaN(center[1])) {
+            map.flyTo(center, 13, { duration: 1.5 });
+        }
     }, [center, bounds, map]);
     return null;
 }
 
 const createCustomIcon = (index, total, status, isMyMission) => {
-    let bgColor = '#e0e0e0'; let textColor = COLORS.DARK;
+    let bgColor = '#e0e0e0'; 
+    let textColor = COLORS.DARK;
     if (isMyMission) {
-        if (status === 'done') { bgColor = COLORS.PASTEL_RED; textColor = COLORS.GRAY_TEXT; } 
-        else { bgColor = COLORS.PASTEL_BLUE; if (index === 0) bgColor = COLORS.PASTEL_GREEN; if (index === total - 1) bgColor = COLORS.PASTEL_RED; }
+        if (status === 'done') { 
+            bgColor = COLORS.PASTEL_RED; 
+            textColor = COLORS.GRAY_TEXT; 
+        } else { 
+            bgColor = COLORS.PASTEL_BLUE; 
+            if (index === 0) bgColor = COLORS.PASTEL_GREEN; 
+            if (index === total - 1) bgColor = COLORS.PASTEL_RED; 
+        }
     }
-    return L.divIcon({ className: 'custom-marker', html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14] });
+    return L.divIcon({
+        className: 'custom-marker',
+        html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`,
+        iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14]
+    });
 };
 
 const getStepColor = (index, total, status) => {
@@ -261,8 +291,14 @@ const getStepColor = (index, total, status) => {
 };
 
 const renderClientName = (name, slot) => {
-    let iconSrc = "/icon-morning.svg"; if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
-    return (<div style={{display: 'flex', alignItems: 'center'}}><img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} /><span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.1em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span></div>);
+    let iconSrc = "/icon-morning.svg"; 
+    if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
+    return (
+        <div style={{display: 'flex', alignItems: 'center'}}>
+            <img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} />
+            <span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span>
+        </div>
+    );
 };
 
 // --- PAGES ---
@@ -302,7 +338,7 @@ const LandingPage = ({ onStart }) => (
     </div>
 );
 
-// --- 5. APP ---
+// --- 5. APPLICATION PRINCIPALE ---
 function App() {
     const API_URL = "https://optiroute-wxaz.onrender.com";
 
@@ -315,7 +351,6 @@ function App() {
     const [showLanding, setShowLanding] = useState(!token);
     const [showTutorial, setShowTutorial] = useState(false);
 
-    // TABS
     const [activeTab, setActiveTab] = useState(0);
     const [mobileTab, setMobileTab] = useState(1);
 
@@ -406,7 +441,7 @@ function App() {
                     distance_km: "0" 
                 }));
                 setRoute(mappedRoute);
-                setActiveTab(1); setMobileTab(0); // MOBILE: MAP PAR DEFAUT SI ROUTE ACTIVE
+                setActiveTab(1); setMobileTab(0); 
                 
                 if (savedPath) {
                     const parsedPath = JSON.parse(savedPath);
@@ -427,11 +462,9 @@ function App() {
         } catch (e) { console.error("Erreur history"); }
     };
 
-    // INIT APP
     useEffect(() => {
         const handleResize = () => setScreenWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
-        
         Crisp.configure("3a2abcb6-a8fd-4fc5-b856-a99c36e6ad0b");
         try { if (window.$crisp) window.$crisp.push(["do", "chat:show"]); } catch(e) {}
 
@@ -455,7 +488,6 @@ function App() {
     }, [token]);
 
     useEffect(() => { if (toast) setTimeout(() => setToast(null), 3000); }, [toast]);
-
 
     const handleAuth = async (e) => {
         e.preventDefault(); setAuthError(""); setAuthLoading(true);
@@ -487,7 +519,7 @@ function App() {
                 setMapBounds(null);
                 setSelectedTechId(added.id); 
             }
-            setToast({ message: "Technicien ajouté", type: "success" }); setShowTeamModal(false); setMobileTab(0); // Go map
+            setToast({ message: "Technicien ajouté", type: "success" }); setShowTeamModal(false); setMobileTab(0);
         } catch (error) { alert("Erreur ajout"); }
         finally { setIsAddingTech(false); }
     };
@@ -534,7 +566,7 @@ function App() {
                 localStorage.setItem('saved_route_path', JSON.stringify(response.data.path));
                 
                 if (response.data.path.length > 0) setMapBounds(response.data.path);
-                setActiveTab(1); setMobileTab(0); // MOBILE: GO MAP DIRECT
+                setActiveTab(1); setMobileTab(0); 
             } else { setRoute([]); }
             if (response.data.unassigned?.length > 0) { setUnassignedList(response.data.unassigned); setShowUnassignedModal(true); }
         } catch (error) { console.error(error); alert("Erreur"); }
@@ -635,8 +667,18 @@ function App() {
                 <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
                     <MapController center={mapCenter} bounds={mapBounds} />
-                    {technicians.map(t => (<Marker key={`tech-${t.id}`} position={[parseFloat(t.start_lat), parseFloat(t.start_lng)]}><Popup><div style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase'}}>🏠 {t.name}</div></Popup></Marker>))}
-                    {route.map((step, index) => (<Marker key={index} position={[step.lat, step.lng]} icon={createCustomIcon(index, route.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>))}
+                    {technicians.map(t => {
+                        const lat = parseFloat(t.start_lat);
+                        const lng = parseFloat(t.start_lng);
+                        if(isNaN(lat) || isNaN(lng)) return null;
+                        return (<Marker key={`tech-${t.id}`} position={[lat, lng]}><Popup><div style={{fontFamily:"'Oswald', sans-serif", textTransform:'uppercase'}}>🏠 {t.name}</div></Popup></Marker>);
+                    })}
+                    {route.map((step, index) => {
+                        const lat = parseFloat(step.lat);
+                        const lng = parseFloat(step.lng);
+                        if(isNaN(lat) || isNaN(lng)) return null;
+                        return (<Marker key={index} position={[lat, lng]} icon={createCustomIcon(index, route.length, step.status, userRole === 'tech' ? step.technician_name === userName : true)}><Popup><strong style={{fontFamily:"'Oswald', sans-serif"}}>#{step.step} {step.client}</strong></Popup></Marker>);
+                    })}
                     {routePath.length > 0 && <Polyline positions={routePath} color={COLORS.BLUE} weight={5} opacity={0.8} />}
                 </MapContainer>
             </div>
@@ -680,7 +722,6 @@ function App() {
                             <button onClick={() => setShowTeamModal(true)} style={{background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '12px', color: COLORS.BLUE, fontFamily: "'Inter', sans-serif", fontWeight: '600', textDecoration: 'underline'}}>{userRole === 'admin' ? "GÉRER L'ÉQUIPE" : "VOIR L'ÉQUIPE"}</button>
                         </div>
                         
-                        {/* SELECTEUR HORS DU FORMULAIRE */}
                         {userRole === 'admin' && (
                             <div style={{marginBottom:'15px'}}>
                                 <div style={{fontSize:'11px', fontWeight:'bold', color:COLORS.GRAY_TEXT, marginBottom:'5px'}}>AFFECTER À :</div>
@@ -688,8 +729,13 @@ function App() {
                                     {technicians.map(t => (
                                         <div key={t.id} onClick={() => {
                                             setSelectedTechId(t.id);
-                                            setMapCenter([parseFloat(t.start_lat), parseFloat(t.start_lng)]);
-                                            setMapBounds(null);
+                                            // FIX NAN
+                                            const lat = parseFloat(t.start_lat);
+                                            const lng = parseFloat(t.start_lng);
+                                            if(!isNaN(lat) && !isNaN(lng)) {
+                                                setMapCenter([lat, lng]);
+                                                setMapBounds(null);
+                                            }
                                         }} style={{
                                             padding:'8px 15px', borderRadius:PILL_RADIUS, cursor:'pointer', fontSize:'12px', fontWeight:'bold', whiteSpace:'nowrap',
                                             backgroundColor: selectedTechId === t.id ? COLORS.DARK : COLORS.WHITE,
@@ -737,7 +783,7 @@ function App() {
                 </>
                 )}
 
-                {/* VIEW 1: LISTE ROUTE (Sur Desktop c'est Tab 1, sur Mobile c'est aussi Tab 1 mais affiché différemment) */}
+                {/* VIEW 1: LISTE ROUTE (Desktop: Tab 1, Mobile: Tab 1) */}
                 {((!isMobileView && activeTab === 1) || (isMobileView && mobileTab === 1 && route.length > 0 && activeTab === 1)) && (
                     <div style={{...cardStyle, flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', height:'100%'}}>
                         <h4 style={{...cardTitleStyle, marginBottom: '15px', fontFamily: "'Oswald', sans-serif", textTransform: 'uppercase', fontSize: '16px', letterSpacing: '1px', borderBottom:`1px solid ${COLORS.BORDER}`, paddingBottom:'5px'}}>FEUILLE DE ROUTE</h4>
