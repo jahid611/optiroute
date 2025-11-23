@@ -21,21 +21,7 @@ L.Icon.Default.mergeOptions({
     shadowUrl: shadowUrl,
 });
 
-// --- 2. FONCTIONS UTILITAIRES (DÉFINIES EN PREMIER) ---
-// Indispensable pour éviter le crash "NaN"
-const isValidCoord = (n) => {
-    return !isNaN(n) && n !== null && n !== undefined && isFinite(n);
-};
-
-const formatDuration = (minutes) => {
-    if (!minutes) return "";
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    if (h > 0) return `${h}h ${m > 0 ? m + 'min' : ''}`;
-    return `${m} min`;
-};
-
-// --- 3. CONSTANTES & STYLES ---
+// --- 2. CONSTANTES & STYLES ---
 const COLORS = {
     DARK: '#3b4651', BLUE: '#2b79c2', PASTEL_BLUE: '#A0C4FF', 
     PASTEL_GREEN: '#B9FBC0', PASTEL_RED: '#FFADAD', WHITE: '#ffffff', 
@@ -53,7 +39,7 @@ const NAV_HEIGHT = '70px'; // Hauteur barre navigation mobile
 const rootContainerStyle = (isMobile) => ({ 
     display: 'flex', 
     flexDirection: isMobile ? 'column' : 'row', 
-    position: 'fixed', // Force le plein écran
+    position: 'fixed', 
     top: 0, left: 0, right: 0, bottom: 0,
     fontFamily: "'Inter', sans-serif", 
     backgroundColor: COLORS.BG_LIGHT, 
@@ -61,42 +47,36 @@ const rootContainerStyle = (isMobile) => ({
     zIndex: 1
 });
 
-// MAP : TOUJOURS VISIBLE EN FOND D'ECRAN
-const mapContainerStyle = (isMobile) => ({ 
+const mapContainerStyle = (isMobile, showMap) => ({ 
     flex: 1, 
-    height: '100%', 
+    height: isMobile ? '100%' : '100%', 
     width: '100%',
     order: isMobile ? 1 : 2, 
     borderLeft: '1px solid ' + COLORS.BORDER, 
-    zIndex: 0, // Au fond
+    zIndex: 0,
     position: isMobile ? 'absolute' : 'relative',
     top: 0, left: 0, right: 0, 
-    bottom: isMobile ? NAV_HEIGHT : 0, // S'arrête avant la nav
+    // IMPORTANT : On laisse de la place pour la nav bar en bas sur mobile
+    bottom: isMobile ? NAV_HEIGHT : 0, 
+    display: (isMobile && !showMap) ? 'none' : 'block'
 });
 
-// PANEL : SE SUPERPOSE SUR MOBILE
 const panelContainerStyle = (isMobile, showPanel) => ({ 
     width: isMobile ? '100%' : '450px', 
     height: isMobile ? '100%' : '100%', 
-    backgroundColor: 'rgba(255, 255, 255, 0.98)', // Fond opaque important
+    backgroundColor: 'rgba(255, 255, 255, 0.95)', 
     backdropFilter: 'blur(20px)', 
-    padding: isMobile ? '20px 20px 150px 20px' : '30px', // Gros padding bas pour le scroll
+    padding: isMobile ? '20px 20px 20px 20px' : '30px', 
     boxSizing: 'border-box', 
-    
-    // LOGIQUE D'AFFICHAGE MOBILE
-    display: 'flex',
-    // Si mobile et pas panneau (donc map) -> on le rend invisible et non-cliquable, MAIS il existe
-    visibility: (isMobile && !showPanel) ? 'hidden' : 'visible',
-    pointerEvents: (isMobile && !showPanel) ? 'none' : 'auto',
-    
+    display: (isMobile && !showPanel) ? 'none' : 'flex', 
     flexDirection: 'column', 
     order: isMobile ? 2 : 1, 
-    zIndex: 10, // Au dessus de la map
+    zIndex: 1000, 
     borderTop: isMobile ? 'none' : '1px solid ' + COLORS.BORDER, 
     boxShadow: isMobile ? 'none' : '5px 0 30px rgba(0,0,0,0.05)',
     overflowY: 'auto', 
     WebkitOverflowScrolling: 'touch',
-    
+    // IMPORTANT : Panel au dessus de la map mais s'arrête avant la nav bar
     position: isMobile ? 'absolute' : 'relative',
     top: 0, left: 0, right: 0, 
     bottom: isMobile ? NAV_HEIGHT : 0
@@ -106,7 +86,7 @@ const mobileBottomNavStyle = {
     position: 'fixed', bottom: 0, left: 0, right: 0, height: NAV_HEIGHT,
     backgroundColor: COLORS.WHITE, borderTop: '1px solid ' + COLORS.BORDER,
     display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-    zIndex: 99999, paddingBottom: '10px', // Padding iPhone X
+    zIndex: 99999, paddingBottom: '10px',
     boxShadow: '0 -2px 10px rgba(0,0,0,0.05)'
 };
 
@@ -151,7 +131,7 @@ const landingContainerStyle = { minHeight: '100vh', backgroundColor: COLORS.BG_L
 const navStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '20px 40px', backgroundColor: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', position: 'fixed', top: 0, width: '100%', zIndex: 1000, boxSizing: 'border-box', borderBottom: '1px solid '+COLORS.BORDER };
 const heroSectionStyle = { padding: '140px 20px 80px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' };
 const heroTitleStyle = { fontFamily: "'Oswald', sans-serif", fontSize: 'clamp(30px, 5vw, 70px)', textTransform: 'uppercase', lineHeight: '1.1', margin: '0 0 20px', maxWidth: '900px' };
-const heroSubtitleStyle = { fontSize: '18px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6' };
+const heroSubtitleStyle = { fontSize: '16px', color: COLORS.GRAY_TEXT, maxWidth: '600px', margin: '0 auto 40px', lineHeight: '1.6' };
 const ctaButtonStyle = { padding: '18px 40px', fontSize: '16px', fontWeight: '700', color: COLORS.WHITE, backgroundColor: COLORS.BLUE, border: 'none', borderRadius: PILL_RADIUS, cursor: 'pointer', textTransform: 'uppercase', fontFamily: "'Oswald', sans-serif", letterSpacing: '1px', boxShadow: '0 10px 25px rgba(43, 121, 194, 0.4)', transition: 'transform 0.2s' };
 const featuresGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '30px', padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' };
 const featureCardStyle = (color) => ({ backgroundColor: COLORS.WHITE, padding: '30px', borderRadius: '24px', border: `1px solid ${COLORS.BORDER}`, boxShadow: SHADOW, position: 'relative', overflow: 'hidden' });
@@ -171,7 +151,17 @@ const Icons = {
     List: ({color}) => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color || COLORS.BLUE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
 };
 
-// --- GENERATEUR PDF ---
+// --- 3. COMPOSANTS UTILITAIRES ---
+const isValidCoord = (n) => !isNaN(n) && n !== null && n !== undefined;
+
+const formatDuration = (minutes) => {
+    if (!minutes) return "";
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    if (h > 0) return `${h}h ${m > 0 ? m + 'min' : ''}`;
+    return `${m} min`;
+};
+
 const generatePDF = async (mission, technicianName, companyName) => {
     try {
         const existingPdfBytes = await fetch('/template_rapport.pdf').then(res => res.arrayBuffer());
@@ -179,6 +169,7 @@ const generatePDF = async (mission, technicianName, companyName) => {
         const pages = pdfDoc.getPages();
         const firstPage = pages[0];
         const { width, height } = firstPage.getSize(); 
+        
         const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
         const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
@@ -265,18 +256,15 @@ const AddressInput = ({ placeholder, value, onChange }) => {
     );
 };
 
-// MAP CONTROLLER BLINDÉ
 function MapController({ center, bounds }) {
     const map = useMap();
     useEffect(() => {
-        try {
-            if (bounds && bounds.length > 0) {
-                const validBounds = bounds.filter(p => p && isValidCoord(p[0]) && isValidCoord(p[1]));
-                if(validBounds.length > 0) map.fitBounds(validBounds, { padding: [50, 50] });
-            } else if (center && isValidCoord(center[0]) && isValidCoord(center[1])) {
-                map.flyTo(center, 13, { duration: 1.5 });
-            }
-        } catch(e) { console.error(e); }
+        if (bounds && bounds.length > 0) {
+            const validBounds = bounds.filter(p => p && isValidCoord(p[0]) && isValidCoord(p[1]));
+            if(validBounds.length > 0) map.fitBounds(validBounds, { padding: [50, 50] });
+        } else if (center && isValidCoord(center[0]) && isValidCoord(center[1])) {
+            map.flyTo(center, 13, { duration: 1.5 });
+        }
     }, [center, bounds, map]);
     return null;
 }
@@ -299,6 +287,24 @@ const createCustomIcon = (index, total, status, isMyMission) => {
         html: `<div style="background-color: ${bgColor}; width: 28px; height: 28px; border-radius: 50%; border: 2px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.15); color: ${textColor}; display: flex; align-items: center; justify-content: center; font-weight: 800; font-family: 'Inter', sans-serif; font-size: 12px;">${index + 1}</div>`,
         iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14]
     });
+};
+
+const getStepColor = (index, total, status) => {
+    if (status === 'done') return COLORS.PASTEL_RED; 
+    if (index === 0) return COLORS.PASTEL_GREEN; 
+    if (index === total - 1) return COLORS.PASTEL_RED; 
+    return COLORS.PASTEL_BLUE; 
+};
+
+const renderClientName = (name, slot) => {
+    let iconSrc = "/icon-morning.svg"; 
+    if (slot === 'afternoon') iconSrc = "/icon-afternoon.svg";
+    return (
+        <div style={{display: 'flex', alignItems: 'center'}}>
+            <img src={iconSrc} alt={slot} style={{width: '18px', height: '18px', marginRight: '8px', opacity: 0.8}} />
+            <span style={{fontFamily: "'Oswald', sans-serif", fontSize: '1.05em', letterSpacing: '0.3px', color: COLORS.DARK}}>{name}</span>
+        </div>
+    );
 };
 
 // --- PAGES ---
@@ -429,7 +435,7 @@ function App() {
                     id: m.id, step: m.route_order, client: m.client_name, time_slot: m.time_slot, address: m.address, lat: parseFloat(m.lat), lng: parseFloat(m.lng), technician_name: m.technician_name, phone: m.phone, comments: m.comments, status: m.status, signature: m.signature, distance_km: "0" 
                 }));
                 setRoute(mappedRoute);
-                setActiveTab(1); setMobileTab(0); 
+                setActiveTab(1); setMobileTab(0); // MOBILE: On ne force pas la map pour éviter confusion
                 
                 if (savedPath) {
                     try {
@@ -456,7 +462,6 @@ function App() {
         } catch (e) { console.error("Erreur history"); }
     };
 
-    // INIT APP
     useEffect(() => {
         const handleResize = () => setScreenWidth(window.innerWidth);
         window.addEventListener('resize', handleResize);
@@ -471,10 +476,8 @@ function App() {
                     const decoded = jwtDecode(token);
                     setUserRole(decoded.role); setUserId(decoded.id); setUserName(decoded.name);
                     if (decoded.role === 'tech') setSelectedTechId(decoded.id);
-                    
                     await fetchTechnicians();
                     await fetchCurrentTrip();
-                    
                 } catch (e) { handleLogout(); }
             }
         };
@@ -651,6 +654,7 @@ function App() {
             {showEmptyModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowEmptyModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><img src="/logo-truck.svg" alt="Info" style={{width:'50px', marginBottom:'15px'}} /><h3 style={modalTitleStyle}>OPTIROUTE</h3><button onClick={() => setShowEmptyModal(false)} style={submitButtonStyle}>OK</button></div></div>}
             {showUnassignedModal && <div style={{...modalOverlayStyle, zIndex: 10001}} onClick={() => setShowUnassignedModal(false)}><div style={modalContentStyle} onClick={e => e.stopPropagation()}><h3 style={{...modalTitleStyle, color: COLORS.WARNING}}>IMPOSSIBLE</h3><div style={{textAlign: 'left', backgroundColor: '#fff3e0', padding: '15px', borderRadius: STANDARD_RADIUS, marginBottom: '20px', border: `1px solid ${COLORS.WARNING}`, maxHeight:'150px', overflowY:'auto'}}>{unassignedList.map((item, i) => (<div key={i} style={{fontFamily: "'Oswald', sans-serif", color: COLORS.DARK, marginBottom: '5px', fontSize:'14px'}}>• {item.client}</div>))}</div><button onClick={() => setShowUnassignedModal(false)} style={submitButtonStyle}>COMPRIS</button></div></div>}
 
+            {/* LAYOUT RESPONSIVE */}
             <div style={mapContainerStyle(isMobileView, mobileTab === 0)}>
                 <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }} zoomControl={false}>
                     <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
@@ -759,6 +763,7 @@ function App() {
                         </form>
                     </div>
                     {pendingMissions.length > 0 && (<div style={{marginBottom: '20px', border: `1px dashed ${COLORS.BLUE}`, borderRadius: STANDARD_RADIUS, padding: '15px', backgroundColor: 'rgba(43, 121, 194, 0.05)'}}><div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}><h5 style={{margin:0, color:COLORS.BLUE, fontFamily:"'Oswald', sans-serif", fontSize:'14px'}}>EN ATTENTE ({pendingMissions.length})</h5></div><div style={{maxHeight:'80px', overflowY:'auto'}}>{pendingMissions.map((pm, idx) => (<div key={idx} style={{fontSize:'12px', marginBottom:'4px', display:'flex', alignItems:'center', fontFamily:"'Inter', sans-serif"}}><div style={{width:'6px', height:'6px', borderRadius:'50%', background:COLORS.BLUE, marginRight:'8px'}}></div><span style={{fontWeight:'600', marginRight:'5px', color:COLORS.DARK}}>{pm.name}</span> <span style={{color:COLORS.GRAY_TEXT}}>({formatDuration(pm.time)})</span></div>))}</div></div>)}
+                    
                     <div style={actionButtonsContainerStyle}>
                         <div style={buttonsRowStyle}>
                             <button onClick={handleOptimize} disabled={loading} style={optimizeButtonStyle}>{loading ? (<div style={{display:'flex', flexDirection:'column', alignItems:'center'}}><img src="/logo-truck.svg" alt="..." style={{width:'60px', opacity:0.5}} /><span style={{fontSize: '12px', color: COLORS.BLUE, fontWeight: 'bold', fontFamily: "'Oswald', sans-serif", marginTop:'5px'}}>OPTIMISATION...</span></div>) : (<div style={{position:'relative'}}><img src="/logo-truck.svg" alt="Optimize" style={{ width:'100px', height:'auto', filter: 'drop-shadow(0px 5px 10px rgba(0,0,0,0.2))' }} />{pendingMissions.length > 0 && <div style={{position:'absolute', top:'-5px', right:'-5px', background:COLORS.RED, color:'white', borderRadius:'50%', width:'24px', height:'24px', fontSize:'12px', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:'bold', border:'2px solid white', boxShadow:'0 2px 5px rgba(0,0,0,0.2)'}}>{pendingMissions.length}</div>}</div>)}</button>
